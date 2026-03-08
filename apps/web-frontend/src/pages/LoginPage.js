@@ -3,12 +3,26 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
 export default function LoginPage() {
-  const { login } = useAuth();
+  const { login, loginWithMicrosoft } = useAuth();
   const navigate = useNavigate();
   const [email, setEmail]       = useState('');
   const [password, setPassword] = useState('');
   const [error, setError]       = useState('');
   const [loading, setLoading]   = useState(false);
+  const [msLoading, setMsLoading] = useState(false);
+
+  const handleMicrosoftLogin = async () => {
+    setError('');
+    setMsLoading(true);
+    try {
+      await loginWithMicrosoft();
+      navigate('/');
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setMsLoading(false);
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -43,6 +57,10 @@ export default function LoginPage() {
             {loading ? 'Signing in...' : 'Sign In'}
           </button>
         </form>
+        <div className="divider">or</div>
+        <button type="button" className="btn btn-secondary btn-full" onClick={handleMicrosoftLogin} disabled={msLoading}>
+          {msLoading ? 'Signing in...' : 'Sign in with Microsoft'}
+        </button>
       </div>
     </div>
   );

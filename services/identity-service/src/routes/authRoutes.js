@@ -16,7 +16,10 @@ const loginSchema = Joi.object({
   password: Joi.string().required(),
 });
 
-router.post('/register', validate(registerSchema), authController.register);
-router.post('/login',    validate(loginSchema),    authController.login);
+const microsoftLoginSchema = Joi.object({ idToken: Joi.string().required() });
+
+router.post('/register',  validate(registerSchema),      authController.register);
+router.post('/login',     validate(loginSchema),          authController.login);
+router.post('/microsoft', validate(microsoftLoginSchema), authController.microsoftLogin);
 
 module.exports = router;
