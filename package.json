@@ -1,0 +1,19 @@
+{
+  "name": "task-tracker",
+  "private": true,
+  "workspaces": [
+    "services/*",
+    "apps/*",
+    "shared/*"
+  ],
+  "scripts": {
+    "dev": "bash scripts/start-dev.sh",
+    "docker:up": "docker compose -f docker/docker-compose.yml up --build",
+    "docker:down": "docker compose -f docker/docker-compose.yml down",
+    "docker:logs": "docker compose -f docker/docker-compose.yml logs -f",
+    "seed": "node scripts/seed.js"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}

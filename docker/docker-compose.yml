@@ -1,0 +1,121 @@
+version: '3.9'
+
+services:
+  mongo:
+    image: mongo:7
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USERNAME:-root}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD:-rootpassword}
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  identity-service:
+    build:
+      context: ../services/identity-service
+    restart: unless-stopped
+    ports:
+      - "3001:3001"
+    environment:
+      PORT: 3001
+      MONGO_URI: mongodb://${MONGO_ROOT_USERNAME:-root}:${MONGO_ROOT_PASSWORD:-rootpassword}@mongo:27017/identity?authSource=admin
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRES_IN: 8h
+      SERVICE_TOKEN: ${SERVICE_TOKEN}
+    depends_on:
+      mongo:
+        condition: service_healthy
+
+  task-service:
+    build:
+      context: ../services/task-service
+    restart: unless-stopped
+    ports:
+      - "3002:3002"
+    environment:
+      PORT: 3002
+      MONGO_URI: mongodb://${MONGO_ROOT_USERNAME:-root}:${MONGO_ROOT_PASSWORD:-rootpassword}@mongo:27017/tasks?authSource=admin
+      JWT_SECRET: ${JWT_SECRET}
+      SERVICE_TOKEN: ${SERVICE_TOKEN}
+    depends_on:
+      mongo:
+        condition: service_healthy
+
+  progress-service:
+    build:
+      context: ../services/progress-service
+    restart: unless-stopped
+    ports:
+      - "3003:3003"
+    environment:
+      PORT: 3003
+      MONGO_URI: mongodb://${MONGO_ROOT_USERNAME:-root}:${MONGO_ROOT_PASSWORD:-rootpassword}@mongo:27017/progress?authSource=admin
+      JWT_SECRET: ${JWT_SECRET}
+      SERVICE_TOKEN: ${SERVICE_TOKEN}
+      TASK_SERVICE_URL: http://task-service:3002
+    depends_on:
+      mongo:
+        condition: service_healthy
+      task-service:
+        condition: service_started
+
+  alert-service:
+    build:
+      context: ../services/alert-service
+    restart: unless-stopped
+    ports:
+      - "3004:3004"
+    environment:
+      PORT: 3004
+      MONGO_URI: mongodb://${MONGO_ROOT_USERNAME:-root}:${MONGO_ROOT_PASSWORD:-rootpassword}@mongo:27017/alerts?authSource=admin
+      JWT_SECRET: ${JWT_SECRET}
+      SERVICE_TOKEN: ${SERVICE_TOKEN}
+      TASK_SERVICE_URL: http://task-service:3002
+      PROGRESS_SERVICE_URL: http://progress-service:3003
+    depends_on:
+      mongo:
+        condition: service_healthy
+      task-service:
+        condition: service_started
+      progress-service:
+        condition: service_started
+
+  api-gateway:
+    build:
+      context: ../services/api-gateway
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      PORT: 3000
+      JWT_SECRET: ${JWT_SECRET}
+      IDENTITY_SERVICE_URL: http://identity-service:3001
+      TASK_SERVICE_URL: http://task-service:3002
+      PROGRESS_SERVICE_URL: http://progress-service:3003
+      ALERT_SERVICE_URL: http://alert-service:3004
+    depends_on:
+      - identity-service
+      - task-service
+      - progress-service
+      - alert-service
+
+  web-frontend:
+    build:
+      context: ../apps/web-frontend
+      args:
+        REACT_APP_API_URL: http://localhost:3000/api
+    restart: unless-stopped
+    ports:
+      - "3005:3005"
+    depends_on:
+      - api-gateway
+
+volumes:
+  mongo_data:
