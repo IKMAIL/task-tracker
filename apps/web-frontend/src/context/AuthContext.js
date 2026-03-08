@@ -20,7 +20,24 @@ export const AuthProvider = ({ children }) => {
   const loginWithMicrosoft = useCallback(async () => {
     await msalInstance.initialize();
     const msResult = await msalInstance.loginPopup(loginRequest);
-    const res = await authApi.microsoftLogin(msResult.idToken);
+    const idToken = msResult.idToken;
+    const res = await authApi.microsoftLogin(idToken);
+
+    if (res.data.mergeRequired) {
+      const err = new Error('merge_required');
+      err.mergeRequired = true;
+      err.idToken = idToken;
+      err.email = res.data.email;
+      throw err;
+    }
+
+    localStorage.setItem('token', res.data.token);
+    localStorage.setItem('user', JSON.stringify(res.data.user));
+    setUser(res.data.user);
+  }, []);
+
+  const mergeAccounts = useCallback(async (idToken, password) => {
+    const res = await authApi.microsoftMerge(idToken, password);
     localStorage.setItem('token', res.data.token);
     localStorage.setItem('user', JSON.stringify(res.data.user));
     setUser(res.data.user);
@@ -33,7 +50,7 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, login, loginWithMicrosoft, logout }}>
+    <AuthContext.Provider value={{ user, login, loginWithMicrosoft, mergeAccounts, logout }}>
       {children}
     </AuthContext.Provider>
   );

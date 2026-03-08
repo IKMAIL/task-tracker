@@ -18,8 +18,14 @@ const loginSchema = Joi.object({
 
 const microsoftLoginSchema = Joi.object({ idToken: Joi.string().required() });
 
-router.post('/register',  validate(registerSchema),      authController.register);
-router.post('/login',     validate(loginSchema),          authController.login);
-router.post('/microsoft', validate(microsoftLoginSchema), authController.microsoftLogin);
+const microsoftMergeSchema = Joi.object({
+  idToken:  Joi.string().required(),
+  password: Joi.string().required(),
+});
+
+router.post('/register',         validate(registerSchema),       authController.register);
+router.post('/login',            validate(loginSchema),           authController.login);
+router.post('/microsoft',        validate(microsoftLoginSchema),  authController.microsoftLogin);
+router.post('/microsoft/merge',  validate(microsoftMergeSchema),  authController.microsoftMerge);
 
 module.exports = router;

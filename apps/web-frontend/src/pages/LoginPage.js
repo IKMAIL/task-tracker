@@ -3,25 +3,52 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
 export default function LoginPage() {
-  const { login, loginWithMicrosoft } = useAuth();
+  const { login, loginWithMicrosoft, mergeAccounts } = useAuth();
   const navigate = useNavigate();
   const [email, setEmail]       = useState('');
   const [password, setPassword] = useState('');
   const [error, setError]       = useState('');
   const [loading, setLoading]   = useState(false);
-  const [msLoading, setMsLoading] = useState(false);
+
+  const [mergeState, setMergeState]     = useState(null); // { idToken, email }
+  const [mergePassword, setMergePassword] = useState('');
+  const [mergeError, setMergeError]     = useState('');
+  const [mergeLoading, setMergeLoading] = useState(false);
 
   const handleMicrosoftLogin = async () => {
     setError('');
-    setMsLoading(true);
+    setLoading(true);
     try {
       await loginWithMicrosoft();
       navigate('/');
     } catch (err) {
-      setError(err.message);
+      if (err.mergeRequired) {
+        setMergeState({ idToken: err.idToken, email: err.email });
+      } else if (err.errorCode !== 'user_cancelled') {
+        setError(err.message || 'Microsoft sign-in failed');
+      }
     } finally {
-      setMsLoading(false);
+      setLoading(false);
     }
+  };
+
+  const handleMergeConfirm = async () => {
+    setMergeError('');
+    setMergeLoading(true);
+    try {
+      await mergeAccounts(mergeState.idToken, mergePassword);
+      navigate('/');
+    } catch (err) {
+      setMergeError(err.message || 'Failed to merge accounts');
+    } finally {
+      setMergeLoading(false);
+    }
+  };
+
+  const handleMergeCancel = () => {
+    setMergeState(null);
+    setMergePassword('');
+    setMergeError('');
   };
 
   const handleSubmit = async (e) => {
@@ -58,10 +85,48 @@ export default function LoginPage() {
           </button>
         </form>
         <div className="divider">or</div>
-        <button type="button" className="btn btn-secondary btn-full" onClick={handleMicrosoftLogin} disabled={msLoading}>
-          {msLoading ? 'Signing in...' : 'Sign in with Microsoft'}
+        <button type="button" className="btn btn-secondary btn-full" onClick={handleMicrosoftLogin} disabled={loading}>
+          {loading ? 'Signing in...' : 'Sign in with Microsoft'}
         </button>
       </div>
+
+      {mergeState && (
+        <div className="modal-overlay">
+          <div className="modal-card">
+            <h2>Merge Accounts</h2>
+            <p>
+              An account with <strong>{mergeState.email}</strong> already exists.
+              Enter your password to link your Microsoft account.
+            </p>
+            {mergeError && <div className="error-banner">{mergeError}</div>}
+            <div className="form-group">
+              <label>Password</label>
+              <input
+                type="password"
+                value={mergePassword}
+                onChange={(e) => setMergePassword(e.target.value)}
+                autoFocus
+              />
+            </div>
+            <div className="modal-actions">
+              <button
+                className="btn btn-primary"
+                onClick={handleMergeConfirm}
+                disabled={mergeLoading || !mergePassword}
+              >
+                {mergeLoading ? 'Linking...' : 'Link Accounts'}
+              </button>
+              <button
+                className="btn btn-secondary"
+                onClick={handleMergeCancel}
+                disabled={mergeLoading}
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

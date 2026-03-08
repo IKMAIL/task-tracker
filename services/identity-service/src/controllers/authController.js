@@ -26,3 +26,12 @@ exports.microsoftLogin = async (req, res, next) => {
     next(err);
   }
 };
+
+exports.microsoftMerge = async (req, res, next) => {
+  try {
+    const result = await authService.mergeWithMicrosoft(req.body);
+    res.json({ success: true, data: result });
+  } catch (err) {
+    next(err);
+  }
+};

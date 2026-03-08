@@ -39,17 +39,19 @@ exports.login = async ({ email, password }) => {
   };
 };
 
-exports.microsoftLogin = async (idToken) => {
-  const client = jwksClient({
-    jwksUri: `https://login.microsoftonline.com/${tenantId}/discovery/v2.0/keys`,
-  });
+const jwksClientInstance = jwksClient({
+  jwksUri: `https://login.microsoftonline.com/${tenantId}/discovery/v2.0/keys`,
+  cache: true,
+  cacheMaxAge: 600000,
+});
+
+function verifyIdToken(idToken) {
   const getKey = (header, callback) => {
-    client.getSigningKey(header.kid, (err, key) => {
+    jwksClientInstance.getSigningKey(header.kid, (err, key) => {
       callback(err, key?.getPublicKey());
     });
   };
-
-  const decoded = await new Promise((resolve, reject) => {
+  return new Promise((resolve, reject) => {
     jwt.verify(idToken, getKey, { audience: clientId }, (err, payload) => {
       if (err) {
         const e = new Error('Invalid Microsoft token');
@@ -59,6 +61,18 @@ exports.microsoftLogin = async (idToken) => {
       resolve(payload);
     });
   });
+}
+
+function issueToken(user) {
+  const payload = { sub: user._id, email: user.email, role: user.role, teamId: user.teamId };
+  const token = jwt.sign(payload, process.env.JWT_SECRET, {
+    expiresIn: process.env.JWT_EXPIRES_IN || '8h',
+  });
+  return { token, user: { id: user._id, name: user.name, email: user.email, role: user.role, teamId: user.teamId } };
+}
+
+exports.microsoftLogin = async (idToken) => {
+  const decoded = await verifyIdToken(idToken);
 
   const msId  = decoded.oid;
   const email = (decoded.preferred_username || decoded.email || '').toLowerCase();
@@ -69,18 +83,42 @@ exports.microsoftLogin = async (idToken) => {
 
   if (!user) {
     user = await userRepository.create({
-      name, email, microsoftId: msId, authProvider: 'microsoft', passwordHash: 'OAUTH',
+      name, email, microsoftId: msId, authProvider: 'microsoft',
     });
-  } else if (!user.microsoftId) {
-    await userRepository.updateById(user._id, { microsoftId: msId, authProvider: 'microsoft' });
+    return issueToken(user);
   }
 
-  const payload = { sub: user._id, email: user.email, role: user.role, teamId: user.teamId };
-  const token = jwt.sign(payload, process.env.JWT_SECRET, {
-    expiresIn: process.env.JWT_EXPIRES_IN || '8h',
+  if (!user.microsoftId) {
+    // Email matches an existing local account — prompt user to merge
+    return { mergeRequired: true, email: user.email };
+  }
+
+  return issueToken(user);
+};
+
+exports.mergeWithMicrosoft = async ({ idToken, password }) => {
+  const decoded = await verifyIdToken(idToken);
+
+  const email = (decoded.preferred_username || decoded.email || '').toLowerCase();
+  const msId  = decoded.oid;
+
+  const user = await userRepository.findByEmail(email);
+  if (!user) {
+    const e = new Error('Account not found');
+    e.status = 404;
+    throw e;
+  }
+
+  const valid = await bcrypt.compare(password, user.passwordHash);
+  if (!valid) {
+    const e = new Error('Incorrect password');
+    e.status = 401;
+    throw e;
+  }
+
+  const updated = await userRepository.updateById(user._id, {
+    microsoftId: msId,
+    authProvider: 'microsoft',
   });
-  return {
-    token,
-    user: { id: user._id, name: user.name, email: user.email, role: user.role, teamId: user.teamId },
-  };
+  return issueToken(updated);
 };
