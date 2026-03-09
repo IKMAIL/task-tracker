@@ -4,7 +4,7 @@ import validate from '../middleware/validate';
 import { authenticate, requireAdmin } from '../middleware/authenticate';
 import * as teamController from '../controllers/teamController';
 
-const router = Router();
+const router: Router = Router();
 
 const createTeamSchema = Joi.object({
   name: Joi.string().min(2).max(100).required(),

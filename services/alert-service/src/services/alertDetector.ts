@@ -99,6 +99,6 @@ async function upsertAlert(
   if (!existing) {
     await alertRepository.create({ taskId: task._id as unknown as any, teamId: task.assignedTeamId as unknown as any, type, severity, message, metadata });
   } else if (existing.severity !== severity || existing.message !== message) {
-    await alertRepository.updateById(existing._id as string, { severity, message, metadata });
+    await alertRepository.updateById(existing._id as unknown as string, { severity, message, metadata });
   }
 }

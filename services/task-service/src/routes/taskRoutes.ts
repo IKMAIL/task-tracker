@@ -4,7 +4,7 @@ import validate from '../middleware/validate';
 import { authenticate, requireAdmin, requireServiceToken } from '../middleware/authenticate';
 import * as taskController from '../controllers/taskController';
 
-const router = Router();
+const router: Router = Router();
 
 const CATEGORIES = [
   'Automation Testing Coverage',

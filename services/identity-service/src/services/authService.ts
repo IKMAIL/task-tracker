@@ -68,7 +68,7 @@ export async function login({ email, password }: LoginInput): Promise<AuthResult
   }
   const payload = { sub: String(user._id), email: user.email, role: user.role, teamId: user.teamId };
   const token = jwt.sign(payload, process.env.JWT_SECRET as string, {
-    expiresIn: (process.env.JWT_EXPIRES_IN || '8h') as string,
+    expiresIn: (process.env.JWT_EXPIRES_IN || '8h') as unknown as number,
   });
   return {
     token,
@@ -109,7 +109,7 @@ function issueToken(user: {
 }): AuthResult {
   const payload = { sub: String(user._id), email: user.email, role: user.role, teamId: user.teamId };
   const token = jwt.sign(payload, process.env.JWT_SECRET as string, {
-    expiresIn: (process.env.JWT_EXPIRES_IN || '8h') as string,
+    expiresIn: (process.env.JWT_EXPIRES_IN || '8h') as unknown as number,
   });
   return {
     token,

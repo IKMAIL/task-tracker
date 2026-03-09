@@ -137,10 +137,4 @@ dist
 # Vite logs files
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
-apps/web-frontend/build/asset-manifest.json
-apps/web-frontend/build/index.html
-apps/web-frontend/build/static/css/main.70a06408.css
-apps/web-frontend/build/static/css/main.70a06408.css.map
-apps/web-frontend/build/static/js/main.5feda6bd.js
-apps/web-frontend/build/static/js/main.5feda6bd.js.LICENSE.txt
-apps/web-frontend/build/static/js/main.5feda6bd.js.map
+apps/web-frontend/build/

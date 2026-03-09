@@ -4,7 +4,7 @@ import validate from '../middleware/validate';
 import { authenticate } from '../middleware/authenticate';
 import * as progressController from '../controllers/progressController';
 
-const router = Router();
+const router: Router = Router();
 
 const STATUSES = ['not_started', 'in_progress', 'blocked', 'completed', 'cancelled'];
 
