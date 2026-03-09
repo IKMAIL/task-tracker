@@ -33,7 +33,7 @@ export const findPaginated = async (
     Task.countDocuments(query),
   ]);
   return {
-    tasks: tasks as ITask[],
+    tasks: tasks as unknown as ITask[],
     meta: { total, page: pageNum, limit: limitNum, pages: Math.ceil(total / limitNum) },
   };
 };

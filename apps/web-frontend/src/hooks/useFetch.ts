@@ -16,7 +16,6 @@ export const useFetch = <T>(fetchFn: () => Promise<T>, deps: any[] = []) => {
     } finally {
       setLoading(false);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, deps);
 
   useEffect(() => { refetch(); }, [refetch]);

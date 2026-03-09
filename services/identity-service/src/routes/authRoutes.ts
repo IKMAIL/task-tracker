@@ -3,7 +3,7 @@ import Joi from 'joi';
 import validate from '../middleware/validate';
 import * as authController from '../controllers/authController';
 
-const router = Router();
+const router: Router = Router();
 
 const registerSchema = Joi.object({
   name: Joi.string().min(2).max(100).required(),
