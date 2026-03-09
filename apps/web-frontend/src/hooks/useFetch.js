@@ -1,10 +1,10 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from "react";
 
 // Generic fetch hook — manages loading, data, and error state
 export const useFetch = (fetchFn, deps = []) => {
-  const [data, setData]       = useState(null);
+  const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError]     = useState(null);
+  const [error, setError] = useState(null);
 
   const refetch = useCallback(async () => {
     setLoading(true);
@@ -17,10 +17,11 @@ export const useFetch = (fetchFn, deps = []) => {
     } finally {
       setLoading(false);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, deps);
 
-  useEffect(() => { refetch(); }, [refetch]);
+  useEffect(() => {
+    refetch();
+  }, [refetch]);
 
   return { data, loading, error, refetch };
 };
