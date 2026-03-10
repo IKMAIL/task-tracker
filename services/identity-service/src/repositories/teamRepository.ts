@@ -1,18 +1,51 @@
 import Team from '../models/Team';
+import { logger } from '@task-tracker/utils';
 
-export const findAll = () => Team.find().lean();
+export const findAll = async () => {
+  logger.debug('teamRepository.findAll');
+  const teams = await Team.find().lean();
+  logger.debug('teamRepository.findAll result', { count: teams.length });
+  return teams;
+};
 
-export const findById = (id: string) => Team.findById(id).lean();
+export const findById = async (id: string) => {
+  logger.debug('teamRepository.findById', { id });
+  const team = await Team.findById(id).lean();
+  logger.debug('teamRepository.findById result', { id, found: !!team, team });
+  return team;
+};
 
-export const findByName = (name: string) => Team.findOne({ name }).lean();
+export const findByName = async (name: string) => {
+  logger.debug('teamRepository.findByName', { name });
+  const team = await Team.findOne({ name }).lean();
+  logger.debug('teamRepository.findByName result', { name, found: !!team, team });
+  return team;
+};
 
-export const create = (data: Record<string, unknown>) => Team.create(data);
+export const create = async (data: Record<string, unknown>) => {
+  logger.debug('teamRepository.create', { data });
+  const team = await Team.create(data);
+  logger.debug('teamRepository.create result', { teamId: String(team._id) });
+  return team;
+};
 
-export const updateById = (id: string, data: Record<string, unknown>) =>
-  Team.findByIdAndUpdate(id, { $set: data }, { new: true, runValidators: true }).lean();
+export const updateById = async (id: string, data: Record<string, unknown>) => {
+  logger.debug('teamRepository.updateById', { id, data });
+  const team = await Team.findByIdAndUpdate(id, { $set: data }, { new: true, runValidators: true }).lean();
+  logger.debug('teamRepository.updateById result', { id, found: !!team, team });
+  return team;
+};
 
-export const addMember = (teamId: string, userId: string) =>
-  Team.findByIdAndUpdate(teamId, { $addToSet: { memberIds: userId } }, { new: true }).lean();
+export const addMember = async (teamId: string, userId: string) => {
+  logger.debug('teamRepository.addMember', { teamId, userId });
+  const team = await Team.findByIdAndUpdate(teamId, { $addToSet: { memberIds: userId } }, { new: true }).lean();
+  logger.debug('teamRepository.addMember result', { teamId, userId, team });
+  return team;
+};
 
-export const removeMember = (teamId: string, userId: string) =>
-  Team.findByIdAndUpdate(teamId, { $pull: { memberIds: userId } }, { new: true }).lean();
+export const removeMember = async (teamId: string, userId: string) => {
+  logger.debug('teamRepository.removeMember', { teamId, userId });
+  const team = await Team.findByIdAndUpdate(teamId, { $pull: { memberIds: userId } }, { new: true }).lean();
+  logger.debug('teamRepository.removeMember result', { teamId, userId, team });
+  return team;
+};
