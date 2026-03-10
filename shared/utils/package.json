@@ -1,8 +1,11 @@
 {
   "name": "@task-tracker/utils",
   "version": "1.0.0",
-  "main": "src/index.js",
-  "dependencies": {
-    "node-fetch": "^2.7.0"
+  "main": "src/index.ts",
+  "dependencies": { "node-fetch": "^2.7.0" },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/node-fetch": "^2.6.11",
+    "@types/express": "^4.17.21"
   }
 }
