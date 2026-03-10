@@ -19,7 +19,8 @@ services:
 
   identity-service:
     build:
-      context: ../services/identity-service
+      context: ../
+      dockerfile: services/identity-service/Dockerfile
     restart: unless-stopped
     ports:
       - "3001:3001"
@@ -35,7 +36,8 @@ services:
 
   task-service:
     build:
-      context: ../services/task-service
+      context: ../
+      dockerfile: services/task-service/Dockerfile
     restart: unless-stopped
     ports:
       - "3002:3002"
@@ -50,7 +52,8 @@ services:
 
   progress-service:
     build:
-      context: ../services/progress-service
+      context: ../
+      dockerfile: services/progress-service/Dockerfile
     restart: unless-stopped
     ports:
       - "3003:3003"
@@ -68,7 +71,8 @@ services:
 
   alert-service:
     build:
-      context: ../services/alert-service
+      context: ../
+      dockerfile: services/alert-service/Dockerfile
     restart: unless-stopped
     ports:
       - "3004:3004"
@@ -89,7 +93,8 @@ services:
 
   api-gateway:
     build:
-      context: ../services/api-gateway
+      context: ../
+      dockerfile: services/api-gateway/Dockerfile
     restart: unless-stopped
     ports:
       - "3000:3000"
