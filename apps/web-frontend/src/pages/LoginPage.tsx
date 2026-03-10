@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
@@ -8,7 +8,7 @@ interface MergeState {
 }
 
 export default function LoginPage(): React.ReactElement {
-  const { login, loginWithMicrosoft, mergeAccounts } = useAuth();
+  const { login, loginWithMicrosoft, mergeAccounts, pendingMerge, clearPendingMerge } = useAuth();
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -18,6 +18,12 @@ export default function LoginPage(): React.ReactElement {
   const [mergePassword, setMergePassword] = useState('');
   const [mergeError, setMergeError] = useState('');
   const [mergeLoading, setMergeLoading] = useState(false);
+
+  useEffect(() => {
+    if (pendingMerge) {
+      setMergeState({ idToken: pendingMerge.idToken, email: pendingMerge.email });
+    }
+  }, [pendingMerge]);
 
   const handleMicrosoftLogin = async () => {
     setError('');
@@ -43,6 +49,7 @@ export default function LoginPage(): React.ReactElement {
     setMergeLoading(true);
     try {
       await mergeAccounts(mergeState.idToken, mergePassword);
+      clearPendingMerge();
       navigate('/');
     } catch (err: unknown) {
       setMergeError((err as Error).message || 'Failed to merge accounts');

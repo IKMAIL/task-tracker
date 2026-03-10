@@ -4,7 +4,8 @@ import { useAuth } from '../../context/AuthContext';
 import Header from './Header';
 
 export default function PrivateRoute() {
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
+  if (loading) return null;
   if (!user) return <Navigate to="/login" replace />;
   return (<><Header /><main className="main-content"><Outlet /></main></>);
 }
