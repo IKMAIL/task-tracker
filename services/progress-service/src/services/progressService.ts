@@ -1,6 +1,7 @@
 import fetch from 'node-fetch';
 import * as progressRepository from '../repositories/progressRepository';
 import { ITaskUpdate } from '../models/TaskUpdate';
+import { logger } from '../../../../shared/utils/src/logger';
 
 interface SyncData {
   completionPct: number;
@@ -11,6 +12,7 @@ interface SyncData {
 
 const syncToTask = async (taskId: string, syncData: SyncData): Promise<void> => {
   const url = `${process.env.TASK_SERVICE_URL}/tasks/${taskId}/progress-sync`;
+  logger.debug('progress-service: syncing to task-service', { taskId, completionPct: syncData.completionPct, status: syncData.status });
   try {
     const res = await fetch(url, {
       method: 'PUT',
@@ -21,15 +23,18 @@ const syncToTask = async (taskId: string, syncData: SyncData): Promise<void> => 
       body: JSON.stringify(syncData),
     });
     if (!res.ok) {
-      console.error(`Task sync failed for ${taskId}: HTTP ${res.status}`);
+      logger.error('progress-service: task sync failed', { taskId, httpStatus: res.status });
+    } else {
+      logger.debug('progress-service: task sync succeeded', { taskId });
     }
   } catch (err) {
-    console.error(`Task sync error for ${taskId}:`, (err as Error).message);
+    logger.error('progress-service: task sync error', { taskId, error: (err as Error).message });
   }
 };
 
 export const logUpdate = async (dto: Partial<ITaskUpdate> & { taskId: string; completionPct: number; status: string; nextUpdateDate?: Date | null }, authorId: string) => {
   const update = await progressRepository.create({ ...dto, authorId: authorId as unknown as ITaskUpdate['authorId'] });
+  logger.info('progress update logged', { taskId: dto.taskId, authorId, completionPct: dto.completionPct, status: dto.status });
   syncToTask(dto.taskId, {
     completionPct: dto.completionPct,
     status: dto.status,

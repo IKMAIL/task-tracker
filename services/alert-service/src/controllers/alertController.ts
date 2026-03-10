@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import * as alertService from '../services/alertService';
 import * as alertDetector from '../services/alertDetector';
+import { logger } from '../../../../shared/utils/src/logger';
 
 export const list = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
@@ -41,7 +42,8 @@ export const resolve = async (req: Request, res: Response, next: NextFunction): 
 
 export const runDetection = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    alertDetector.runDetection().catch((err: Error) => console.error('Background detection error:', err.message));
+    logger.info('alert-controller: manual detection triggered', { userId: req.user?.sub });
+    alertDetector.runDetection().catch((err: Error) => logger.error('alert-controller: background detection failed', { error: err.message, stack: err.stack }));
     res.json({ success: true, data: { message: 'Detection started' } });
   } catch (err) {
     next(err);

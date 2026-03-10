@@ -3,6 +3,7 @@ import { RequestHandler, Request, Response } from 'express';
 import http from 'http';
 import net from 'net';
 import url from 'url';
+import { logger } from '../../../../shared/utils/src/logger';
 
 export const createProxy = (target: string, pathRewrite: Record<string, string>): RequestHandler =>
   createProxyMiddleware({
@@ -10,8 +11,8 @@ export const createProxy = (target: string, pathRewrite: Record<string, string>)
     changeOrigin: true,
     pathRewrite,
     on: {
-      error: (err: Error, _req: Request, res: Response | http.ServerResponse | net.Socket, _target?: string | Partial<url.Url>) => {
-        console.error(`Proxy error to ${target}:`, err.message);
+      error: (err: Error, req: Request, res: Response | http.ServerResponse | net.Socket, _target?: string | Partial<url.Url>) => {
+        logger.error('proxy error', { target, error: err.message, method: req.method, path: req.path });
         if (res instanceof http.ServerResponse) {
           (res as Response).status(502).json({ success: false, error: { message: 'Service unavailable' } });
         }

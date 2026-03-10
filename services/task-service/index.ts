@@ -4,17 +4,19 @@ import cors from 'cors';
 import connectDB from './src/config/db';
 import taskRoutes from './src/routes/taskRoutes';
 import errorHandler from './src/utils/errorHandler';
+import { logger, requestLogger } from '../../shared/utils/src/logger';
 
 const app = express();
 const PORT = process.env.PORT || 3002;
 
 app.use(cors());
 app.use(express.json());
+app.use(requestLogger);
 
 app.get('/health', (req, res) => res.json({ status: 'ok', service: 'task-service' }));
 app.use('/tasks', taskRoutes);
 app.use(errorHandler);
 
 connectDB().then(() => {
-  app.listen(PORT, () => console.log(`task-service running on port ${PORT}`));
+  app.listen(PORT, () => logger.info('task-service started', { port: PORT }));
 });
