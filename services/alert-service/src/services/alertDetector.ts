@@ -1,6 +1,7 @@
 import fetch from 'node-fetch';
 import * as alertRepository from '../repositories/alertRepository';
 import { AlertSeverity, AlertType } from '../models/Alert';
+import { logger } from '../../../../shared/utils/src/logger';
 
 const BEHIND_THRESHOLD = 15;
 const STALLED_DAYS = 7;
@@ -19,22 +20,29 @@ interface Task {
 
 const fetchActiveTasks = async (): Promise<Task[]> => {
   const url = `${process.env.TASK_SERVICE_URL}/tasks?limit=1000`;
+  logger.debug('alert-detector: fetching active tasks', { url });
   const res = await fetch(url, { headers: { 'X-Service-Token': process.env.SERVICE_TOKEN || '' } });
-  if (!res.ok) throw new Error(`Failed to fetch tasks: HTTP ${res.status}`);
+  if (!res.ok) {
+    logger.error('alert-detector: failed to fetch tasks', { status: res.status, url });
+    throw new Error(`Failed to fetch tasks: HTTP ${res.status}`);
+  }
   const body = await res.json() as { data?: Task[] };
-  return (body.data || []).filter((t) => !['completed', 'cancelled'].includes(t.status));
+  const active = (body.data || []).filter((t) => !['completed', 'cancelled'].includes(t.status));
+  logger.debug('alert-detector: tasks fetched', { total: body.data?.length ?? 0, active: active.length });
+  return active;
 };
 
 export const runDetection = async (): Promise<void> => {
   const tasks = await fetchActiveTasks();
   const now = new Date();
-  console.log(`Alert detection: checking ${tasks.length} active tasks`);
+  logger.info('alert-detector: detection started', { activeTasks: tasks.length });
   for (const task of tasks) {
     await detectPastDue(task, now);
     await detectUpdateOverdue(task, now);
     await detectBehindSchedule(task, now);
     await detectStalled(task, now);
   }
+  logger.info('alert-detector: detection completed', { activeTasks: tasks.length });
 };
 
 async function detectPastDue(task: Task, now: Date): Promise<void> {
@@ -98,7 +106,9 @@ async function upsertAlert(
   const existing = await alertRepository.findActiveByTaskAndType(task._id, type);
   if (!existing) {
     await alertRepository.create({ taskId: task._id as unknown as any, teamId: task.assignedTeamId as unknown as any, type, severity, message, metadata });
+    logger.info('alert created', { taskId: task._id, type, severity });
   } else if (existing.severity !== severity || existing.message !== message) {
     await alertRepository.updateById(existing._id as unknown as string, { severity, message, metadata });
+    logger.info('alert updated', { alertId: String(existing._id), taskId: task._id, type, severity });
   }
 }
