@@ -6,73 +6,88 @@
  * Set ADMIN_EMAIL and ADMIN_PASSWORD env vars to override defaults.
  */
 
-const BASE_URL: string = process.env.API_URL || 'http://localhost:3000/api';
-const ADMIN_EMAIL: string    = process.env.ADMIN_EMAIL    || 'admin@tasktracker.local';
-const ADMIN_PASSWORD: string = process.env.ADMIN_PASSWORD || 'Admin123!';
+const BASE_URL: string = process.env.API_URL || "http://localhost:3000/api";
+const ADMIN_EMAIL: string = process.env.ADMIN_EMAIL || "admin@tasktracker.com";
+const ADMIN_PASSWORD: string = process.env.ADMIN_PASSWORD || "Admin123!";
 
 const TEAM_NAMES: string[] = [
-  'Team Alpha', 'Team Beta', 'Team Gamma', 'Team Delta',
-  'Team Epsilon', 'Team Zeta', 'Team Eta',
+  "Team Alpha",
+  "Team Beta",
+  "Team Gamma",
+  "Team Delta",
+  "Team Epsilon",
+  "Team Zeta",
+  "Team Eta",
 ];
 
 const CATEGORIES: string[] = [
-  'Automation Testing Coverage',
-  'DR Dry Run',
-  'Active-Active Setup',
-  'LEAP Framework Adherence',
-  'Claude Code Adoption %',
-  'Open Operational Items',
-  'Security Risk Items',
+  "Automation Testing Coverage",
+  "DR Dry Run",
+  "Active-Active Setup",
+  "LEAP Framework Adherence",
+  "Claude Code Adoption %",
+  "Open Operational Items",
+  "Security Risk Items",
 ];
 
-async function request(method: string, path: string, body?: Record<string, unknown>, token?: string): Promise<any> {
+async function request(
+  method: string,
+  path: string,
+  body?: Record<string, unknown>,
+  token?: string,
+): Promise<any> {
   const res = await fetch(`${BASE_URL}${path}`, {
     method,
     headers: {
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json",
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
     },
     body: body ? JSON.stringify(body) : undefined,
   });
-  const data = await res.json();
+  const data = (await res.json()) as any;
   if (!res.ok) throw new Error(data.error?.message || `HTTP ${res.status}`);
   return data.data;
 }
 
 async function main(): Promise<void> {
-  console.log('Seeding Task Tracker...');
+  console.log("Seeding Task Tracker...");
 
   // 1. Register admin user (ignore error if already exists)
-  console.log('\n→ Creating admin user...');
+  console.log("\n→ Creating admin user...");
   try {
-    await request('POST', '/auth/register', {
-      name: 'Admin User',
+    await request("POST", "/auth/register", {
+      name: "Admin User",
       email: ADMIN_EMAIL,
       password: ADMIN_PASSWORD,
-      role: 'admin',
+      role: "admin",
     });
-    console.log('  Admin user created');
+    console.log("  Admin user created");
   } catch (err) {
-    console.log('  Admin user already exists (skipping)');
+    console.log("  Admin user already exists (skipping)");
   }
 
   // 2. Login to get token
-  const { token } = await request('POST', '/auth/login', {
+  const { token } = await request("POST", "/auth/login", {
     email: ADMIN_EMAIL,
     password: ADMIN_PASSWORD,
   });
-  console.log('  Logged in as admin');
+  console.log("  Logged in as admin");
 
   // 3. Create teams
-  console.log('\n→ Creating teams...');
+  console.log("\n→ Creating teams...");
   const teams: any[] = [];
   for (const name of TEAM_NAMES) {
     try {
-      const team = await request('POST', '/teams', { name, description: `Engineering team: ${name}` }, token);
+      const team = await request(
+        "POST",
+        "/teams",
+        { name, description: `Engineering team: ${name}` },
+        token,
+      );
       teams.push(team);
       console.log(`  Created team: ${name}`);
     } catch (err: any) {
-      if (err.message.includes('already exists')) {
+      if (err.message.includes("already exists")) {
         console.log(`  Team already exists: ${name} (skipping)`);
       } else {
         console.error(`  Failed to create team ${name}:`, err.message);
@@ -81,46 +96,54 @@ async function main(): Promise<void> {
   }
 
   if (teams.length === 0) {
-    console.log('\nNo new teams created. Exiting.');
+    console.log("\nNo new teams created. Exiting.");
     return;
   }
 
   // 4. Create sample tasks — one per category per team
-  console.log('\n→ Creating sample tasks...');
-  const now         = new Date();
-  const startDate   = new Date(now.getFullYear(), now.getMonth(), 1);    // start of this month
-  const dueDate     = new Date(now.getFullYear(), now.getMonth() + 3, 0); // end of next 3 months
-  const nextUpdate  = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000); // 1 week from now
+  console.log("\n→ Creating sample tasks...");
+  const now = new Date();
+  const startDate = new Date(now.getFullYear(), now.getMonth(), 1); // start of this month
+  const dueDate = new Date(now.getFullYear(), now.getMonth() + 3, 0); // end of next 3 months
+  const nextUpdate = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000); // 1 week from now
 
   let taskCount = 0;
   for (const team of teams) {
     for (const category of CATEGORIES) {
       try {
-        await request('POST', '/tasks', {
-          title:            `[${team.name}] ${category}`,
-          description:      `Track ${category} progress for ${team.name}.`,
-          category,
-          assignedTeamId:   team._id,
-          status:           'in_progress',
-          completionPct:    Math.floor(Math.random() * 60),
-          plannedStartDate: startDate.toISOString(),
-          dueDate:          dueDate.toISOString(),
-          nextUpdateDate:   nextUpdate.toISOString(),
-        }, token);
+        await request(
+          "POST",
+          "/tasks",
+          {
+            title: `[${team.name}] ${category}`,
+            description: `Track ${category} progress for ${team.name}.`,
+            category,
+            assignedTeamId: team._id,
+            status: "in_progress",
+            completionPct: Math.floor(Math.random() * 60),
+            plannedStartDate: startDate.toISOString(),
+            dueDate: dueDate.toISOString(),
+            nextUpdateDate: nextUpdate.toISOString(),
+          },
+          token,
+        );
         taskCount++;
       } catch (err: any) {
-        console.error(`  Failed task for ${team.name}/${category}:`, err.message);
+        console.error(
+          `  Failed task for ${team.name}/${category}:`,
+          err.message,
+        );
       }
     }
   }
   console.log(`  Created ${taskCount} tasks`);
 
-  console.log('\n✓ Seed complete!');
+  console.log("\n✓ Seed complete!");
   console.log(`  Admin login: ${ADMIN_EMAIL} / ${ADMIN_PASSWORD}`);
   console.log(`  Frontend:    http://localhost:3005`);
 }
 
 main().catch((err: Error) => {
-  console.error('Seed failed:', err.message);
+  console.error("Seed failed:", err.message);
   process.exit(1);
 });
