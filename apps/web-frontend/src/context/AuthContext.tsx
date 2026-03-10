@@ -3,6 +3,7 @@ import {
   useState,
   useCallback,
   useContext,
+  useEffect,
   ReactNode,
 } from "react";
 import * as authApi from "../api/authApi";
@@ -15,14 +16,16 @@ export interface User {
   role: string;
 }
 
-interface MergeError extends Error {
-  mergeRequired?: boolean;
-  idToken?: string;
-  email?: string;
+interface PendingMerge {
+  idToken: string;
+  email: string;
 }
 
 interface AuthContextValue {
   user: User | null;
+  loading: boolean;
+  pendingMerge: PendingMerge | null;
+  clearPendingMerge: () => void;
   login: (email: string, password: string) => Promise<void>;
   loginWithMicrosoft: () => Promise<void>;
   mergeAccounts: (idToken: string, password: string) => Promise<void>;
@@ -39,6 +42,33 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       return null;
     }
   });
+  const [loading, setLoading] = useState(true);
+  const [pendingMerge, setPendingMerge] = useState<PendingMerge | null>(null);
+
+  useEffect(() => {
+    const handleMsalRedirect = async () => {
+      try {
+        await msalInstance.initialize();
+        const result = await msalInstance.handleRedirectPromise();
+        if (result?.idToken) {
+          const idToken = result.idToken;
+          const res = await authApi.microsoftLogin(idToken);
+          if (res.data.mergeRequired) {
+            setPendingMerge({ idToken, email: res.data.email });
+          } else {
+            localStorage.setItem("token", res.data.token);
+            localStorage.setItem("user", JSON.stringify(res.data.user));
+            setUser(res.data.user);
+          }
+        }
+      } catch {
+        // Redirect processing failed; fall through to normal login flow
+      } finally {
+        setLoading(false);
+      }
+    };
+    handleMsalRedirect();
+  }, []);
 
   const login = useCallback(async (email: string, password: string) => {
     const res = await authApi.login(email, password);
@@ -50,23 +80,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const loginWithMicrosoft = useCallback(async () => {
     await msalInstance.initialize();
     await msalInstance.loginRedirect(loginRequest);
-    const result = await msalInstance.handleRedirectPromise();
-
-    if (result) {
-      const idToken = result.idToken;
-      const res = await authApi.microsoftLogin(idToken);
-      if (res.data.mergeRequired) {
-        const err: MergeError = new Error("merge_required");
-        err.mergeRequired = true;
-        err.idToken = idToken;
-        err.email = res.data.email;
-        throw err;
-      }
-      console.error("Microsoft login successful:", res.data);
-      localStorage.setItem("token", res.data.token);
-      localStorage.setItem("user", JSON.stringify(res.data.user));
-      setUser(res.data.user);
-    }
   }, []);
 
   const mergeAccounts = useCallback(
@@ -79,6 +92,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     [],
   );
 
+  const clearPendingMerge = useCallback(() => {
+    setPendingMerge(null);
+  }, []);
+
   const logout = useCallback(() => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
@@ -87,7 +104,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   return (
     <AuthContext.Provider
-      value={{ user, login, loginWithMicrosoft, mergeAccounts, logout }}
+      value={{ user, loading, pendingMerge, clearPendingMerge, login, loginWithMicrosoft, mergeAccounts, logout }}
     >
       {children}
     </AuthContext.Provider>
