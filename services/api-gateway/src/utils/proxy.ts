@@ -3,7 +3,7 @@ import { RequestHandler, Request, Response } from 'express';
 import http from 'http';
 import net from 'net';
 import url from 'url';
-import { logger } from '../../../../shared/utils/src/logger';
+import { logger } from '@task-tracker/utils';
 
 export const createProxy = (target: string, pathRewrite: Record<string, string>): RequestHandler =>
   createProxyMiddleware({

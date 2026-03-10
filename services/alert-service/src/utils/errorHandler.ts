@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { logger } from '../../../../shared/utils/src/logger';
+import { logger } from '@task-tracker/utils';
 
 interface HttpError extends Error {
   status?: number;

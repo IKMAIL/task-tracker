@@ -1,7 +1,7 @@
 import fetch from 'node-fetch';
 import * as alertRepository from '../repositories/alertRepository';
 import { AlertSeverity, AlertType } from '../models/Alert';
-import { logger } from '../../../../shared/utils/src/logger';
+import { logger } from '@task-tracker/utils';
 
 const BEHIND_THRESHOLD = 15;
 const STALLED_DAYS = 7;

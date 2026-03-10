@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-import { logger } from '../../../../shared/utils/src/logger';
+import { logger } from '@task-tracker/utils';
 
 export default async function connectDB(): Promise<void> {
   const uri = process.env.MONGO_URI;

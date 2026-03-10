@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import * as alertService from '../services/alertService';
 import * as alertDetector from '../services/alertDetector';
-import { logger } from '../../../../shared/utils/src/logger';
+import { logger } from '@task-tracker/utils';
 
 export const list = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {

@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
-import { logger } from '../../../../shared/utils/src/logger';
+import { logger } from '@task-tracker/utils';
 
 export const authenticate = (req: Request, res: Response, next: NextFunction): void => {
   const header = req.headers.authorization;

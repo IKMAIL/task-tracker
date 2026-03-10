@@ -1,7 +1,7 @@
 import * as taskRepository from '../repositories/taskRepository';
 import { ITask } from '../models/Task';
 import { PaginationOptions } from '../repositories/taskRepository';
-import { logger } from '../../../../shared/utils/src/logger';
+import { logger } from '@task-tracker/utils';
 
 export interface TaskFilters {
   teamId?: string;

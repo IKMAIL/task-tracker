@@ -3,7 +3,7 @@ import * as taskService from '../services/taskService';
 
 export const create = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const task = await taskService.createTask(req.body, req.user.sub);
+    const task = await taskService.createTask(req.body, req.user!.sub!);
     res.status(201).json({ success: true, data: task });
   } catch (err) {
     next(err);

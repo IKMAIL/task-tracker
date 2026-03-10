@@ -6,7 +6,7 @@ import authRoutes from './src/routes/authRoutes';
 import userRoutes from './src/routes/userRoutes';
 import teamRoutes from './src/routes/teamRoutes';
 import errorHandler from './src/utils/errorHandler';
-import { logger, requestLogger } from '../../shared/utils/src/logger';
+import { logger, requestLogger } from '@task-tracker/utils';
 
 const app = express();
 const PORT = process.env.PORT || 3001;

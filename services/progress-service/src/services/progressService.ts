@@ -1,7 +1,7 @@
 import fetch from 'node-fetch';
 import * as progressRepository from '../repositories/progressRepository';
 import { ITaskUpdate } from '../models/TaskUpdate';
-import { logger } from '../../../../shared/utils/src/logger';
+import { logger } from '@task-tracker/utils';
 
 interface SyncData {
   completionPct: number;
