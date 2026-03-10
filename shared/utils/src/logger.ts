@@ -1,5 +1,14 @@
 import { Request, Response, NextFunction } from 'express';
 
+declare global {
+  // eslint-disable-next-line @typescript-eslint/no-namespace
+  namespace Express {
+    interface Request {
+      user?: { sub?: string; [key: string]: unknown };
+    }
+  }
+}
+
 const log = (level: string, message: string, meta: Record<string, unknown> = {}): void => {
   process.stdout.write(
     JSON.stringify({ timestamp: new Date().toISOString(), level, message, ...meta }) + '\n'

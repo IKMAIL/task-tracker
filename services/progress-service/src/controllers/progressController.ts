@@ -3,7 +3,7 @@ import * as progressService from '../services/progressService';
 
 export const log = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const update = await progressService.logUpdate(req.body, req.user.sub);
+    const update = await progressService.logUpdate(req.body, req.user!.sub!);
     res.status(201).json({ success: true, data: update });
   } catch (err) {
     next(err);

@@ -4,7 +4,7 @@ import cors from 'cors';
 import connectDB from './src/config/db';
 import progressRoutes from './src/routes/progressRoutes';
 import errorHandler from './src/utils/errorHandler';
-import { logger, requestLogger } from '../../shared/utils/src/logger';
+import { logger, requestLogger } from '@task-tracker/utils';
 
 const app = express();
 const PORT = process.env.PORT || 3003;

@@ -1,6 +1,6 @@
 import cron from 'node-cron';
 import { runDetection } from '../services/alertDetector';
-import { logger } from '../../../../shared/utils/src/logger';
+import { logger } from '@task-tracker/utils';
 
 export default function startScheduler(): void {
   cron.schedule('0 6 * * *', async () => {

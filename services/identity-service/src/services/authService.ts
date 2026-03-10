@@ -3,7 +3,7 @@ import jwt from 'jsonwebtoken';
 import jwksClient from 'jwks-rsa';
 import * as userRepository from '../repositories/userRepository';
 import msalConfig from '../config/msalConfig';
-import { logger } from '../../../../shared/utils/src/logger';
+import { logger } from '@task-tracker/utils';
 
 const { clientId, tenantId } = msalConfig;
 

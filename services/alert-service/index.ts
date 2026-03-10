@@ -5,7 +5,7 @@ import connectDB from './src/config/db';
 import alertRoutes from './src/routes/alertRoutes';
 import startScheduler from './src/utils/scheduler';
 import errorHandler from './src/utils/errorHandler';
-import { logger, requestLogger } from '../../shared/utils/src/logger';
+import { logger, requestLogger } from '@task-tracker/utils';
 
 const app = express();
 const PORT = process.env.PORT || 3004;

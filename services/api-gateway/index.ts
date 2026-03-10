@@ -6,7 +6,7 @@ import { authenticate } from "./src/middleware/authenticate";
 import { createProxy } from "./src/utils/proxy";
 import services from "./src/config/services";
 import path from "path";
-import { logger, requestLogger } from "../../shared/utils/src/logger";
+import { logger, requestLogger } from '@task-tracker/utils';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
