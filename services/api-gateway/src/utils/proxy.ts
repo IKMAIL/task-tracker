@@ -11,10 +11,10 @@ export const createProxy = (target: string, pathRewrite: Record<string, string>)
     changeOrigin: true,
     pathRewrite,
     on: {
-      proxyReq: (proxyReq, req: Request) => {
+      proxyReq: (proxyReq: any, req: Request) => {
         logger.debug('proxy request', { target, method: req.method, path: req.path, rewrittenPath: proxyReq.path });
       },
-      proxyRes: (proxyRes, req: Request) => {
+      proxyRes: (proxyRes: any, req: Request) => {
         logger.debug('proxy response', { target, method: req.method, path: req.path, status: proxyRes.statusCode });
       },
       error: (err: Error, req: Request, res: Response | http.ServerResponse | net.Socket, _target?: string | Partial<url.Url>) => {

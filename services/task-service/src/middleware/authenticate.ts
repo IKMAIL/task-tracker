@@ -11,6 +11,7 @@ export const authenticate = (req: Request, res: Response, next: NextFunction): v
   }
   try {
     req.user = jwt.verify(header.slice(7), process.env.JWT_SECRET as string) as Request['user'];
+    logger.debug('auth: token verified', { method: req.method, path: req.path, sub: req.user?.sub, role: req.user?.role, teamId: req.user?.teamId });
     next();
   } catch (err) {
     logger.warn('auth: invalid token', { method: req.method, path: req.path, error: (err as Error).message });
@@ -33,5 +34,6 @@ export const requireServiceToken = (req: Request, res: Response, next: NextFunct
     res.status(403).json({ success: false, error: { message: 'Invalid service token' } });
     return;
   }
+  logger.debug('auth: service token verified', { method: req.method, path: req.path });
   next();
 };

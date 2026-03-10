@@ -89,7 +89,9 @@ const jwksClientInstance = jwksClient({
 });
 
 function verifyIdToken(idToken: string): Promise<jwt.JwtPayload> {
+  logger.debug('authService.verifyIdToken', { audience: clientId });
   const getKey: jwt.GetPublicKeyOrSecret = (header, callback) => {
+    logger.debug('authService.verifyIdToken: fetching signing key', { kid: header.kid });
     jwksClientInstance.getSigningKey(header.kid as string, (err, key) => {
       callback(err, key?.getPublicKey());
     });
@@ -97,11 +99,14 @@ function verifyIdToken(idToken: string): Promise<jwt.JwtPayload> {
   return new Promise((resolve, reject) => {
     jwt.verify(idToken, getKey, { audience: clientId }, (err, decoded) => {
       if (err || !decoded) {
+        logger.warn('authService.verifyIdToken: invalid token', { error: (err as Error)?.message });
         const e = new Error('Invalid Microsoft token') as Error & { status: number };
         e.status = 401;
         return reject(e);
       }
-      resolve(decoded as jwt.JwtPayload);
+      const payload = decoded as jwt.JwtPayload;
+      logger.debug('authService.verifyIdToken result', { oid: payload.oid, email: payload.preferred_username || payload.email, name: payload.name });
+      resolve(payload);
     });
   });
 }
@@ -114,9 +119,11 @@ function issueToken(user: {
   teamId?: unknown;
 }): AuthResult {
   const payload = { sub: String(user._id), email: user.email, role: user.role, teamId: user.teamId };
+  logger.debug('authService.issueToken', { sub: payload.sub, email: payload.email, role: payload.role, teamId: payload.teamId });
   const token = jwt.sign(payload, process.env.JWT_SECRET as string, {
     expiresIn: (process.env.JWT_EXPIRES_IN || '8h') as unknown as number,
   });
+  logger.debug('authService.issueToken: token signed', { sub: payload.sub });
   return {
     token,
     user: { id: user._id, name: user.name, email: user.email, role: user.role, teamId: user.teamId },
@@ -128,9 +135,13 @@ export async function microsoftLogin(idToken: string): Promise<AuthResult | Merg
   const msId = decoded.oid as string;
   const email = ((decoded.preferred_username || decoded.email || '') as string).toLowerCase();
   const name = (decoded.name as string) || email;
+  logger.debug('authService.microsoftLogin: decoded token claims', { msId, email, name });
 
   let user = await userRepository.findByMicrosoftId(msId);
-  if (!user && email) user = await userRepository.findByEmail(email);
+  if (!user && email) {
+    logger.debug('authService.microsoftLogin: no user by microsoftId, falling back to email lookup', { msId, email });
+    user = await userRepository.findByEmail(email);
+  }
 
   if (!user) {
     const created = await userRepository.create({ name, email, microsoftId: msId, authProvider: 'microsoft' });
@@ -151,14 +162,17 @@ export async function mergeWithMicrosoft({ idToken, password }: MergeInput): Pro
   const decoded = await verifyIdToken(idToken);
   const email = ((decoded.preferred_username || decoded.email || '') as string).toLowerCase();
   const msId = decoded.oid as string;
+  logger.debug('authService.mergeWithMicrosoft: decoded token claims', { msId, email });
 
   const user = await userRepository.findByEmail(email);
   if (!user) {
+    logger.debug('authService.mergeWithMicrosoft: account not found', { email });
     const e = new Error('Account not found') as Error & { status: number };
     e.status = 404;
     throw e;
   }
 
+  logger.debug('authService.mergeWithMicrosoft: verifying password', { email });
   const valid = await bcrypt.compare(password, user.passwordHash ?? '');
   if (!valid) {
     logger.warn('merge: incorrect password', { email });
