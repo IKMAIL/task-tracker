@@ -36,6 +36,12 @@ app.use(
 );
 
 app.use(
+  "/api/members",
+  authenticate,
+  createProxy(services.TEAM_URL, { "^/": "/members/" }),
+);
+
+app.use(
   "/api/tasks",
   authenticate,
   createProxy(services.TASK_URL, { "^/": "/tasks/" }),

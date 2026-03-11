@@ -1,16 +1,17 @@
 import Team from '../models/Team';
+import '../models/Member';
 import { logger } from '@task-tracker/utils';
 
 export const findAll = async () => {
   logger.debug('teamRepository.findAll');
-  const teams = await Team.find().lean();
+  const teams = await Team.find().populate('memberIds').lean();
   logger.debug('teamRepository.findAll result', { count: teams.length });
   return teams;
 };
 
 export const findById = async (id: string) => {
   logger.debug('teamRepository.findById', { id });
-  const team = await Team.findById(id).lean();
+  const team = await Team.findById(id).populate('memberIds').lean();
   logger.debug('teamRepository.findById result', { id, found: !!team });
   return team;
 };
@@ -43,21 +44,21 @@ export const deleteById = async (id: string) => {
   return team;
 };
 
-export const addMember = async (teamId: string, userId: string) => {
-  logger.debug('teamRepository.addMember', { teamId, userId });
-  const team = await Team.findByIdAndUpdate(teamId, { $addToSet: { memberIds: userId } }, { new: true }).lean();
-  logger.debug('teamRepository.addMember result', { teamId, userId });
+export const addMember = async (teamId: string, memberId: string) => {
+  logger.debug('teamRepository.addMember', { teamId, memberId });
+  const team = await Team.findByIdAndUpdate(teamId, { $addToSet: { memberIds: memberId } }, { new: true }).populate('memberIds').lean();
+  logger.debug('teamRepository.addMember result', { teamId, memberId });
   return team;
 };
 
-export const removeMember = async (teamId: string, userId: string) => {
-  logger.debug('teamRepository.removeMember', { teamId, userId });
-  const team = await Team.findByIdAndUpdate(teamId, { $pull: { memberIds: userId } }, { new: true }).lean();
-  logger.debug('teamRepository.removeMember result', { teamId, userId });
+export const removeMember = async (teamId: string, memberId: string) => {
+  logger.debug('teamRepository.removeMember', { teamId, memberId });
+  const team = await Team.findByIdAndUpdate(teamId, { $pull: { memberIds: memberId } }, { new: true }).populate('memberIds').lean();
+  logger.debug('teamRepository.removeMember result', { teamId, memberId });
   return team;
 };
 
-export const clearMemberFromAllTeams = async (userId: string) => {
-  logger.debug('teamRepository.clearMemberFromAllTeams', { userId });
-  await Team.updateMany({}, { $pull: { memberIds: userId } });
+export const clearMemberFromAllTeams = async (memberId: string) => {
+  logger.debug('teamRepository.clearMemberFromAllTeams', { memberId });
+  await Team.updateMany({}, { $pull: { memberIds: memberId } });
 };

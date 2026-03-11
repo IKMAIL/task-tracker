@@ -13,7 +13,7 @@ const TeamSchema = new Schema<ITeam>(
   {
     name:        { type: String, required: true, unique: true, trim: true },
     description: { type: String, default: '' },
-    memberIds:   [{ type: Schema.Types.ObjectId, ref: 'User' }],
+    memberIds:   [{ type: Schema.Types.ObjectId, ref: 'Member' }],
     leadId:      { type: Schema.Types.ObjectId, ref: 'User', default: null },
   },
   { timestamps: true }

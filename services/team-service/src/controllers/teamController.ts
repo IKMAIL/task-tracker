@@ -54,8 +54,8 @@ export async function remove(req: Request, res: Response, next: NextFunction): P
 
 export async function addMember(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    logger.debug('teamController.addMember', { teamId: req.params.id, userId: req.body.userId, requestedBy: req.user?.sub });
-    const team = await teamService.addMember(req.params.id, req.body.userId);
+    logger.debug('teamController.addMember', { teamId: req.params.id, memberId: req.body.memberId, requestedBy: req.user?.sub });
+    const team = await teamService.addMember(req.params.id, req.body.memberId);
     res.json({ success: true, data: team });
   } catch (err) {
     next(err);
@@ -64,8 +64,8 @@ export async function addMember(req: Request, res: Response, next: NextFunction)
 
 export async function removeMember(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    logger.debug('teamController.removeMember', { teamId: req.params.id, userId: req.params.userId, requestedBy: req.user?.sub });
-    const team = await teamService.removeMember(req.params.id, req.params.userId);
+    logger.debug('teamController.removeMember', { teamId: req.params.id, memberId: req.params.memberId, requestedBy: req.user?.sub });
+    const team = await teamService.removeMember(req.params.id, req.params.memberId);
     res.json({ success: true, data: team });
   } catch (err) {
     next(err);
