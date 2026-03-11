@@ -1,4 +1,5 @@
 import * as teamRepository from '../repositories/teamRepository';
+import * as memberRepository from '../repositories/memberRepository';
 import { logger } from '@task-tracker/utils';
 
 export const listTeams = async () => {
@@ -65,28 +66,34 @@ export async function deleteTeam(id: string) {
   logger.info('teamService.deleteTeam success', { id });
 }
 
-export async function addMember(teamId: string, userId: string) {
-  logger.debug('teamService.addMember', { teamId, userId });
+export async function addMember(teamId: string, memberId: string) {
+  logger.debug('teamService.addMember', { teamId, memberId });
   const team = await teamRepository.findById(teamId);
   if (!team) {
     const e = new Error('Team not found') as Error & { status: number };
     e.status = 404;
     throw e;
   }
-  const updated = await teamRepository.addMember(teamId, userId);
-  logger.info('teamService.addMember success', { teamId, userId });
+  const member = await memberRepository.findById(memberId);
+  if (!member) {
+    const e = new Error('Member not found') as Error & { status: number };
+    e.status = 404;
+    throw e;
+  }
+  const updated = await teamRepository.addMember(teamId, memberId);
+  logger.info('teamService.addMember success', { teamId, memberId });
   return updated;
 }
 
-export async function removeMember(teamId: string, userId: string) {
-  logger.debug('teamService.removeMember', { teamId, userId });
+export async function removeMember(teamId: string, memberId: string) {
+  logger.debug('teamService.removeMember', { teamId, memberId });
   const team = await teamRepository.findById(teamId);
   if (!team) {
     const e = new Error('Team not found') as Error & { status: number };
     e.status = 404;
     throw e;
   }
-  const updated = await teamRepository.removeMember(teamId, userId);
-  logger.info('teamService.removeMember success', { teamId, userId });
+  const updated = await teamRepository.removeMember(teamId, memberId);
+  logger.info('teamService.removeMember success', { teamId, memberId });
   return updated;
 }
