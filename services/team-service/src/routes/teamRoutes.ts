@@ -22,10 +22,10 @@ const addMemberSchema = Joi.object({
 
 router.get('/', authenticate, teamController.list);
 router.get('/:id', authenticate, teamController.get);
-router.post('/', authenticate, requireAdmin, validate(createTeamSchema), teamController.create);
-router.put('/:id', authenticate, requireAdmin, validate(updateTeamSchema), teamController.update);
-router.delete('/:id', authenticate, requireAdmin, teamController.remove);
-router.post('/:id/members', authenticate, requireAdmin, validate(addMemberSchema), teamController.addMember);
-router.delete('/:id/members/:userId', authenticate, requireAdmin, teamController.removeMember);
+router.post('/', authenticate, validate(createTeamSchema), teamController.create);
+router.put('/:id', authenticate, validate(updateTeamSchema), teamController.update);
+router.delete('/:id', authenticate, teamController.remove);
+router.post('/:id/members', authenticate, validate(addMemberSchema), teamController.addMember);
+router.delete('/:id/members/:userId', authenticate, teamController.removeMember);
 
 export default router;
