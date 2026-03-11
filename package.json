@@ -11,7 +11,7 @@
     "docker:up": "docker compose -f docker/docker-compose.yml up --build",
     "docker:down": "docker compose -f docker/docker-compose.yml down",
     "docker:logs": "docker compose -f docker/docker-compose.yml logs -f",
-    "seed": "ts-node scripts/seed.ts"
+    "seed": "ts-node --project tsconfig.base.json scripts/seed.ts"
   },
   "devDependencies": {
     "concurrently": "^8.2.2",

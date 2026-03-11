@@ -1,4 +1,5 @@
 import fetch from 'node-fetch';
+import { logger } from './logger';
 
 interface AppError extends Error {
   status?: number;
@@ -10,6 +11,9 @@ const request = async (
   body?: unknown,
   serviceToken?: string
 ): Promise<unknown> => {
+  const start = Date.now();
+  logger.debug('http-client: outgoing request', { method, url });
+
   const res = await fetch(url, {
     method,
     headers: {
@@ -19,15 +23,18 @@ const request = async (
     body: body !== undefined ? JSON.stringify(body) : undefined,
   });
 
+  const duration = Date.now() - start;
   const data = await res.json().catch(() => ({})) as Record<string, unknown>;
 
   if (!res.ok) {
     const errorData = data as { error?: { message?: string } };
+    logger.warn('http-client: request failed', { method, url, status: res.status, duration_ms: duration });
     const err: AppError = new Error(errorData.error?.message || `HTTP ${res.status} from ${url}`);
     err.status = res.status;
     throw err;
   }
 
+  logger.debug('http-client: request succeeded', { method, url, status: res.status, duration_ms: duration });
   return data;
 };
 

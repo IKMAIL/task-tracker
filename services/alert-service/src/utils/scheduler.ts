@@ -1,15 +1,16 @@
 import cron from 'node-cron';
 import { runDetection } from '../services/alertDetector';
+import { logger } from '@task-tracker/utils';
 
 export default function startScheduler(): void {
   cron.schedule('0 6 * * *', async () => {
-    console.log('Alert detection run started');
+    logger.info('scheduler: alert detection run started');
     try {
       await runDetection();
-      console.log('Alert detection run completed');
+      logger.info('scheduler: alert detection run completed');
     } catch (err) {
-      console.error('Alert detection failed:', (err as Error).message);
+      logger.error('scheduler: alert detection run failed', { error: (err as Error).message, stack: (err as Error).stack });
     }
   });
-  console.log('Alert scheduler started (daily at 06:00 UTC)');
+  logger.info('scheduler: alert scheduler registered', { schedule: '0 6 * * * (daily at 06:00 UTC)' });
 }

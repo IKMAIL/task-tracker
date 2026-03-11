@@ -6,6 +6,7 @@ import { authenticate } from "./src/middleware/authenticate";
 import { createProxy } from "./src/utils/proxy";
 import services from "./src/config/services";
 import path from "path";
+import { logger, requestLogger } from '@task-tracker/utils';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -14,6 +15,7 @@ app.use(cors());
 // app.use(express.json());
 
 app.use(rateLimit({ windowMs: 60 * 1000, max: 200 }));
+app.use(requestLogger);
 
 app.get("/health", (_req, res) =>
   res.json({ status: "ok", service: "api-gateway" }),
@@ -58,5 +60,5 @@ app.use((_req, res) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`api-gateway running on port ${PORT}`);
+  logger.info("api-gateway started", { port: PORT });
 });

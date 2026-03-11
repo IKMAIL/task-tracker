@@ -138,3 +138,7 @@ dist
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 apps/web-frontend/build/
+shared/utils/src/*.js
+shared/utils/src/*.js.map
+shared/utils/src/*.d.ts
+shared/utils/src/*.d.ts.map
