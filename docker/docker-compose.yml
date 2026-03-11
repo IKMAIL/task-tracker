@@ -1,4 +1,4 @@
-version: '3.9'
+version: "3.9"
 
 services:
   mongo:
@@ -19,7 +19,8 @@ services:
 
   identity-service:
     build:
-      context: ../services/identity-service
+      context: ../
+      dockerfile: services/identity-service/Dockerfile
     restart: unless-stopped
     ports:
       - "3001:3001"
@@ -27,15 +28,19 @@ services:
       PORT: 3001
       MONGO_URI: mongodb://${MONGO_ROOT_USERNAME:-root}:${MONGO_ROOT_PASSWORD:-rootpassword}@mongo:27017/identity?authSource=admin
       JWT_SECRET: ${JWT_SECRET}
-      JWT_EXPIRES_IN: 8h
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-8h}
       SERVICE_TOKEN: ${SERVICE_TOKEN}
+      MICROSOFT_CLIENT_ID: ${MICROSOFT_CLIENT_ID}
+      MICROSOFT_CLIENT_SECRET: ${MICROSOFT_CLIENT_SECRET}
+      MICROSOFT_TENANT_ID: ${MICROSOFT_TENANT_ID}
     depends_on:
       mongo:
         condition: service_healthy
 
   task-service:
     build:
-      context: ../services/task-service
+      context: ../
+      dockerfile: services/task-service/Dockerfile
     restart: unless-stopped
     ports:
       - "3002:3002"
@@ -50,7 +55,8 @@ services:
 
   progress-service:
     build:
-      context: ../services/progress-service
+      context: ../
+      dockerfile: services/progress-service/Dockerfile
     restart: unless-stopped
     ports:
       - "3003:3003"
@@ -68,7 +74,8 @@ services:
 
   alert-service:
     build:
-      context: ../services/alert-service
+      context: ../
+      dockerfile: services/alert-service/Dockerfile
     restart: unless-stopped
     ports:
       - "3004:3004"
@@ -89,7 +96,8 @@ services:
 
   api-gateway:
     build:
-      context: ../services/api-gateway
+      context: ../
+      dockerfile: services/api-gateway/Dockerfile
     restart: unless-stopped
     ports:
       - "3000:3000"
