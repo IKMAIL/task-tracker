@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { useFetch } from "../hooks/useFetch";
 import { listTeams, createTeam, updateTeam, deleteTeam } from "../api/teamApi";
-import { useAuth } from "../context/AuthContext";
 import Spinner from "../components/common/Spinner";
 import ErrorBanner from "../components/common/ErrorBanner";
 
@@ -20,8 +19,6 @@ interface TeamForm {
 const emptyForm: TeamForm = { name: "", description: "" };
 
 export default function TeamManagementPage(): React.ReactElement {
-  const { user } = useAuth();
-  const isAdmin = user?.role === "admin";
   const { data: teams, loading, error, refetch } = useFetch<Team[]>(listTeams);
 
   const [form, setForm] = useState<TeamForm>(emptyForm);
@@ -90,7 +87,7 @@ export default function TeamManagementPage(): React.ReactElement {
     <div className="page">
       <div className="page-header">
         <h1>Manage Teams</h1>
-        {isAdmin && !showForm && (
+        {!showForm && (
           <button className="btn btn-primary" onClick={openCreate}>
             + New Team
           </button>
@@ -147,7 +144,7 @@ export default function TeamManagementPage(): React.ReactElement {
             <th>Name</th>
             <th>Description</th>
             <th>Members</th>
-            {isAdmin && <th>Actions</th>}
+            <th>Actions</th>
           </tr>
         </thead>
         <tbody>
@@ -156,29 +153,27 @@ export default function TeamManagementPage(): React.ReactElement {
               <td>{team.name}</td>
               <td>{team.description || "—"}</td>
               <td>{team.memberIds?.length ?? 0}</td>
-              {isAdmin && (
-                <td>
-                  <button
-                    className="btn btn-sm"
-                    onClick={() => openEdit(team)}
-                    style={{ marginRight: "0.5rem" }}
-                  >
-                    Edit
-                  </button>
-                  <button
-                    className="btn btn-sm"
-                    onClick={() => handleDelete(team)}
-                    style={{ color: "var(--danger)" }}
-                  >
-                    Delete
-                  </button>
-                </td>
-              )}
+              <td>
+                <button
+                  className="btn btn-sm"
+                  onClick={() => openEdit(team)}
+                  style={{ marginRight: "0.5rem" }}
+                >
+                  Edit
+                </button>
+                <button
+                  className="btn btn-sm"
+                  onClick={() => handleDelete(team)}
+                  style={{ color: "var(--danger)" }}
+                >
+                  Delete
+                </button>
+              </td>
             </tr>
           ))}
           {(teams || []).length === 0 && (
             <tr>
-              <td colSpan={isAdmin ? 4 : 3} style={{ textAlign: "center" }}>
+              <td colSpan={4} style={{ textAlign: "center" }}>
                 No teams found.
               </td>
             </tr>
