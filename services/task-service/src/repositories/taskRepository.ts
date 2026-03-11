@@ -1,6 +1,7 @@
 import Task from '../models/Task';
 import { FilterQuery } from 'mongoose';
 import { ITask } from '../models/Task';
+import { logger } from '@task-tracker/utils';
 
 export interface PaginationOptions {
   page?: number | string;
@@ -17,9 +18,19 @@ export interface PaginatedResult {
   };
 }
 
-export const create = (data: Partial<ITask>) => Task.create(data);
+export const create = async (data: Partial<ITask>) => {
+  logger.debug('taskRepository.create', { data });
+  const task = await Task.create(data);
+  logger.debug('taskRepository.create result', { taskId: String(task._id) });
+  return task;
+};
 
-export const findById = (id: string) => Task.findById(id).lean();
+export const findById = async (id: string) => {
+  logger.debug('taskRepository.findById', { id });
+  const task = await Task.findById(id).lean();
+  logger.debug('taskRepository.findById result', { id, found: !!task, task });
+  return task;
+};
 
 export const findPaginated = async (
   query: FilterQuery<ITask>,
@@ -28,23 +39,38 @@ export const findPaginated = async (
   const pageNum = Number(page);
   const limitNum = Number(limit);
   const skip = (pageNum - 1) * limitNum;
+  logger.debug('taskRepository.findPaginated', { query, page: pageNum, limit: limitNum, skip });
   const [tasks, total] = await Promise.all([
     Task.find(query).sort({ dueDate: 1 }).skip(skip).limit(limitNum).lean(),
     Task.countDocuments(query),
   ]);
-  return {
+  const result = {
     tasks: tasks as unknown as ITask[],
     meta: { total, page: pageNum, limit: limitNum, pages: Math.ceil(total / limitNum) },
   };
+  logger.debug('taskRepository.findPaginated result', { total, page: pageNum, limit: limitNum, returned: tasks.length });
+  return result;
 };
 
-export const findByTeam = (teamId: string) =>
-  Task.find({ assignedTeamId: teamId }).sort({ dueDate: 1 }).lean();
+export const findByTeam = async (teamId: string) => {
+  logger.debug('taskRepository.findByTeam', { teamId });
+  const tasks = await Task.find({ assignedTeamId: teamId }).sort({ dueDate: 1 }).lean();
+  logger.debug('taskRepository.findByTeam result', { teamId, count: tasks.length });
+  return tasks;
+};
 
-export const updateById = (id: string, data: Partial<ITask>) =>
-  Task.findByIdAndUpdate(id, { $set: data }, { new: true, runValidators: true }).lean();
+export const updateById = async (id: string, data: Partial<ITask>) => {
+  logger.debug('taskRepository.updateById', { id, data });
+  const task = await Task.findByIdAndUpdate(id, { $set: data }, { new: true, runValidators: true }).lean();
+  logger.debug('taskRepository.updateById result', { id, found: !!task, task });
+  return task;
+};
 
-export const summary = () =>
-  Task.aggregate([
+export const summary = async () => {
+  logger.debug('taskRepository.summary');
+  const result = await Task.aggregate([
     { $group: { _id: { status: '$status', category: '$category' }, count: { $sum: 1 } } },
   ]);
+  logger.debug('taskRepository.summary result', { groups: result.length, result });
+  return result;
+};

@@ -6,7 +6,9 @@ import { logger } from '@task-tracker/utils';
 export const list = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const { teamId, type, severity } = req.query as { teamId?: string; type?: string; severity?: string };
+    logger.debug('alertController.list', { teamId, type, severity, userId: req.user?.sub });
     const alerts = await alertService.listAlerts({ teamId, type: type as any, severity: severity as any });
+    logger.debug('alertController.list result', { count: alerts.length });
     res.json({ success: true, data: alerts });
   } catch (err) {
     next(err);
@@ -15,7 +17,9 @@ export const list = async (req: Request, res: Response, next: NextFunction): Pro
 
 export const getByTeam = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
+    logger.debug('alertController.getByTeam', { teamId: req.params.teamId, userId: req.user?.sub });
     const alerts = await alertService.listAlerts({ teamId: req.params.teamId });
+    logger.debug('alertController.getByTeam result', { teamId: req.params.teamId, count: alerts.length });
     res.json({ success: true, data: alerts });
   } catch (err) {
     next(err);
@@ -24,7 +28,9 @@ export const getByTeam = async (req: Request, res: Response, next: NextFunction)
 
 export const get = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
+    logger.debug('alertController.get', { id: req.params.id, userId: req.user?.sub });
     const alert = await alertService.getAlert(req.params.id);
+    logger.debug('alertController.get result', { alert });
     res.json({ success: true, data: alert });
   } catch (err) {
     next(err);
@@ -33,7 +39,9 @@ export const get = async (req: Request, res: Response, next: NextFunction): Prom
 
 export const resolve = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
+    logger.debug('alertController.resolve', { id: req.params.id, userId: req.user?.sub });
     const alert = await alertService.resolveAlert(req.params.id);
+    logger.debug('alertController.resolve result', { alert });
     res.json({ success: true, data: alert });
   } catch (err) {
     next(err);

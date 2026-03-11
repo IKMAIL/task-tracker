@@ -16,6 +16,7 @@ export function authenticate(req: Request, res: Response, next: NextFunction): v
       role: string;
       teamId?: string;
     };
+    logger.debug('auth: token verified', { method: req.method, path: req.path, sub: req.user.sub, role: req.user.role, teamId: req.user.teamId });
     next();
   } catch (err) {
     logger.warn('auth: invalid token', { method: req.method, path: req.path, error: (err as Error).message });
