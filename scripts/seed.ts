@@ -11,13 +11,13 @@ const ADMIN_EMAIL: string = process.env.ADMIN_EMAIL || "admin@tasktracker.com";
 const ADMIN_PASSWORD: string = process.env.ADMIN_PASSWORD || "Admin123!";
 
 const TEAM_NAMES: string[] = [
-  "Team Alpha",
-  "Team Beta",
-  "Team Gamma",
-  "Team Delta",
-  "Team Epsilon",
-  "Team Zeta",
-  "Team Eta",
+  "WB Edge Web",
+  "WB Edge Mobile",
+  "WB Edge Deal Manager",
+  "4X",
+  "Credit Simplify Loan Drawdown",
+  "Credit Simplify Facility Execution",
+  "WB CDD",
 ];
 
 const CATEGORIES: string[] = [
