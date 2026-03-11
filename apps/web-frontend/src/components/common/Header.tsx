@@ -11,6 +11,7 @@ export default function Header() {
       <div className="header-brand"><Link to="/">Task Tracker</Link></div>
       <nav className="header-nav">
         <Link to="/">Dashboard</Link><Link to="/teams">Teams</Link>
+        <Link to="/teams/manage">Manage Teams</Link>
         <Link to="/tasks">Tasks</Link><Link to="/alerts">Alerts</Link>
       </nav>
       <div className="header-user"><span>{user?.name}</span><button onClick={handleLogout} className="btn btn-sm">Logout</button></div>

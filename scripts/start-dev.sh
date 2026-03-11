@@ -11,11 +11,12 @@ done
 
 echo "MongoDB ready. Starting all services..."
 npx concurrently \
-  --names "identity,task,progress,alert,gateway,frontend" \
-  --prefix-colors "blue,green,yellow,red,magenta,cyan" \
+  --names "identity,task,progress,alert,team,gateway,frontend" \
+  --prefix-colors "blue,green,yellow,red,white,magenta,cyan" \
   "npm run dev --workspace=services/identity-service" \
   "npm run dev --workspace=services/task-service" \
   "npm run dev --workspace=services/progress-service" \
   "npm run dev --workspace=services/alert-service" \
+  "npm run dev --workspace=services/team-service" \
   "npm run dev --workspace=services/api-gateway" \
   "npm start --workspace=apps/web-frontend"

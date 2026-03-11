@@ -11,6 +11,11 @@ const createTeamSchema = Joi.object({
   description: Joi.string().max(500).default(''),
 });
 
+const updateTeamSchema = Joi.object({
+  name: Joi.string().min(2).max(100),
+  description: Joi.string().max(500),
+}).min(1);
+
 const addMemberSchema = Joi.object({
   userId: Joi.string().required(),
 });
@@ -18,6 +23,8 @@ const addMemberSchema = Joi.object({
 router.get('/', authenticate, teamController.list);
 router.get('/:id', authenticate, teamController.get);
 router.post('/', authenticate, requireAdmin, validate(createTeamSchema), teamController.create);
+router.put('/:id', authenticate, requireAdmin, validate(updateTeamSchema), teamController.update);
+router.delete('/:id', authenticate, requireAdmin, teamController.remove);
 router.post('/:id/members', authenticate, requireAdmin, validate(addMemberSchema), teamController.addMember);
 router.delete('/:id/members/:userId', authenticate, requireAdmin, teamController.removeMember);
 
