@@ -13,6 +13,7 @@ import UpdateProgressPage from './pages/UpdateProgressPage';
 import TeamManagementPage from './pages/TeamManagementPage';
 import ImportPage from './pages/ImportPage';
 import AuditLogPage from './pages/AuditLogPage';
+import KanbanBoard from './pages/KanbanBoard';
 import './styles/global.css';
 
 function App() {
@@ -25,6 +26,7 @@ function App() {
             <Route path="/"                              element={<DashboardPage />} />
             <Route path="/teams"                         element={<TeamProgressPage />} />
             <Route path="/tasks"                         element={<TaskListPage />} />
+            <Route path="/kanban"                        element={<KanbanBoard />} />
             <Route path="/tasks/new"                     element={<TaskFormPage />} />
             <Route path="/tasks/:id"                     element={<TaskDetailPage />} />
             <Route path="/teams/manage"                   element={<TeamManagementPage />} />
