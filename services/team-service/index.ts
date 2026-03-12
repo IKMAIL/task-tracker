@@ -4,6 +4,7 @@ import cors from 'cors';
 import connectDB from './src/config/db';
 import teamRoutes from './src/routes/teamRoutes';
 import memberRoutes from './src/routes/memberRoutes';
+import importRoutes from './src/routes/importRoutes';
 import errorHandler from './src/utils/errorHandler';
 import { logger, requestLogger } from '@task-tracker/utils';
 
@@ -18,6 +19,7 @@ app.get('/health', (_req, res) => res.json({ status: 'ok', service: 'team-servic
 
 app.use('/teams', teamRoutes);
 app.use('/members', memberRoutes);
+app.use('/import', importRoutes);
 
 app.use(errorHandler);
 
