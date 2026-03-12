@@ -1,5 +1,5 @@
 import * as userRepository from '../repositories/userRepository';
-import { logger } from '@task-tracker/utils';
+import { logger, AuditUser } from '@task-tracker/utils';
 
 export const listUsers = async () => {
   logger.debug('userService.listUsers');
@@ -21,9 +21,9 @@ export async function getUser(id: string) {
   return user;
 }
 
-export async function updateUser(id: string, data: Record<string, unknown>) {
+export async function updateUser(id: string, data: Record<string, unknown>, auditUser?: AuditUser) {
   logger.debug('userService.updateUser', { id, data });
-  const user = await userRepository.updateById(id, data);
+  const user = await userRepository.updateById(id, data, auditUser);
   if (!user) {
     logger.debug('userService.updateUser not found', { id });
     const err = new Error('User not found') as Error & { status: number };

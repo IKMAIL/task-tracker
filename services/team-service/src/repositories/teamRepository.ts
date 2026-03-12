@@ -1,6 +1,6 @@
 import Team from '../models/Team';
 import '../models/Member';
-import { logger } from '@task-tracker/utils';
+import { logger, AuditUser } from '@task-tracker/utils';
 
 export const findAll = async () => {
   logger.debug('teamRepository.findAll');
@@ -30,16 +30,23 @@ export const create = async (data: Record<string, unknown>) => {
   return team;
 };
 
-export const updateById = async (id: string, data: Record<string, unknown>) => {
+export const updateById = async (id: string, data: Record<string, unknown>, auditUser?: AuditUser) => {
   logger.debug('teamRepository.updateById', { id, data });
-  const team = await Team.findByIdAndUpdate(id, { $set: data }, { new: true, runValidators: true }).lean();
+  const team = await Team.findByIdAndUpdate(
+    id,
+    { $set: data },
+    { new: true, runValidators: true, ...(auditUser ? { auditUser } : {}) }
+  ).lean();
   logger.debug('teamRepository.updateById result', { id, found: !!team });
   return team;
 };
 
-export const deleteById = async (id: string) => {
+export const deleteById = async (id: string, auditUser?: AuditUser) => {
   logger.debug('teamRepository.deleteById', { id });
-  const team = await Team.findByIdAndDelete(id).lean();
+  const team = await Team.findByIdAndDelete(
+    id,
+    auditUser ? { auditUser } : {}
+  ).lean();
   logger.debug('teamRepository.deleteById result', { id, found: !!team });
   return team;
 };

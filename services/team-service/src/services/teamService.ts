@@ -1,6 +1,6 @@
 import * as teamRepository from '../repositories/teamRepository';
 import * as memberRepository from '../repositories/memberRepository';
-import { logger } from '@task-tracker/utils';
+import { logger, AuditUser } from '@task-tracker/utils';
 
 export const listTeams = async () => {
   logger.debug('teamService.listTeams');
@@ -33,7 +33,7 @@ export async function createTeam(data: Record<string, unknown>) {
   return team;
 }
 
-export async function updateTeam(id: string, data: Record<string, unknown>) {
+export async function updateTeam(id: string, data: Record<string, unknown>, auditUser?: AuditUser) {
   logger.debug('teamService.updateTeam', { id, data });
   const team = await teamRepository.findById(id);
   if (!team) {
@@ -49,12 +49,12 @@ export async function updateTeam(id: string, data: Record<string, unknown>) {
       throw err;
     }
   }
-  const updated = await teamRepository.updateById(id, data);
+  const updated = await teamRepository.updateById(id, data, auditUser);
   logger.info('teamService.updateTeam success', { id });
   return updated;
 }
 
-export async function deleteTeam(id: string) {
+export async function deleteTeam(id: string, auditUser?: AuditUser) {
   logger.debug('teamService.deleteTeam', { id });
   const team = await teamRepository.findById(id);
   if (!team) {
@@ -62,7 +62,7 @@ export async function deleteTeam(id: string) {
     err.status = 404;
     throw err;
   }
-  await teamRepository.deleteById(id);
+  await teamRepository.deleteById(id, auditUser);
   logger.info('teamService.deleteTeam success', { id });
 }
 

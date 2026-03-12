@@ -35,7 +35,8 @@ export async function create(req: Request, res: Response, next: NextFunction): P
 export async function update(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
     logger.debug('teamController.update', { id: req.params.id, body: req.body, requestedBy: req.user?.sub });
-    const team = await teamService.updateTeam(req.params.id, req.body);
+    const auditUser = req.user?.sub ? { userId: req.user.sub, userEmail: req.user.email } : undefined;
+    const team = await teamService.updateTeam(req.params.id, req.body, auditUser);
     res.json({ success: true, data: team });
   } catch (err) {
     next(err);
@@ -45,7 +46,8 @@ export async function update(req: Request, res: Response, next: NextFunction): P
 export async function remove(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
     logger.debug('teamController.remove', { id: req.params.id, requestedBy: req.user?.sub });
-    await teamService.deleteTeam(req.params.id);
+    const auditUser = req.user?.sub ? { userId: req.user.sub, userEmail: req.user.email } : undefined;
+    await teamService.deleteTeam(req.params.id, auditUser);
     res.json({ success: true, message: 'Team deleted' });
   } catch (err) {
     next(err);

@@ -1,6 +1,6 @@
 import * as memberRepository from '../repositories/memberRepository';
 import * as teamRepository from '../repositories/teamRepository';
-import { logger } from '@task-tracker/utils';
+import { logger, AuditUser } from '@task-tracker/utils';
 
 export async function listMembers() {
   logger.debug('memberService.listMembers');
@@ -33,7 +33,7 @@ export async function createMember(data: Record<string, unknown>) {
   return member;
 }
 
-export async function updateMember(id: string, data: Record<string, unknown>) {
+export async function updateMember(id: string, data: Record<string, unknown>, auditUser?: AuditUser) {
   logger.debug('memberService.updateMember', { id, data });
   const member = await memberRepository.findById(id);
   if (!member) {
@@ -49,12 +49,12 @@ export async function updateMember(id: string, data: Record<string, unknown>) {
       throw err;
     }
   }
-  const updated = await memberRepository.updateById(id, data);
+  const updated = await memberRepository.updateById(id, data, auditUser);
   logger.info('memberService.updateMember success', { id });
   return updated;
 }
 
-export async function deleteMember(id: string) {
+export async function deleteMember(id: string, auditUser?: AuditUser) {
   logger.debug('memberService.deleteMember', { id });
   const member = await memberRepository.findById(id);
   if (!member) {
@@ -63,6 +63,6 @@ export async function deleteMember(id: string) {
     throw err;
   }
   await teamRepository.clearMemberFromAllTeams(id);
-  await memberRepository.deleteById(id);
+  await memberRepository.deleteById(id, auditUser);
   logger.info('memberService.deleteMember success', { id });
 }

@@ -1,7 +1,7 @@
 import Task from '../models/Task';
 import { FilterQuery } from 'mongoose';
 import { ITask } from '../models/Task';
-import { logger } from '@task-tracker/utils';
+import { logger, AuditUser } from '@task-tracker/utils';
 
 export interface PaginationOptions {
   page?: number | string;
@@ -18,9 +18,13 @@ export interface PaginatedResult {
   };
 }
 
-export const create = async (data: Partial<ITask>) => {
+export const create = async (data: Partial<ITask>, auditUser?: AuditUser) => {
   logger.debug('taskRepository.create', { data });
-  const task = await Task.create(data);
+  const doc = new Task(data);
+  if (auditUser) {
+    doc.$locals._auditUser = auditUser;
+  }
+  const task = await doc.save();
   logger.debug('taskRepository.create result', { taskId: String(task._id) });
   return task;
 };
@@ -59,9 +63,13 @@ export const findByTeam = async (teamId: string) => {
   return tasks;
 };
 
-export const updateById = async (id: string, data: Partial<ITask>) => {
+export const updateById = async (id: string, data: Partial<ITask>, auditUser?: AuditUser) => {
   logger.debug('taskRepository.updateById', { id, data });
-  const task = await Task.findByIdAndUpdate(id, { $set: data }, { new: true, runValidators: true }).lean();
+  const task = await Task.findByIdAndUpdate(
+    id,
+    { $set: data },
+    { new: true, runValidators: true, ...(auditUser ? { auditUser } : {}) }
+  ).lean();
   logger.debug('taskRepository.updateById result', { id, found: !!task, task });
   return task;
 };

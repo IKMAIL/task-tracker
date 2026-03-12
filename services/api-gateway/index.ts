@@ -81,6 +81,12 @@ app.use(
   createProxy(services.TASK_URL, { "^/": "/import/tasks/" }),
 );
 
+app.use(
+  "/api/audit",
+  authenticate,
+  createProxy(services.TASK_URL, { "^/": "/audit/" }),
+);
+
 app.use((_req, res) => {
   res
     .status(404)

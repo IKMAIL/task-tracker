@@ -1,7 +1,7 @@
 import * as taskRepository from '../repositories/taskRepository';
 import { ITask } from '../models/Task';
 import { PaginationOptions } from '../repositories/taskRepository';
-import { logger } from '@task-tracker/utils';
+import { logger, AuditUser } from '@task-tracker/utils';
 
 export interface TaskFilters {
   teamId?: string;
@@ -9,13 +9,20 @@ export interface TaskFilters {
   category?: string;
 }
 
-export const createTask = async (dto: Partial<ITask> & { dueDate: string | Date; plannedStartDate: string | Date }, createdBy: string) => {
+export const createTask = async (
+  dto: Partial<ITask> & { dueDate: string | Date; plannedStartDate: string | Date },
+  createdBy: string,
+  auditUser?: AuditUser
+) => {
   logger.debug('taskService.createTask', { dto, createdBy });
   if (new Date(dto.dueDate) <= new Date(dto.plannedStartDate)) {
     logger.debug('taskService.createTask: date validation failed', { dueDate: dto.dueDate, plannedStartDate: dto.plannedStartDate });
     throw Object.assign(new Error('Due date must be after planned start date'), { status: 400 });
   }
-  const task = await taskRepository.create({ ...dto, createdBy: createdBy as unknown as ITask['createdBy'] });
+  const task = await taskRepository.create(
+    { ...dto, createdBy: createdBy as unknown as ITask['createdBy'] },
+    auditUser
+  );
   logger.info('task created', { taskId: String(task._id), createdBy, title: dto.title });
   logger.debug('taskService.createTask result', { task });
   return task;
@@ -44,9 +51,9 @@ export const getTask = async (id: string) => {
   return task;
 };
 
-export const updateTask = async (id: string, data: Partial<ITask>) => {
+export const updateTask = async (id: string, data: Partial<ITask>, auditUser?: AuditUser) => {
   logger.debug('taskService.updateTask', { id, data });
-  const task = await taskRepository.updateById(id, data);
+  const task = await taskRepository.updateById(id, data, auditUser);
   if (!task) {
     logger.warn('task not found for update', { taskId: id });
     throw Object.assign(new Error('Task not found'), { status: 404 });
@@ -56,8 +63,8 @@ export const updateTask = async (id: string, data: Partial<ITask>) => {
   return task;
 };
 
-export const cancelTask = async (id: string) => {
-  const task = await taskRepository.updateById(id, { status: 'cancelled' } as Partial<ITask>);
+export const cancelTask = async (id: string, auditUser?: AuditUser) => {
+  const task = await taskRepository.updateById(id, { status: 'cancelled' } as Partial<ITask>, auditUser);
   if (!task) {
     logger.warn('task not found for cancel', { taskId: id });
     throw Object.assign(new Error('Task not found'), { status: 404 });
