@@ -1,0 +1,33 @@
+# Headless service — provides stable DNS for StatefulSet pods (mongo-0, mongo-1, …)
+# Used in MONGO_URI connection strings.
+apiVersion: v1
+kind: Service
+metadata:
+  name: mongo-headless
+  namespace: task-tracker
+  labels:
+    app: mongo
+spec:
+  clusterIP: None
+  selector:
+    app: mongo
+  ports:
+    - name: mongo
+      port: 27017
+      targetPort: 27017
+---
+# ClusterIP service — convenient alias for connecting to the primary replica
+apiVersion: v1
+kind: Service
+metadata:
+  name: mongo
+  namespace: task-tracker
+  labels:
+    app: mongo
+spec:
+  selector:
+    app: mongo
+  ports:
+    - name: mongo
+      port: 27017
+      targetPort: 27017

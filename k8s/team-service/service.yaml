@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: team-service
+  namespace: task-tracker
+  labels:
+    app: team-service
+spec:
+  selector:
+    app: team-service
+  ports:
+    - name: http
+      port: 3006
+      targetPort: 3006
