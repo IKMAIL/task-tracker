@@ -162,7 +162,9 @@ export default function KanbanBoard() {
                               </div>
                               <ProgressBar value={task.completionPct} />
                               <div className="kanban-card-meta">
-                                <span title="Category">{task.category}</span>
+                                {task.category && task.category !== task.title && (
+                                  <span title="Category">{task.category}</span>
+                                )}
                                 {task.dueDate && (
                                   <span title="Due date">
                                     Due {new Date(task.dueDate).toLocaleDateString()}
