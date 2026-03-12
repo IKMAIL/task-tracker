@@ -118,6 +118,12 @@ async function upsertAlert(
   logger.debug('alert-detector: upsertAlert', { taskId: task._id, type, severity, message, metadata });
   const existing = await alertRepository.findActiveByTaskAndType(task._id, type);
   if (!existing) {
+    // Skip if the user manually resolved this alert and the condition hasn't cleared yet
+    const suppressed = await alertRepository.findManuallyResolvedByTaskAndType(task._id, type);
+    if (suppressed) {
+      logger.debug('alert-detector: skipping — manually resolved alert exists', { taskId: task._id, type });
+      return;
+    }
     await alertRepository.create({ taskId: task._id as unknown as any, teamId: task.assignedTeamId as unknown as any, type, severity, message, metadata });
     logger.info('alert created', { taskId: task._id, type, severity });
   } else if (existing.severity !== severity || existing.message !== message) {
