@@ -11,6 +11,7 @@ import TaskFormPage from './pages/TaskFormPage';
 import AlertsPage from './pages/AlertsPage';
 import UpdateProgressPage from './pages/UpdateProgressPage';
 import TeamManagementPage from './pages/TeamManagementPage';
+import ImportPage from './pages/ImportPage';
 import './styles/global.css';
 
 function App() {
@@ -28,6 +29,7 @@ function App() {
             <Route path="/teams/manage"                   element={<TeamManagementPage />} />
             <Route path="/alerts"                        element={<AlertsPage />} />
             <Route path="/progress/update/:taskId"       element={<UpdateProgressPage />} />
+            <Route path="/import"                          element={<ImportPage />} />
           </Route>
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

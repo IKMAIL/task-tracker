@@ -59,6 +59,28 @@ app.use(
   createProxy(services.ALERT_URL, { "^/": "/alerts/" }),
 );
 
+// Import routes — proxy to respective services
+app.use(
+  "/api/import/teams",
+  authenticate,
+  createProxy(services.TEAM_URL, { "^/": "/import/teams/" }),
+);
+app.use(
+  "/api/import/members",
+  authenticate,
+  createProxy(services.TEAM_URL, { "^/": "/import/members/" }),
+);
+app.use(
+  "/api/import/team-members",
+  authenticate,
+  createProxy(services.TEAM_URL, { "^/": "/import/team-members/" }),
+);
+app.use(
+  "/api/import/tasks",
+  authenticate,
+  createProxy(services.TASK_URL, { "^/": "/import/tasks/" }),
+);
+
 app.use((_req, res) => {
   res
     .status(404)
