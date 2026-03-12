@@ -13,6 +13,7 @@ export default function Header() {
         <Link to="/">Dashboard</Link><Link to="/teams">Teams</Link>
         <Link to="/teams/manage">Manage Teams</Link>
         <Link to="/tasks">Tasks</Link><Link to="/alerts">Alerts</Link><Link to="/import">Import</Link>
+        {user?.role === 'admin' && <Link to="/audit">Audit Log</Link>}
       </nav>
       <div className="header-user"><span>{user?.name}</span><button onClick={handleLogout} className="btn btn-sm">Logout</button></div>
     </header>

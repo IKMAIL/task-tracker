@@ -12,6 +12,7 @@ import AlertsPage from './pages/AlertsPage';
 import UpdateProgressPage from './pages/UpdateProgressPage';
 import TeamManagementPage from './pages/TeamManagementPage';
 import ImportPage from './pages/ImportPage';
+import AuditLogPage from './pages/AuditLogPage';
 import './styles/global.css';
 
 function App() {
@@ -30,6 +31,7 @@ function App() {
             <Route path="/alerts"                        element={<AlertsPage />} />
             <Route path="/progress/update/:taskId"       element={<UpdateProgressPage />} />
             <Route path="/import"                          element={<ImportPage />} />
+            <Route path="/audit"                           element={<AuditLogPage />} />
           </Route>
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
