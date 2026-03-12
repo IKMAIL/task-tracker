@@ -40,13 +40,20 @@ export function createAuditPlugin(AuditLog: Model<Document & IAuditLog>, resourc
     // ── Creates ──────────────────────────────────────────────────────────────
 
     schema.pre('save', function () {
-      (this as any).$locals._wasNew = this.isNew;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (this as any).$locals._wasNew = (this as any).isNew;
     });
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     schema.post('save', async function (doc: any) {
-      if (!doc.$locals?._wasNew) return;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      if (!(this as any).$locals?._wasNew) return;
       try {
-        const userId = doc.createdBy ? String(doc.createdBy) : (doc.authorId ? String(doc.authorId) : null);
+        const userId: string | null = doc.createdBy
+          ? String(doc.createdBy)
+          : doc.authorId
+          ? String(doc.authorId)
+          : null;
         await AuditLog.create({
           resourceType,
           resourceId: String(doc._id),
@@ -65,18 +72,23 @@ export function createAuditPlugin(AuditLog: Model<Document & IAuditLog>, resourc
 
     schema.pre('findOneAndUpdate', async function () {
       try {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const doc = await (this as any).model.findOne(this.getFilter()).lean();
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (this as any)._auditBefore = doc;
       } catch (err) {
         logger.error('auditPlugin: failed to capture before state', { resourceType, error: (err as Error).message });
       }
     });
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     schema.post('findOneAndUpdate', async function (doc: any) {
       try {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const before = (this as any)._auditBefore ?? null;
-        const opts = this.getOptions() as any;
-        const auditUser: Partial<AuditUser> = opts.auditUser ?? {};
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const opts = (this as any).getOptions() as Record<string, unknown>;
+        const auditUser = (opts.auditUser ?? {}) as Partial<AuditUser>;
         await AuditLog.create({
           resourceType,
           resourceId: String(doc?._id ?? before?._id ?? 'unknown'),
@@ -95,7 +107,9 @@ export function createAuditPlugin(AuditLog: Model<Document & IAuditLog>, resourc
 
     schema.pre('findOneAndDelete', async function () {
       try {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const doc = await (this as any).model.findOne(this.getFilter()).lean();
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (this as any)._auditDoc = doc;
       } catch (err) {
         logger.error('auditPlugin: failed to capture doc before delete', { resourceType, error: (err as Error).message });
@@ -104,9 +118,11 @@ export function createAuditPlugin(AuditLog: Model<Document & IAuditLog>, resourc
 
     schema.post('findOneAndDelete', async function () {
       try {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const doc = (this as any)._auditDoc ?? null;
-        const opts = this.getOptions() as any;
-        const auditUser: Partial<AuditUser> = opts.auditUser ?? {};
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const opts = (this as any).getOptions() as Record<string, unknown>;
+        const auditUser = (opts.auditUser ?? {}) as Partial<AuditUser>;
         await AuditLog.create({
           resourceType,
           resourceId: String(doc?._id ?? 'unknown'),
