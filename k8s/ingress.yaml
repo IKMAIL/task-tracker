@@ -1,0 +1,45 @@
+# Requires nginx Ingress Controller to be installed in the cluster.
+# Install with: kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.10.0/deploy/static/provider/cloud/deploy.yaml
+#
+# Replace task-tracker.example.com with your actual domain.
+#
+# TLS (HTTPS) — uncomment the tls section and ensure cert-manager is installed:
+#   kubectl apply -f https://github.com/cert-manager/cert-manager/releases/latest/download/cert-manager.yaml
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: task-tracker-ingress
+  namespace: task-tracker
+  labels:
+    app.kubernetes.io/name: task-tracker
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-body-size: "50m"
+    # Rewrite /api prefix so backend services receive the correct path
+    nginx.ingress.kubernetes.io/use-regex: "true"
+spec:
+  ingressClassName: nginx
+  # Uncomment to enable TLS via cert-manager (Let's Encrypt)
+  # tls:
+  #   - hosts:
+  #       - task-tracker.example.com
+  #     secretName: task-tracker-tls
+  rules:
+    - host: task-tracker.example.com
+      http:
+        paths:
+          # API gateway handles all /api/* traffic
+          - path: /api
+            pathType: Prefix
+            backend:
+              service:
+                name: api-gateway
+                port:
+                  number: 3000
+          # Web frontend handles all other traffic
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: web-frontend
+                port:
+                  number: 3005

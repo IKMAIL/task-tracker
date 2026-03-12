@@ -1,0 +1,32 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: task-tracker-config
+  namespace: task-tracker
+  labels:
+    app.kubernetes.io/name: task-tracker
+data:
+  # JWT config
+  JWT_EXPIRES_IN: "8h"
+
+  # MongoDB
+  # Each service connects to its own database on the shared MongoDB instance.
+  # The StatefulSet pod mongo-0 is addressable via the headless service DNS.
+  MONGO_URI_IDENTITY: "mongodb://$(MONGO_ROOT_USERNAME):$(MONGO_ROOT_PASSWORD)@mongo-headless.task-tracker.svc.cluster.local:27017/identity?authSource=admin"
+  MONGO_URI_TASKS: "mongodb://$(MONGO_ROOT_USERNAME):$(MONGO_ROOT_PASSWORD)@mongo-headless.task-tracker.svc.cluster.local:27017/tasks?authSource=admin"
+  MONGO_URI_PROGRESS: "mongodb://$(MONGO_ROOT_USERNAME):$(MONGO_ROOT_PASSWORD)@mongo-headless.task-tracker.svc.cluster.local:27017/progress?authSource=admin"
+  MONGO_URI_ALERTS: "mongodb://$(MONGO_ROOT_USERNAME):$(MONGO_ROOT_PASSWORD)@mongo-headless.task-tracker.svc.cluster.local:27017/alerts?authSource=admin"
+  MONGO_URI_TEAMS: "mongodb://$(MONGO_ROOT_USERNAME):$(MONGO_ROOT_PASSWORD)@mongo-headless.task-tracker.svc.cluster.local:27017/teams?authSource=admin"
+
+  # Inter-service URLs (Kubernetes cluster-internal DNS)
+  IDENTITY_SERVICE_URL: "http://identity-service.task-tracker.svc.cluster.local:3001"
+  TASK_SERVICE_URL: "http://task-service.task-tracker.svc.cluster.local:3002"
+  PROGRESS_SERVICE_URL: "http://progress-service.task-tracker.svc.cluster.local:3003"
+  ALERT_SERVICE_URL: "http://alert-service.task-tracker.svc.cluster.local:3004"
+  TEAM_SERVICE_URL: "http://team-service.task-tracker.svc.cluster.local:3006"
+
+  # Frontend — this is baked into the React build image at CI/CD build time.
+  # Update your CI/CD pipeline to pass this as a Docker build-arg:
+  #   docker build --build-arg REACT_APP_API_URL=https://task-tracker.example.com/api
+  # The value below documents the expected production value.
+  REACT_APP_API_URL: "https://task-tracker.example.com/api"

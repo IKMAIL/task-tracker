@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web-frontend
+  namespace: task-tracker
+  labels:
+    app: web-frontend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: web-frontend
+  template:
+    metadata:
+      labels:
+        app: web-frontend
+    spec:
+      containers:
+        - name: web-frontend
+          # IMPORTANT: REACT_APP_API_URL is baked into the image at build time.
+          # The CI/CD pipeline must build this image with the correct build-arg:
+          #   docker build \
+          #     --build-arg REACT_APP_API_URL=https://task-tracker.example.com/api \
+          #     -f apps/web-frontend/Dockerfile \
+          #     apps/web-frontend
+          image: your-registry/task-tracker/web-frontend:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 3005
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 200m
+              memory: 256Mi
+          readinessProbe:
+            tcpSocket:
+              port: 3005
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          livenessProbe:
+            tcpSocket:
+              port: 3005
+            initialDelaySeconds: 20
+            periodSeconds: 20
