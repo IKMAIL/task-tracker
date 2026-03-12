@@ -94,6 +94,22 @@ services:
       progress-service:
         condition: service_started
 
+  team-service:
+    build:
+      context: ../
+      dockerfile: services/team-service/Dockerfile
+    restart: unless-stopped
+    ports:
+      - "3006:3006"
+    environment:
+      PORT: 3006
+      MONGO_URI: mongodb://${MONGO_ROOT_USERNAME:-root}:${MONGO_ROOT_PASSWORD:-rootpassword}@mongo:27017/teams?authSource=admin
+      JWT_SECRET: ${JWT_SECRET}
+      SERVICE_TOKEN: ${SERVICE_TOKEN}
+    depends_on:
+      mongo:
+        condition: service_healthy
+
   api-gateway:
     build:
       context: ../
@@ -108,11 +124,13 @@ services:
       TASK_SERVICE_URL: http://task-service:3002
       PROGRESS_SERVICE_URL: http://progress-service:3003
       ALERT_SERVICE_URL: http://alert-service:3004
+      TEAM_SERVICE_URL: http://team-service:3006
     depends_on:
       - identity-service
       - task-service
       - progress-service
       - alert-service
+      - team-service
 
   web-frontend:
     build:

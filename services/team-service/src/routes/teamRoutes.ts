@@ -11,14 +11,21 @@ const createTeamSchema = Joi.object({
   description: Joi.string().max(500).default(''),
 });
 
+const updateTeamSchema = Joi.object({
+  name: Joi.string().min(2).max(100),
+  description: Joi.string().max(500),
+}).min(1);
+
 const addMemberSchema = Joi.object({
-  userId: Joi.string().required(),
+  memberId: Joi.string().required(),
 });
 
 router.get('/', authenticate, teamController.list);
 router.get('/:id', authenticate, teamController.get);
-router.post('/', authenticate, requireAdmin, validate(createTeamSchema), teamController.create);
-router.post('/:id/members', authenticate, requireAdmin, validate(addMemberSchema), teamController.addMember);
-router.delete('/:id/members/:userId', authenticate, requireAdmin, teamController.removeMember);
+router.post('/', authenticate, validate(createTeamSchema), teamController.create);
+router.put('/:id', authenticate, validate(updateTeamSchema), teamController.update);
+router.delete('/:id', authenticate, teamController.remove);
+router.post('/:id/members', authenticate, validate(addMemberSchema), teamController.addMember);
+router.delete('/:id/members/:memberId', authenticate, teamController.removeMember);
 
 export default router;

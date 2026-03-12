@@ -3,6 +3,8 @@ import mongoose, { Document, Schema } from 'mongoose';
 export type AlertType = 'past_due' | 'update_overdue' | 'behind_schedule' | 'stalled';
 export type AlertSeverity = 'low' | 'medium' | 'high';
 
+export type ResolvedBy = 'user' | 'system' | null;
+
 export interface IAlert extends Document {
   taskId: mongoose.Types.ObjectId;
   teamId: mongoose.Types.ObjectId;
@@ -12,6 +14,7 @@ export interface IAlert extends Document {
   metadata: Record<string, unknown>;
   isActive: boolean;
   resolvedAt: Date | null;
+  resolvedBy: ResolvedBy;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -29,6 +32,7 @@ const AlertSchema = new Schema<IAlert>(
     metadata:   { type: Schema.Types.Mixed, default: {} },
     isActive:   { type: Boolean, default: true },
     resolvedAt: { type: Date, default: null },
+    resolvedBy: { type: String, enum: ['user', 'system', null], default: null },
   },
   { timestamps: true }
 );

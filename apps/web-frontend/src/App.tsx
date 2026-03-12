@@ -10,6 +10,7 @@ import TaskDetailPage from './pages/TaskDetailPage';
 import TaskFormPage from './pages/TaskFormPage';
 import AlertsPage from './pages/AlertsPage';
 import UpdateProgressPage from './pages/UpdateProgressPage';
+import TeamManagementPage from './pages/TeamManagementPage';
 import './styles/global.css';
 
 function App() {
@@ -24,6 +25,7 @@ function App() {
             <Route path="/tasks"                         element={<TaskListPage />} />
             <Route path="/tasks/new"                     element={<TaskFormPage />} />
             <Route path="/tasks/:id"                     element={<TaskDetailPage />} />
+            <Route path="/teams/manage"                   element={<TeamManagementPage />} />
             <Route path="/alerts"                        element={<AlertsPage />} />
             <Route path="/progress/update/:taskId"       element={<UpdateProgressPage />} />
           </Route>

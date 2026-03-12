@@ -49,6 +49,25 @@ export const updateById = async (
   return alert;
 };
 
+export const findManuallyResolvedByTaskAndType = async (
+  taskId: string | mongoose.Types.ObjectId,
+  type: AlertType
+): Promise<IAlert | null> => {
+  logger.debug('alertRepository.findManuallyResolvedByTaskAndType', { taskId, type });
+  const alert = await Alert.findOne({ taskId, type, isActive: false, resolvedBy: 'user' }).lean() as unknown as IAlert | null;
+  logger.debug('alertRepository.findManuallyResolvedByTaskAndType result', { taskId, type, found: !!alert });
+  return alert;
+};
+
+export const clearManualSuppression = async (
+  taskId: string | mongoose.Types.ObjectId,
+  type: AlertType
+): Promise<void> => {
+  logger.debug('alertRepository.clearManualSuppression', { taskId, type });
+  const result = await Alert.deleteOne({ taskId, type, isActive: false, resolvedBy: 'user' });
+  logger.debug('alertRepository.clearManualSuppression result', { taskId, type, deletedCount: result.deletedCount });
+};
+
 export const resolveByTaskAndType = async (
   taskId: string | mongoose.Types.ObjectId,
   type: AlertType
@@ -56,8 +75,10 @@ export const resolveByTaskAndType = async (
   logger.debug('alertRepository.resolveByTaskAndType', { taskId, type });
   const result = await Alert.updateOne(
     { taskId, type, isActive: true },
-    { $set: { isActive: false, resolvedAt: new Date() } }
+    { $set: { isActive: false, resolvedAt: new Date(), resolvedBy: 'system' } }
   );
+  // Also clear any manual suppression since the condition has cleared
+  await clearManualSuppression(taskId, type);
   logger.debug('alertRepository.resolveByTaskAndType result', { taskId, type, modifiedCount: result.modifiedCount });
   return result;
 };
@@ -68,7 +89,7 @@ export const resolveById = async (
   logger.debug('alertRepository.resolveById', { id });
   const alert = await Alert.findByIdAndUpdate(
     id,
-    { $set: { isActive: false, resolvedAt: new Date() } },
+    { $set: { isActive: false, resolvedAt: new Date(), resolvedBy: 'user' } },
     { new: true }
   ).lean() as unknown as IAlert | null;
   logger.debug('alertRepository.resolveById result', { id, found: !!alert, alert });

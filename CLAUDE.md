@@ -40,10 +40,11 @@ npx jest tests/auth.test.ts
 
 ```
 services/          # Express + TypeScript microservices
-  identity-service/  :3001  Auth, users, teams
+  identity-service/  :3001  Auth, users
   task-service/      :3002  Task CRUD
   progress-service/  :3003  Progress updates
   alert-service/     :3004  Deadline/deviation alerts (cron-driven)
+  team-service/      :3006  Team CRUD
   api-gateway/       :3000  JWT proxy (single entry point)
 apps/
   web-frontend/      :3005  React 18 SPA
@@ -66,7 +67,7 @@ Browser → api-gateway:3000 → [proxy] → individual service
 Route → Controller → Service → Repository → MongoDB
 ```
 
-Each service has its own MongoDB database (identity, tasks, progress, alerts).
+Each service has its own MongoDB database (identity, tasks, progress, alerts, teams).
 
 ### Inter-service communication
 

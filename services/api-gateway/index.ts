@@ -32,7 +32,13 @@ app.use(
 app.use(
   "/api/teams",
   authenticate,
-  createProxy(services.IDENTITY_URL, { "^/": "/teams/" }),
+  createProxy(services.TEAM_URL, { "^/": "/teams/" }),
+);
+
+app.use(
+  "/api/members",
+  authenticate,
+  createProxy(services.TEAM_URL, { "^/": "/members/" }),
 );
 
 app.use(
