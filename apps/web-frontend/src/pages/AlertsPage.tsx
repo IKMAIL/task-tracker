@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useFetch } from '../hooks/useFetch';
 import { listAlerts, resolveAlert, runDetection } from '../api/alertApi';
 import Spinner from '../components/common/Spinner';
 import ErrorBanner from '../components/common/ErrorBanner';
 
-interface Alert { _id: string; type: string; severity: 'high' | 'medium' | 'low'; message: string; createdAt: string; }
+interface Alert { _id: string; taskId: string; type: string; severity: 'high' | 'medium' | 'low'; message: string; createdAt: string; }
 const SEVERITY_ORDER: Record<string, number> = { high: 0, medium: 1, low: 2 };
 
 export default function AlertsPage(): React.ReactElement {
@@ -50,7 +51,13 @@ export default function AlertsPage(): React.ReactElement {
               <span className="alert-type">{alert.type.replace(/_/g, ' ')}</span>
               <span className="alert-date">{new Date(alert.createdAt).toLocaleDateString()}</span>
             </div>
-            <p className="alert-message">{alert.message}</p>
+            <p className="alert-message">
+              {alert.message.split(/(".*?")/).map((part, i) =>
+                part.startsWith('"') && part.endsWith('"')
+                  ? <Link key={i} to={`/tasks/${alert.taskId}`}>{part}</Link>
+                  : part
+              )}
+            </p>
             <button className="btn btn-sm" onClick={() => handleResolve(alert._id)} disabled={resolving === alert._id}>
               {resolving === alert._id ? 'Resolving...' : 'Resolve'}
             </button>
