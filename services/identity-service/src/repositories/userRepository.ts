@@ -1,5 +1,5 @@
 import User from '../models/User';
-import { logger } from '@task-tracker/utils';
+import { logger, AuditUser } from '@task-tracker/utils';
 
 export const findByEmail = async (email: string) => {
   logger.debug('userRepository.findByEmail', { email });
@@ -36,9 +36,13 @@ export const findByMicrosoftId = async (microsoftId: string) => {
   return user;
 };
 
-export const updateById = async (id: string, data: Record<string, unknown>) => {
+export const updateById = async (id: string, data: Record<string, unknown>, auditUser?: AuditUser) => {
   logger.debug('userRepository.updateById', { id, data });
-  const user = await User.findByIdAndUpdate(id, { $set: data }, { new: true, runValidators: true })
+  const user = await User.findByIdAndUpdate(
+    id,
+    { $set: data },
+    { new: true, runValidators: true, ...(auditUser ? { auditUser } : {}) }
+  )
     .select('-passwordHash')
     .lean();
   logger.debug('userRepository.updateById result', { id, found: !!user, user });

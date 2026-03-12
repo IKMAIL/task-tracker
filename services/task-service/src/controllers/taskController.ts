@@ -5,7 +5,8 @@ import { logger } from '@task-tracker/utils';
 export const create = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     logger.debug('taskController.create', { body: req.body, userId: req.user?.sub });
-    const task = await taskService.createTask(req.body, req.user!.sub!);
+    const auditUser = req.user?.sub ? { userId: req.user.sub, userEmail: req.user.email as string } : undefined;
+    const task = await taskService.createTask(req.body, req.user!.sub!, auditUser);
     logger.debug('taskController.create result', { task });
     res.status(201).json({ success: true, data: task });
   } catch (err) {
@@ -39,7 +40,8 @@ export const get = async (req: Request, res: Response, next: NextFunction): Prom
 export const update = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     logger.debug('taskController.update', { id: req.params.id, body: req.body, userId: req.user?.sub });
-    const task = await taskService.updateTask(req.params.id, req.body);
+    const auditUser = req.user?.sub ? { userId: req.user.sub, userEmail: req.user.email as string } : undefined;
+    const task = await taskService.updateTask(req.params.id, req.body, auditUser);
     logger.debug('taskController.update result', { task });
     res.json({ success: true, data: task });
   } catch (err) {
@@ -50,7 +52,8 @@ export const update = async (req: Request, res: Response, next: NextFunction): P
 export const remove = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     logger.debug('taskController.remove', { id: req.params.id, userId: req.user?.sub });
-    await taskService.cancelTask(req.params.id);
+    const auditUser = req.user?.sub ? { userId: req.user.sub, userEmail: req.user.email as string } : undefined;
+    await taskService.cancelTask(req.params.id, auditUser);
     logger.debug('taskController.remove done', { id: req.params.id });
     res.json({ success: true, data: { message: 'Task cancelled' } });
   } catch (err) {

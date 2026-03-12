@@ -3,6 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import { useFetch } from '../hooks/useFetch';
 import { getTask } from '../api/taskApi';
 import { getHistory } from '../api/progressApi';
+import { useAuth } from '../context/AuthContext';
 import Spinner from '../components/common/Spinner';
 import ErrorBanner from '../components/common/ErrorBanner';
 import StatusBadge from '../components/common/StatusBadge';
@@ -19,6 +20,7 @@ interface ProgressUpdate {
 
 export default function TaskDetailPage(): React.ReactElement {
   const { id } = useParams<{ id: string }>();
+  const { user } = useAuth();
   const { data: task, loading: l1, error: e1 } = useFetch<Task>(() => getTask(id!), [id]);
   const { data: history, loading: l2, error: e2 } = useFetch<ProgressUpdate[]>(() => getHistory(id!), [id]);
 
@@ -30,6 +32,9 @@ export default function TaskDetailPage(): React.ReactElement {
       <div className="page-header">
         <h1>{task.title}</h1>
         <Link to={`/progress/update/${id}`} className="btn btn-primary">Log Progress Update</Link>
+        {user?.role === 'admin' && (
+          <Link to={`/audit?resourceType=task&resourceId=${id}`} className="btn btn-sm">Audit History</Link>
+        )}
       </div>
       <ErrorBanner message={e1 || e2} />
       <div className="detail-grid">

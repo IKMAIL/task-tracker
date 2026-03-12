@@ -1,4 +1,6 @@
 import mongoose, { Document, Schema } from 'mongoose';
+import { createAuditPlugin } from '@task-tracker/utils';
+import AuditLog from './AuditLog';
 
 export const CATEGORIES = [
   'Automation Testing Coverage',
@@ -51,5 +53,7 @@ const TaskSchema = new Schema<ITask>(
 TaskSchema.index({ assignedTeamId: 1, status: 1 });
 TaskSchema.index({ dueDate: 1, status: 1 });
 TaskSchema.index({ nextUpdateDate: 1 });
+
+TaskSchema.plugin(createAuditPlugin(AuditLog as any, 'task'));
 
 export default mongoose.model<ITask>('Task', TaskSchema);

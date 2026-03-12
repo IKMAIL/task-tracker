@@ -1,4 +1,6 @@
 import mongoose, { Document, Schema } from 'mongoose';
+import { createAuditPlugin } from '@task-tracker/utils';
+import AuditLog from './AuditLog';
 
 export const STATUSES = ['not_started', 'in_progress', 'blocked', 'completed', 'cancelled'] as const;
 export type Status = typeof STATUSES[number];
@@ -30,5 +32,7 @@ const TaskUpdateSchema = new Schema<ITaskUpdate>(
 
 TaskUpdateSchema.index({ taskId: 1, recordedAt: -1 });
 TaskUpdateSchema.index({ teamId: 1, recordedAt: -1 });
+
+TaskUpdateSchema.plugin(createAuditPlugin(AuditLog as any, 'progress'));
 
 export default mongoose.model<ITaskUpdate>('TaskUpdate', TaskUpdateSchema);

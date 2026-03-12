@@ -32,7 +32,8 @@ export async function update(req: Request, res: Response, next: NextFunction): P
       res.status(403).json({ success: false, error: { message: 'Forbidden' } });
       return;
     }
-    const user = await userService.updateUser(req.params.id, req.body);
+    const auditUser = req.user?.sub ? { userId: req.user.sub, userEmail: req.user.email as string } : undefined;
+    const user = await userService.updateUser(req.params.id, req.body, auditUser);
     logger.debug('userController.update result', { user });
     res.json({ success: true, data: user });
   } catch (err) {

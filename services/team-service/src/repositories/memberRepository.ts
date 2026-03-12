@@ -1,5 +1,5 @@
 import Member from '../models/Member';
-import { logger } from '@task-tracker/utils';
+import { logger, AuditUser } from '@task-tracker/utils';
 
 export const findAll = async () => {
   logger.debug('memberRepository.findAll');
@@ -29,16 +29,23 @@ export const create = async (data: Record<string, unknown>) => {
   return member;
 };
 
-export const updateById = async (id: string, data: Record<string, unknown>) => {
+export const updateById = async (id: string, data: Record<string, unknown>, auditUser?: AuditUser) => {
   logger.debug('memberRepository.updateById', { id, data });
-  const member = await Member.findByIdAndUpdate(id, { $set: data }, { new: true, runValidators: true }).lean();
+  const member = await Member.findByIdAndUpdate(
+    id,
+    { $set: data },
+    { new: true, runValidators: true, ...(auditUser ? { auditUser } : {}) }
+  ).lean();
   logger.debug('memberRepository.updateById result', { id, found: !!member });
   return member;
 };
 
-export const deleteById = async (id: string) => {
+export const deleteById = async (id: string, auditUser?: AuditUser) => {
   logger.debug('memberRepository.deleteById', { id });
-  const member = await Member.findByIdAndDelete(id).lean();
+  const member = await Member.findByIdAndDelete(
+    id,
+    auditUser ? { auditUser } : {}
+  ).lean();
   logger.debug('memberRepository.deleteById result', { id, found: !!member });
   return member;
 };

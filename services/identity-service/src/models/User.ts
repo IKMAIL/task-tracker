@@ -1,4 +1,6 @@
 import mongoose, { Document, Schema, Types } from 'mongoose';
+import { createAuditPlugin } from '@task-tracker/utils';
+import AuditLog from './AuditLog';
 
 export interface IUser extends Document {
   name: string;
@@ -24,5 +26,7 @@ const UserSchema = new Schema<IUser>(
   },
   { timestamps: true }
 );
+
+UserSchema.plugin(createAuditPlugin(AuditLog as any, 'user'));
 
 export default mongoose.model<IUser>('User', UserSchema);
