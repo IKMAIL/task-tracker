@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useFetch } from '../hooks/useFetch';
-import { listTasks } from '../api/taskApi';
+import { listTasks, searchTasks } from '../api/taskApi';
 import { listTeams } from '../api/teamApi';
 import Spinner from '../components/common/Spinner';
 import ErrorBanner from '../components/common/ErrorBanner';
@@ -21,10 +21,19 @@ interface Filters { status: string; category: string; teamId: string; }
 export default function TaskListPage(): React.ReactElement {
   const navigate = useNavigate();
   const [filters, setFilters] = useState<Filters>({ status: '', category: '', teamId: '' });
+  const [query, setQuery] = useState('');
+  const [debouncedQ, setDebouncedQ] = useState('');
+
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedQ(query), 300);
+    return () => clearTimeout(t);
+  }, [query]);
 
   const { data: tasks, loading, error } = useFetch<Task[]>(
-    () => listTasks(Object.fromEntries(Object.entries(filters).filter(([, v]) => v))),
-    [filters.status, filters.category, filters.teamId]
+    () => debouncedQ.length >= 2
+      ? searchTasks(debouncedQ)
+      : listTasks(Object.fromEntries(Object.entries(filters).filter(([, v]) => v))),
+    [debouncedQ, filters.status, filters.category, filters.teamId]
   );
   const { data: teams } = useFetch<Team[]>(listTeams);
 
@@ -39,6 +48,13 @@ export default function TaskListPage(): React.ReactElement {
         <button className="btn btn-primary" onClick={() => navigate('/tasks/new')}>+ New Task</button>
       </div>
       <div className="filters">
+        <input
+          type="text"
+          placeholder="Search by title or description..."
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          style={{ flex: '1 1 200px', minWidth: '200px' }}
+        />
         <select value={filters.status} onChange={(e) => setFilter('status', e.target.value)}>
           <option value="">All statuses</option>
           {STATUSES.map((s) => <option key={s} value={s}>{s.replace(/_/g, ' ')}</option>)}

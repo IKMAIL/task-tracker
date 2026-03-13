@@ -44,6 +44,7 @@ const updateSchema = Joi.object({
 });
 
 router.get('/summary', authenticate, taskController.summary);
+router.get('/search', authenticate, taskController.search);
 router.get('/team/:teamId', authenticate, taskController.getByTeam);
 router.get('/', authenticate, taskController.list);
 router.post('/', authenticate, validate(createSchema), taskController.create);

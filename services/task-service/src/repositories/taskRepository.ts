@@ -74,6 +74,13 @@ export const updateById = async (id: string, data: Partial<ITask>, auditUser?: A
   return task;
 };
 
+export const search = async (q: string, options: PaginationOptions = {}): Promise<PaginatedResult> => {
+  const regex = new RegExp(q, 'i');
+  const query: FilterQuery<ITask> = { $or: [{ title: regex }, { description: regex }] };
+  logger.debug('taskRepository.search', { q, options });
+  return findPaginated(query, options);
+};
+
 export const summary = async () => {
   logger.debug('taskRepository.summary');
   const result = await Task.aggregate([
