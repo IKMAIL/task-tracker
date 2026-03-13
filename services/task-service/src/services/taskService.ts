@@ -87,6 +87,16 @@ export const getSummary = async () => {
   return result;
 };
 
+export const searchTasks = async (q: string, pagination: PaginationOptions) => {
+  logger.debug('taskService.searchTasks', { q, pagination });
+  if (!q || q.trim().length < 2) {
+    throw Object.assign(new Error('Search query must be at least 2 characters'), { status: 400 });
+  }
+  const result = await taskRepository.search(q.trim(), pagination);
+  logger.debug('taskService.searchTasks result', { q, total: result.meta.total });
+  return result;
+};
+
 export const syncProgress = async (id: string, data: Partial<ITask>) => {
   logger.debug('taskService.syncProgress', { id, data });
   const task = await taskRepository.updateById(id, data);

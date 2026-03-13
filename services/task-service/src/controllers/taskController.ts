@@ -83,6 +83,20 @@ export const summary = async (req: Request, res: Response, next: NextFunction): 
   }
 };
 
+export const search = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const q = String(req.query.q || '').trim();
+    const page = Number(req.query.page) || 1;
+    const limit = Math.min(Number(req.query.limit) || 20, 100);
+    logger.debug('taskController.search', { q, page, limit, userId: req.user?.sub });
+    const result = await taskService.searchTasks(q, { page, limit });
+    logger.debug('taskController.search result', { meta: result.meta });
+    res.json({ success: true, data: result.tasks, meta: result.meta });
+  } catch (err) {
+    next(err);
+  }
+};
+
 export const progressSync = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     logger.debug('taskController.progressSync', { id: req.params.id, body: req.body });
