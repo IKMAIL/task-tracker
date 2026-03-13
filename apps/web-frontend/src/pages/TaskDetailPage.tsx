@@ -1,7 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useFetch } from '../hooks/useFetch';
-import { getTask } from '../api/taskApi';
+import { getTask, getComments, addComment } from '../api/taskApi';
 import { getHistory } from '../api/progressApi';
 import { useAuth } from '../context/AuthContext';
 import Spinner from '../components/common/Spinner';
@@ -17,14 +17,22 @@ interface Task {
 interface ProgressUpdate {
   _id: string; status: string; completionPct: number; recordedAt: string; comment?: string;
 }
+interface Comment {
+  _id: string; authorEmail: string; body: string; createdAt: string;
+}
 
 export default function TaskDetailPage(): React.ReactElement {
   const { id } = useParams<{ id: string }>();
   const { user } = useAuth();
   const { data: task, loading: l1, error: e1 } = useFetch<Task>(() => getTask(id!), [id]);
   const { data: history, loading: l2, error: e2 } = useFetch<ProgressUpdate[]>(() => getHistory(id!), [id]);
+  const { data: comments, loading: l3, error: e3, refetch: refetchComments } = useFetch<Comment[]>(() => getComments(id!), [id]);
 
-  if (l1 || l2) return <Spinner />;
+  const [commentBody, setCommentBody] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+
+  if (l1 || l2 || l3) return <Spinner />;
   if (!task) return <ErrorBanner message={e1 || 'Task not found'} />;
 
   return (
@@ -69,6 +77,51 @@ export default function TaskDetailPage(): React.ReactElement {
             </div>
           ))
         }
+      </section>
+      <section>
+        <h2>Comments</h2>
+        <ErrorBanner message={e3 || submitError} />
+        {(comments || []).length === 0
+          ? <p>No comments yet.</p>
+          : (comments || []).map((c) => (
+            <div key={c._id} className="timeline-item">
+              <div className="timeline-header">
+                <span className="timeline-author">{c.authorEmail}</span>
+                <span className="timeline-date">{new Date(c.createdAt).toLocaleString()}</span>
+              </div>
+              <p className="timeline-comment">{c.body}</p>
+            </div>
+          ))
+        }
+        <form
+          onSubmit={async (e) => {
+            e.preventDefault();
+            if (!commentBody.trim()) return;
+            setSubmitting(true);
+            setSubmitError(null);
+            try {
+              await addComment(id!, commentBody.trim());
+              setCommentBody('');
+              refetchComments();
+            } catch (err: any) {
+              setSubmitError(err.message);
+            } finally {
+              setSubmitting(false);
+            }
+          }}
+        >
+          <textarea
+            value={commentBody}
+            onChange={(e) => setCommentBody(e.target.value)}
+            placeholder="Add a comment..."
+            maxLength={2000}
+            rows={3}
+            disabled={submitting}
+          />
+          <button type="submit" className="btn btn-primary" disabled={submitting || !commentBody.trim()}>
+            {submitting ? 'Posting...' : 'Post Comment'}
+          </button>
+        </form>
       </section>
     </div>
   );

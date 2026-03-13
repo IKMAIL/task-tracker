@@ -3,6 +3,7 @@ import Joi from 'joi';
 import validate from '../middleware/validate';
 import { authenticate, requireAdmin, requireServiceToken } from '../middleware/authenticate';
 import * as taskController from '../controllers/taskController';
+import * as commentController from '../controllers/commentController';
 
 const router: Router = Router();
 
@@ -43,11 +44,17 @@ const updateSchema = Joi.object({
   nextUpdateDate:   Joi.date().allow(null),
 });
 
+const commentSchema = Joi.object({
+  body: Joi.string().min(1).max(2000).required(),
+});
+
 router.get('/summary', authenticate, taskController.summary);
 router.get('/search', authenticate, taskController.search);
 router.get('/team/:teamId', authenticate, taskController.getByTeam);
 router.get('/', authenticate, taskController.list);
 router.post('/', authenticate, validate(createSchema), taskController.create);
+router.get('/:id/comments', authenticate, commentController.list);
+router.post('/:id/comments', authenticate, validate(commentSchema), commentController.create);
 router.get('/:id', authenticate, taskController.get);
 router.put('/:id', authenticate, validate(updateSchema), taskController.update);
 router.delete('/:id', authenticate, requireAdmin, taskController.remove);
