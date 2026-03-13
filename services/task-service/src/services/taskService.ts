@@ -97,6 +97,22 @@ export const searchTasks = async (q: string, pagination: PaginationOptions) => {
   return result;
 };
 
+export const getDependencies = async (id: string) => {
+  logger.debug('taskService.getDependencies', { id });
+  const task = await taskRepository.findById(id);
+  if (!task) {
+    logger.warn('task not found for dependencies', { taskId: id });
+    throw Object.assign(new Error('Task not found'), { status: 404 });
+  }
+  const blockedByIds = (task.blockedBy ?? []).map(String);
+  const [blockedBy, blocking] = await Promise.all([
+    taskRepository.findByIds(blockedByIds),
+    taskRepository.findBlocking(id),
+  ]);
+  logger.debug('taskService.getDependencies result', { id, blockedByCount: blockedBy.length, blockingCount: blocking.length });
+  return { blockedBy, blocking };
+};
+
 export const syncProgress = async (id: string, data: Partial<ITask>) => {
   logger.debug('taskService.syncProgress', { id, data });
   const task = await taskRepository.updateById(id, data);

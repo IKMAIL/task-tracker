@@ -42,6 +42,7 @@ const updateSchema = Joi.object({
   plannedStartDate: Joi.date(),
   dueDate:          Joi.date(),
   nextUpdateDate:   Joi.date().allow(null),
+  blockedBy:        Joi.array().items(Joi.string().length(24)).default([]),
 });
 
 const commentSchema = Joi.object({
@@ -55,6 +56,7 @@ router.get('/', authenticate, taskController.list);
 router.post('/', authenticate, validate(createSchema), taskController.create);
 router.get('/:id/comments', authenticate, commentController.list);
 router.post('/:id/comments', authenticate, validate(commentSchema), commentController.create);
+router.get('/:id/dependencies', authenticate, taskController.getDependencies);
 router.get('/:id', authenticate, taskController.get);
 router.put('/:id', authenticate, validate(updateSchema), taskController.update);
 router.delete('/:id', authenticate, requireAdmin, taskController.remove);

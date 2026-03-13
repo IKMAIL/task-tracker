@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useFetch } from '../hooks/useFetch';
-import { getTask, getComments, addComment } from '../api/taskApi';
+import { getTask, getComments, addComment, getDependencies, listTasks, updateTask } from '../api/taskApi';
 import { getHistory } from '../api/progressApi';
 import { useAuth } from '../context/AuthContext';
 import Spinner from '../components/common/Spinner';
@@ -9,10 +9,13 @@ import ErrorBanner from '../components/common/ErrorBanner';
 import StatusBadge from '../components/common/StatusBadge';
 import ProgressBar from '../components/common/ProgressBar';
 
+interface DependencyTask {
+  _id: string; title: string; status: string;
+}
 interface Task {
   _id: string; title: string; category: string; status: string; completionPct: number;
   description?: string; plannedStartDate?: string; dueDate?: string;
-  nextUpdateDate?: string; lastUpdatedAt?: string;
+  nextUpdateDate?: string; lastUpdatedAt?: string; blockedBy?: string[];
 }
 interface ProgressUpdate {
   _id: string; status: string; completionPct: number; recordedAt: string; comment?: string;
@@ -27,12 +30,17 @@ export default function TaskDetailPage(): React.ReactElement {
   const { data: task, loading: l1, error: e1 } = useFetch<Task>(() => getTask(id!), [id]);
   const { data: history, loading: l2, error: e2 } = useFetch<ProgressUpdate[]>(() => getHistory(id!), [id]);
   const { data: comments, loading: l3, error: e3, refetch: refetchComments } = useFetch<Comment[]>(() => getComments(id!), [id]);
+  const { data: deps, loading: l4, refetch: refetchDeps } = useFetch<{ blockedBy: DependencyTask[]; blocking: DependencyTask[] }>(() => getDependencies(id!), [id]);
+  const { data: allTasksData } = useFetch<DependencyTask[]>(listTasks, []);
 
   const [commentBody, setCommentBody] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [newBlockerId, setNewBlockerId] = useState('');
+  const [depSubmitting, setDepSubmitting] = useState(false);
+  const [depError, setDepError] = useState<string | null>(null);
 
-  if (l1 || l2 || l3) return <Spinner />;
+  if (l1 || l2 || l3 || l4) return <Spinner />;
   if (!task) return <ErrorBanner message={e1 || 'Task not found'} />;
 
   return (
@@ -77,6 +85,99 @@ export default function TaskDetailPage(): React.ReactElement {
             </div>
           ))
         }
+      </section>
+      <section>
+        <h2>Dependencies</h2>
+        <ErrorBanner message={depError} />
+        <div className="detail-grid">
+          <div className="detail-card">
+            <h3>Blocked By</h3>
+            {(deps?.blockedBy || []).length === 0
+              ? <p>This task has no blockers.</p>
+              : (deps?.blockedBy || []).map((t) => (
+                  <div key={t._id} style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
+                    <Link to={`/tasks/${t._id}`}>{t.title}</Link>
+                    <StatusBadge status={t.status} />
+                    <button
+                      className="btn btn-sm"
+                      onClick={async () => {
+                        setDepSubmitting(true);
+                        setDepError(null);
+                        try {
+                          const updated = (task?.blockedBy || []).filter((bid) => bid !== t._id);
+                          await updateTask(id!, { blockedBy: updated });
+                          refetchDeps();
+                        } catch (err: any) {
+                          setDepError(err.message);
+                        } finally {
+                          setDepSubmitting(false);
+                        }
+                      }}
+                      disabled={depSubmitting}
+                    >
+                      Remove
+                    </button>
+                  </div>
+                ))
+            }
+            <form
+              onSubmit={async (e) => {
+                e.preventDefault();
+                if (!newBlockerId) return;
+                setDepSubmitting(true);
+                setDepError(null);
+                try {
+                  const current = task?.blockedBy || [];
+                  await updateTask(id!, { blockedBy: [...current, newBlockerId] });
+                  setNewBlockerId('');
+                  refetchDeps();
+                } catch (err: any) {
+                  setDepError(err.message);
+                } finally {
+                  setDepSubmitting(false);
+                }
+              }}
+              style={{ display: 'flex', gap: '8px', marginTop: '12px' }}
+            >
+              <select
+                value={newBlockerId}
+                onChange={(e) => setNewBlockerId(e.target.value)}
+                disabled={depSubmitting}
+                style={{ flex: 1 }}
+              >
+                <option value="">Select a task to add as blocker...</option>
+                {(allTasksData || [])
+                  .filter((t: DependencyTask) =>
+                    t._id !== id &&
+                    !(deps?.blockedBy || []).some((b) => b._id === t._id)
+                  )
+                  .map((t: DependencyTask) => (
+                    <option key={t._id} value={t._id}>{t.title}</option>
+                  ))
+                }
+              </select>
+              <button
+                type="submit"
+                className="btn btn-primary"
+                disabled={depSubmitting || !newBlockerId}
+              >
+                Add Blocker
+              </button>
+            </form>
+          </div>
+          <div className="detail-card">
+            <h3>Blocking</h3>
+            {(deps?.blocking || []).length === 0
+              ? <p>This task is not blocking any other tasks.</p>
+              : (deps?.blocking || []).map((t) => (
+                  <div key={t._id} style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
+                    <Link to={`/tasks/${t._id}`}>{t.title}</Link>
+                    <StatusBadge status={t.status} />
+                  </div>
+                ))
+            }
+          </div>
+        </div>
       </section>
       <section>
         <h2>Comments</h2>

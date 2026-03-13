@@ -16,3 +16,4 @@ export const searchTasks = (q: string, params: Record<string, string> = {}): Pro
 export const getComments = (taskId: string): Promise<any> => apiFetch(`/tasks/${taskId}/comments`);
 export const addComment  = (taskId: string, body: string): Promise<any> =>
   apiFetch(`/tasks/${taskId}/comments`, { method: 'POST', body: JSON.stringify({ body }) });
+export const getDependencies = (taskId: string): Promise<any> => apiFetch(`/tasks/${taskId}/dependencies`);

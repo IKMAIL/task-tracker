@@ -89,3 +89,17 @@ export const summary = async () => {
   logger.debug('taskRepository.summary result', { groups: result.length, result });
   return result;
 };
+
+export const findByIds = async (ids: string[]) => {
+  logger.debug('taskRepository.findByIds', { ids });
+  const tasks = await Task.find({ _id: { $in: ids } }).lean();
+  logger.debug('taskRepository.findByIds result', { count: tasks.length });
+  return tasks;
+};
+
+export const findBlocking = async (taskId: string) => {
+  logger.debug('taskRepository.findBlocking', { taskId });
+  const tasks = await Task.find({ blockedBy: taskId }).lean();
+  logger.debug('taskRepository.findBlocking result', { taskId, count: tasks.length });
+  return tasks;
+};
