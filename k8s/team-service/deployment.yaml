@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: team-service
-          image: your-registry/task-tracker/team-service:latest
+          image: localhost:5000/team-service:latest
           imagePullPolicy: Always
           ports:
             - containerPort: 3006

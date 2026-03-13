@@ -23,7 +23,7 @@ spec:
           #     --build-arg REACT_APP_API_URL=https://task-tracker.example.com/api \
           #     -f apps/web-frontend/Dockerfile \
           #     apps/web-frontend
-          image: your-registry/task-tracker/web-frontend:latest
+          image: localhost:5000/web-frontend:latest
           imagePullPolicy: Always
           ports:
             - containerPort: 3005
