@@ -93,35 +93,54 @@ export default function TaskDetailPage(): React.ReactElement {
             </div>
           ))
         }
-        <form
-          onSubmit={async (e) => {
-            e.preventDefault();
-            if (!commentBody.trim()) return;
-            setSubmitting(true);
-            setSubmitError(null);
-            try {
-              await addComment(id!, commentBody.trim());
-              setCommentBody('');
-              refetchComments();
-            } catch (err: any) {
-              setSubmitError(err.message);
-            } finally {
-              setSubmitting(false);
-            }
-          }}
-        >
-          <textarea
-            value={commentBody}
-            onChange={(e) => setCommentBody(e.target.value)}
-            placeholder="Add a comment..."
-            maxLength={2000}
-            rows={3}
-            disabled={submitting}
-          />
-          <button type="submit" className="btn btn-primary" disabled={submitting || !commentBody.trim()}>
-            {submitting ? 'Posting...' : 'Post Comment'}
-          </button>
-        </form>
+        <div className="timeline-item">
+          <form
+            onSubmit={async (e) => {
+              e.preventDefault();
+              if (!commentBody.trim()) return;
+              setSubmitting(true);
+              setSubmitError(null);
+              try {
+                await addComment(id!, commentBody.trim());
+                setCommentBody('');
+                refetchComments();
+              } catch (err: any) {
+                setSubmitError(err.message);
+              } finally {
+                setSubmitting(false);
+              }
+            }}
+            style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}
+          >
+            <textarea
+              value={commentBody}
+              onChange={(e) => setCommentBody(e.target.value)}
+              placeholder="Add a comment..."
+              maxLength={2000}
+              rows={3}
+              disabled={submitting}
+              style={{
+                width: '100%',
+                resize: 'vertical',
+                padding: '8px 10px',
+                border: '1px solid var(--border)',
+                borderRadius: 'var(--radius)',
+                fontSize: '0.875rem',
+                background: 'var(--bg-input)',
+                color: 'var(--text-primary)',
+                fontFamily: 'inherit',
+              }}
+            />
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                {commentBody.length}/2000
+              </span>
+              <button type="submit" className="btn btn-primary" disabled={submitting || !commentBody.trim()}>
+                {submitting ? 'Posting...' : 'Post Comment'}
+              </button>
+            </div>
+          </form>
+        </div>
       </section>
     </div>
   );
