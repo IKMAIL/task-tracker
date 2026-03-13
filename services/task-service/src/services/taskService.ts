@@ -1,5 +1,5 @@
 import * as taskRepository from '../repositories/taskRepository';
-import { ITask } from '../models/Task';
+import { ITask, IRecurrence, RecurrenceFrequency } from '../models/Task';
 import { PaginationOptions } from '../repositories/taskRepository';
 import { logger, AuditUser } from '@task-tracker/utils';
 
@@ -119,4 +119,115 @@ export const syncProgress = async (id: string, data: Partial<ITask>) => {
   logger.debug('progress synced to task', { taskId: id, completionPct: data.completionPct });
   logger.debug('taskService.syncProgress result', { task });
   return task;
+};
+
+// ─── Recurring Tasks ──────────────────────────────────────────────────────────
+
+export const calculateNextRunAt = (frequency: RecurrenceFrequency, interval: number, from: Date): Date => {
+  const next = new Date(from);
+  switch (frequency) {
+    case 'daily':
+      next.setDate(next.getDate() + interval);
+      break;
+    case 'weekly':
+      next.setDate(next.getDate() + interval * 7);
+      break;
+    case 'monthly':
+      next.setMonth(next.getMonth() + interval);
+      break;
+    case 'quarterly':
+      next.setMonth(next.getMonth() + interval * 3);
+      break;
+  }
+  return next;
+};
+
+export const setRecurrence = async (
+  taskId: string,
+  dto: Partial<IRecurrence>,
+  auditUser?: AuditUser
+) => {
+  logger.debug('taskService.setRecurrence', { taskId, dto });
+  const task = await taskRepository.findById(taskId);
+  if (!task) {
+    throw Object.assign(new Error('Task not found'), { status: 404 });
+  }
+  if (task.parentTaskId) {
+    throw Object.assign(new Error('Cannot set recurrence on a child task — configure the template instead'), { status: 400 });
+  }
+  const updated = await taskRepository.updateById(taskId, { recurrence: dto as IRecurrence } as Partial<ITask>, auditUser);
+  logger.info('recurrence configured', { taskId, enabled: dto.enabled, frequency: dto.frequency });
+  return updated;
+};
+
+export const listRecurringTasks = async (pagination: PaginationOptions) => {
+  logger.debug('taskService.listRecurringTasks', { pagination });
+  return taskRepository.findPaginated({ 'recurrence.enabled': true }, pagination);
+};
+
+const spawnChild = async (template: ITask, now: Date): Promise<ITask> => {
+  const durationMs = new Date(template.dueDate).getTime() - new Date(template.plannedStartDate).getTime();
+  const childDueDate = new Date(now.getTime() + durationMs);
+
+  const childData: Partial<ITask> = {
+    title: template.title,
+    description: template.description,
+    category: template.category,
+    assignedTeamId: template.assignedTeamId,
+    assignedPersonId: template.assignedPersonId,
+    createdBy: template.createdBy,
+    status: 'not_started',
+    completionPct: 0,
+    plannedStartDate: now,
+    dueDate: childDueDate,
+    nextUpdateDate: null,
+    lastUpdatedAt: null,
+    blockedBy: [],
+    recurrence: null,
+    parentTaskId: template._id as ITask['parentTaskId'],
+  };
+
+  const child = await taskRepository.create(childData);
+  logger.info('recurring child task spawned', {
+    templateId: String(template._id),
+    childId: String(child._id),
+    dueDate: childDueDate,
+  });
+  return child as unknown as ITask;
+};
+
+export const runRecurring = async (): Promise<number> => {
+  const now = new Date();
+  logger.debug('taskService.runRecurring', { now });
+  const templates = await taskRepository.findDueRecurringTasks(now);
+  logger.info('recurring: due templates found', { count: templates.length });
+
+  let spawned = 0;
+  for (const template of templates) {
+    const rec = template.recurrence!;
+    if (rec.maxOccurrences !== null && rec.occurrenceCount >= rec.maxOccurrences) {
+      logger.info('recurring: max occurrences reached, disabling', { taskId: String(template._id), occurrenceCount: rec.occurrenceCount, maxOccurrences: rec.maxOccurrences });
+      await taskRepository.updateRecurrenceState(String(template._id), { enabled: false });
+      continue;
+    }
+
+    try {
+      await spawnChild(template, now);
+      const nextRunAt = calculateNextRunAt(rec.frequency, rec.interval, now);
+      await taskRepository.updateRecurrenceState(String(template._id), {
+        nextRunAt,
+        lastRunAt: now,
+        occurrenceCount: rec.occurrenceCount + 1,
+      });
+      spawned++;
+    } catch (err) {
+      logger.error('recurring: failed to spawn child task', {
+        templateId: String(template._id),
+        error: (err as Error).message,
+      });
+    }
+  }
+
+  logger.info('recurring: run complete', { spawned, total: templates.length });
+  return spawned;
 };

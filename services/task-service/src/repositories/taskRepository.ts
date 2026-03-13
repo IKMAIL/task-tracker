@@ -1,6 +1,6 @@
 import Task from '../models/Task';
 import { FilterQuery } from 'mongoose';
-import { ITask } from '../models/Task';
+import { ITask, IRecurrence } from '../models/Task';
 import { logger, AuditUser } from '@task-tracker/utils';
 
 export interface PaginationOptions {
@@ -102,4 +102,28 @@ export const findBlocking = async (taskId: string) => {
   const tasks = await Task.find({ blockedBy: taskId }).lean();
   logger.debug('taskRepository.findBlocking result', { taskId, count: tasks.length });
   return tasks;
+};
+
+export const findDueRecurringTasks = async (now: Date): Promise<ITask[]> => {
+  logger.debug('taskRepository.findDueRecurringTasks', { now });
+  const tasks = await Task.find({
+    'recurrence.enabled': true,
+    'recurrence.nextRunAt': { $lte: now },
+    $or: [
+      { 'recurrence.endDate': null },
+      { 'recurrence.endDate': { $gt: now } },
+    ],
+  }).lean();
+  logger.debug('taskRepository.findDueRecurringTasks result', { count: tasks.length });
+  return tasks as unknown as ITask[];
+};
+
+export const updateRecurrenceState = async (id: string, patch: Partial<IRecurrence>) => {
+  logger.debug('taskRepository.updateRecurrenceState', { id, patch });
+  const update = Object.fromEntries(
+    Object.entries(patch).map(([k, v]) => [`recurrence.${k}`, v])
+  );
+  const task = await Task.findByIdAndUpdate(id, { $set: update }, { new: true }).lean();
+  logger.debug('taskRepository.updateRecurrenceState result', { id, found: !!task });
+  return task;
 };

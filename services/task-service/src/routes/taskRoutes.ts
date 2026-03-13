@@ -17,6 +17,16 @@ const CATEGORIES = [
   'Security Risk Items',
 ];
 const STATUSES = ['not_started', 'in_progress', 'blocked', 'completed', 'cancelled'];
+const RECURRENCE_FREQUENCIES = ['daily', 'weekly', 'monthly', 'quarterly'];
+
+const recurrenceSchema = Joi.object({
+  enabled:        Joi.boolean().required(),
+  frequency:      Joi.string().valid(...RECURRENCE_FREQUENCIES).when('enabled', { is: true, then: Joi.required() }),
+  interval:       Joi.number().integer().min(1).max(365).default(1),
+  nextRunAt:      Joi.date().when('enabled', { is: true, then: Joi.required() }),
+  endDate:        Joi.date().allow(null).optional(),
+  maxOccurrences: Joi.number().integer().min(1).allow(null).optional(),
+});
 
 const createSchema = Joi.object({
   title:            Joi.string().min(3).max(200).required(),
@@ -29,6 +39,7 @@ const createSchema = Joi.object({
   plannedStartDate: Joi.date().required(),
   dueDate:          Joi.date().required(),
   nextUpdateDate:   Joi.date().optional(),
+  recurrence:       recurrenceSchema.optional(),
 });
 
 const updateSchema = Joi.object({
@@ -51,12 +62,15 @@ const commentSchema = Joi.object({
 
 router.get('/summary', authenticate, taskController.summary);
 router.get('/search', authenticate, taskController.search);
+router.get('/recurring', authenticate, taskController.listRecurring);
+router.post('/recurring/run', requireServiceToken, taskController.triggerRecurring);
 router.get('/team/:teamId', authenticate, taskController.getByTeam);
 router.get('/', authenticate, taskController.list);
 router.post('/', authenticate, validate(createSchema), taskController.create);
 router.get('/:id/comments', authenticate, commentController.list);
 router.post('/:id/comments', authenticate, validate(commentSchema), commentController.create);
 router.get('/:id/dependencies', authenticate, taskController.getDependencies);
+router.patch('/:id/recurrence', authenticate, validate(recurrenceSchema), taskController.setRecurrence);
 router.get('/:id', authenticate, taskController.get);
 router.put('/:id', authenticate, validate(updateSchema), taskController.update);
 router.delete('/:id', authenticate, requireAdmin, taskController.remove);

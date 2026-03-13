@@ -6,6 +6,7 @@ import taskRoutes from './src/routes/taskRoutes';
 import importRoutes from './src/routes/importRoutes';
 import auditRoutes from './src/routes/auditRoutes';
 import errorHandler from './src/utils/errorHandler';
+import startScheduler from './src/utils/scheduler';
 import { logger, requestLogger } from '@task-tracker/utils';
 
 const app = express();
@@ -22,5 +23,8 @@ app.use('/audit', auditRoutes);
 app.use(errorHandler);
 
 connectDB().then(() => {
-  app.listen(PORT, () => logger.info('task-service started', { port: PORT }));
+  app.listen(PORT, () => {
+    logger.info('task-service started', { port: PORT });
+    startScheduler();
+  });
 });

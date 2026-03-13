@@ -118,3 +118,37 @@ export const progressSync = async (req: Request, res: Response, next: NextFuncti
     next(err);
   }
 };
+
+export const setRecurrence = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    logger.debug('taskController.setRecurrence', { id: req.params.id, body: req.body, userId: req.user?.sub });
+    const auditUser = req.user?.sub ? { userId: req.user.sub, userEmail: req.user.email as string } : undefined;
+    const task = await taskService.setRecurrence(req.params.id, req.body, auditUser);
+    logger.debug('taskController.setRecurrence result', { task });
+    res.json({ success: true, data: task });
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const listRecurring = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const { page, limit } = req.query as Record<string, string>;
+    logger.debug('taskController.listRecurring', { page, limit, userId: req.user?.sub });
+    const result = await taskService.listRecurringTasks({ page, limit });
+    logger.debug('taskController.listRecurring result', { meta: result.meta });
+    res.json({ success: true, data: result.tasks, meta: result.meta });
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const triggerRecurring = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    logger.info('taskController.triggerRecurring: manual trigger');
+    const spawned = await taskService.runRecurring();
+    res.json({ success: true, data: { spawned } });
+  } catch (err) {
+    next(err);
+  }
+};
