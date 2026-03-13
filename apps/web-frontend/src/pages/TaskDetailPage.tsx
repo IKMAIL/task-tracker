@@ -3,11 +3,13 @@ import { useParams, Link } from 'react-router-dom';
 import { useFetch } from '../hooks/useFetch';
 import { getTask, getComments, addComment, getDependencies, listTasks, updateTask } from '../api/taskApi';
 import { getHistory } from '../api/progressApi';
+import { getTeam } from '../api/teamApi';
 import { useAuth } from '../context/AuthContext';
 import Spinner from '../components/common/Spinner';
 import ErrorBanner from '../components/common/ErrorBanner';
 import StatusBadge from '../components/common/StatusBadge';
 import ProgressBar from '../components/common/ProgressBar';
+import CommentInput from '../components/common/CommentInput';
 
 interface DependencyTask {
   _id: string; title: string; status: string;
@@ -15,7 +17,7 @@ interface DependencyTask {
 interface Task {
   _id: string; title: string; category: string; status: string; completionPct: number;
   description?: string; plannedStartDate?: string; dueDate?: string;
-  nextUpdateDate?: string; lastUpdatedAt?: string; blockedBy?: string[];
+  nextUpdateDate?: string; lastUpdatedAt?: string; blockedBy?: string[]; assignedTeamId?: string;
 }
 interface ProgressUpdate {
   _id: string; status: string; completionPct: number; recordedAt: string; comment?: string;
@@ -32,6 +34,11 @@ export default function TaskDetailPage(): React.ReactElement {
   const { data: comments, loading: l3, error: e3, refetch: refetchComments } = useFetch<Comment[]>(() => getComments(id!), [id]);
   const { data: deps, loading: l4, refetch: refetchDeps } = useFetch<{ blockedBy: DependencyTask[]; blocking: DependencyTask[] }>(() => getDependencies(id!), [id]);
   const { data: allTasksData } = useFetch<DependencyTask[]>(listTasks, []);
+  const { data: teamData } = useFetch(
+    () => task?.assignedTeamId ? getTeam(task.assignedTeamId) : Promise.resolve(null),
+    [task?.assignedTeamId]
+  );
+  const members = (teamData?.memberIds || []) as { _id: string; name: string; loginId: string }[];
 
   const [commentBody, setCommentBody] = useState('');
   const [submitting, setSubmitting] = useState(false);
@@ -213,24 +220,12 @@ export default function TaskDetailPage(): React.ReactElement {
             }}
             style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}
           >
-            <textarea
+            <CommentInput
               value={commentBody}
-              onChange={(e) => setCommentBody(e.target.value)}
-              placeholder="Add a comment..."
-              maxLength={2000}
-              rows={3}
+              onChange={setCommentBody}
+              members={members}
               disabled={submitting}
-              style={{
-                width: '100%',
-                resize: 'vertical',
-                padding: '8px 10px',
-                border: '1px solid var(--border)',
-                borderRadius: 'var(--radius)',
-                fontSize: '0.875rem',
-                background: 'var(--bg-input)',
-                color: 'var(--text-primary)',
-                fontFamily: 'inherit',
-              }}
+              maxLength={2000}
             />
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
