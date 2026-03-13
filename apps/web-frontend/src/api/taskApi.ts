@@ -13,3 +13,6 @@ export const searchTasks = (q: string, params: Record<string, string> = {}): Pro
   const qs = new URLSearchParams({ q, ...params }).toString();
   return apiFetch(`/tasks/search?${qs}`);
 };
+export const getComments = (taskId: string): Promise<any> => apiFetch(`/tasks/${taskId}/comments`);
+export const addComment  = (taskId: string, body: string): Promise<any> =>
+  apiFetch(`/tasks/${taskId}/comments`, { method: 'POST', body: JSON.stringify({ body }) });
