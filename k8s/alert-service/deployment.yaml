@@ -19,7 +19,7 @@ spec:
     spec:
       containers:
         - name: alert-service
-          image: your-registry/task-tracker/alert-service:latest
+          image: localhost:5000/alert-service:latest
           imagePullPolicy: Always
           ports:
             - containerPort: 3004

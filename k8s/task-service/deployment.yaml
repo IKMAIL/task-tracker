@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: task-service
-          image: your-registry/task-tracker/task-service:latest
+          image: localhost:5000/task-service:latest
           imagePullPolicy: Always
           ports:
             - containerPort: 3002

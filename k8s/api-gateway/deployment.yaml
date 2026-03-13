@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: api-gateway
-          image: your-registry/task-tracker/api-gateway:latest
+          image: localhost:5000/api-gateway:latest
           imagePullPolicy: Always
           ports:
             - containerPort: 3000

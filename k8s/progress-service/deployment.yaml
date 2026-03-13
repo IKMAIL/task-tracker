@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: progress-service
-          image: your-registry/task-tracker/progress-service:latest
+          image: localhost:5000/progress-service:latest
           imagePullPolicy: Always
           ports:
             - containerPort: 3003

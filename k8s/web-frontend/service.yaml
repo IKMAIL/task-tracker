@@ -6,9 +6,11 @@ metadata:
   labels:
     app: web-frontend
 spec:
+  type: NodePort
   selector:
     app: web-frontend
   ports:
     - name: http
       port: 3005
       targetPort: 3005
+      nodePort: 30005
