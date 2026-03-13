@@ -16,6 +16,7 @@ export default function Header() {
         <Link to="/teams/manage">Manage Teams</Link>
         <Link to="/tasks">Tasks</Link><Link to="/kanban">Kanban</Link><Link to="/alerts">Alerts</Link><Link to="/import">Import</Link>
         {user?.role === 'admin' && <Link to="/audit">Audit Log</Link>}
+        {user?.role === 'admin' && <Link to="/admin/users">Users</Link>}
       </nav>
       <div className="header-user">
         <span>{user?.name}</span>

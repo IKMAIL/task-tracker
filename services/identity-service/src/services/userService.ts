@@ -22,8 +22,10 @@ export async function getUser(id: string) {
 }
 
 export async function updateUser(id: string, data: Record<string, unknown>, auditUser?: AuditUser) {
-  logger.debug('userService.updateUser', { id, data });
-  const user = await userRepository.updateById(id, data, auditUser);
+  const ALLOWED_FIELDS = ['role', 'isActive', 'name', 'teamId'];
+  const safeData = Object.fromEntries(Object.entries(data).filter(([k]) => ALLOWED_FIELDS.includes(k)));
+  logger.debug('userService.updateUser', { id, data: safeData });
+  const user = await userRepository.updateById(id, safeData, auditUser);
   if (!user) {
     logger.debug('userService.updateUser not found', { id });
     const err = new Error('User not found') as Error & { status: number };

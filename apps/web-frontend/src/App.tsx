@@ -15,6 +15,7 @@ import TeamManagementPage from './pages/TeamManagementPage';
 import ImportPage from './pages/ImportPage';
 import AuditLogPage from './pages/AuditLogPage';
 import KanbanBoard from './pages/KanbanBoard';
+import AdminUsers from './pages/AdminUsers';
 import './styles/global.css';
 
 function App() {
@@ -36,6 +37,7 @@ function App() {
             <Route path="/progress/update/:taskId"       element={<UpdateProgressPage />} />
             <Route path="/import"                          element={<ImportPage />} />
             <Route path="/audit"                           element={<AuditLogPage />} />
+            <Route path="/admin/users"                     element={<AdminUsers />} />
           </Route>
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
