@@ -21,6 +21,8 @@ app.use('/import', importRoutes);
 app.use('/audit', auditRoutes);
 app.use(errorHandler);
 
-connectDB().then(() => {
-  app.listen(PORT, () => logger.info('task-service started', { port: PORT }));
+app.listen(PORT, () => logger.info('task-service started', { port: PORT }));
+connectDB().catch((err) => {
+  logger.error('MongoDB connection failed', { err });
+  process.exit(1);
 });

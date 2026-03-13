@@ -23,8 +23,10 @@ app.use('/users', userRoutes);
 
 app.use(errorHandler);
 
-connectDB().then(() => {
-  app.listen(PORT, () => {
-    logger.info('identity-service started', { port: PORT });
-  });
+app.listen(PORT, () => {
+  logger.info('identity-service started', { port: PORT });
+});
+connectDB().catch((err) => {
+  logger.error('MongoDB connection failed', { err });
+  process.exit(1);
 });

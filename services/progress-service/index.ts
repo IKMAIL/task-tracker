@@ -17,6 +17,8 @@ app.get('/health', (req, res) => res.json({ status: 'ok', service: 'progress-ser
 app.use('/progress', progressRoutes);
 app.use(errorHandler);
 
-connectDB().then(() => {
-  app.listen(PORT, () => logger.info('progress-service started', { port: PORT }));
+app.listen(PORT, () => logger.info('progress-service started', { port: PORT }));
+connectDB().catch((err) => {
+  logger.error('MongoDB connection failed', { err });
+  process.exit(1);
 });

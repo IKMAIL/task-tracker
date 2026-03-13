@@ -18,9 +18,12 @@ app.get('/health', (req, res) => res.json({ status: 'ok', service: 'alert-servic
 app.use('/alerts', alertRoutes);
 app.use(errorHandler);
 
+app.listen(PORT, () => {
+  logger.info('alert-service started', { port: PORT });
+});
 connectDB().then(() => {
-  app.listen(PORT, () => {
-    logger.info('alert-service started', { port: PORT });
-    startScheduler();
-  });
+  startScheduler();
+}).catch((err) => {
+  logger.error('MongoDB connection failed', { err });
+  process.exit(1);
 });
