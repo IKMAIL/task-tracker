@@ -1,4 +1,4 @@
-/* ── Colour palette (unchanged accent colours) ─────────────────────────── */
+/* ── Colour palette + light-theme tokens ─────────────────────────────────── */
 :root {
   --color-primary: #3b82f6;
   --color-success: #22c55e;
@@ -10,6 +10,51 @@
   --color-gray-900: #111827;
   --radius: 6px;
   --shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+
+  /* semantic tokens (overridden by [data-theme="dark"] below) */
+  --bg-page: #f3f4f6;
+  --bg-surface: #ffffff;
+  --bg-subtle: #f3f4f6;
+  --bg-header: #1e3a5f;
+  --bg-input: #ffffff;
+  --bg-btn-sm: #e5e7eb;
+  --bg-btn-sm-hover: #d1d5db;
+  --text-primary: #111827;
+  --text-muted: #4b5563;
+  --border: #e5e7eb;
+  --bg-alert-high: #fef2f2;
+  --bg-alert-medium: #fffbeb;
+  --bg-alert-low: #f0fdf4;
+  --border-error: #fecaca;
+  --bg-kanban-drag: #eff6ff;
+  --bg-import-created: #dcfce7;
+  --text-import-created: #166534;
+  --bg-import-updated: #dbeafe;
+  --text-import-updated: #1e40af;
+}
+
+/* ── Dark-theme overrides ────────────────────────────────────────────────── */
+[data-theme="dark"] {
+  --bg-page: #0f172a;
+  --bg-surface: #1e293b;
+  --bg-subtle: #0f172a;
+  --bg-header: #0c1929;
+  --bg-input: #0f172a;
+  --bg-btn-sm: #334155;
+  --bg-btn-sm-hover: #475569;
+  --text-primary: #f1f5f9;
+  --text-muted: #94a3b8;
+  --border: #334155;
+  --shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+  --bg-alert-high: #450a0a;
+  --bg-alert-medium: #431407;
+  --bg-alert-low: #052e16;
+  --border-error: #7f1d1d;
+  --bg-kanban-drag: #172554;
+  --bg-import-created: #14532d;
+  --text-import-created: #86efac;
+  --bg-import-updated: #1e3a5f;
+  --text-import-updated: #93c5fd;
 }
 
 *,
@@ -133,7 +178,7 @@ body {
 
 /* Cards */
 .stat-card {
-  background: #fff;
+  background: var(--bg-surface);
   border-radius: var(--radius);
   padding: 20px;
   box-shadow: var(--shadow);
@@ -172,7 +217,7 @@ body {
   gap: 16px;
 }
 .team-card {
-  background: #fff;
+  background: var(--bg-surface);
   border-radius: var(--radius);
   padding: 16px;
   box-shadow: var(--shadow);
@@ -190,24 +235,24 @@ body {
 .data-table {
   width: 100%;
   border-collapse: collapse;
-  background: #fff;
+  background: var(--bg-surface);
   border-radius: var(--radius);
   box-shadow: var(--shadow);
   overflow: hidden;
 }
 .data-table th {
-  background: var(--color-gray-100);
+  background: var(--bg-subtle);
   padding: 10px 14px;
   text-align: left;
   font-weight: 600;
   font-size: 0.8rem;
-  color: var(--color-gray-600);
+  color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
 .data-table td {
   padding: 10px 14px;
-  border-top: 1px solid var(--color-gray-200);
+  border-top: 1px solid var(--border);
   vertical-align: middle;
 }
 .data-table a {
@@ -226,15 +271,16 @@ body {
 }
 .filters select {
   padding: 6px 10px;
-  border: 1px solid var(--color-gray-200);
+  border: 1px solid var(--border);
   border-radius: var(--radius);
-  background: #fff;
+  background: var(--bg-input);
+  color: var(--text-primary);
   font-size: 0.875rem;
 }
 
 /* Forms */
 .form-card {
-  background: #fff;
+  background: var(--bg-surface);
   border-radius: var(--radius);
   padding: 24px;
   box-shadow: var(--shadow);
@@ -264,10 +310,12 @@ body {
 .form-group select,
 .form-group textarea {
   padding: 8px 10px;
-  border: 1px solid var(--color-gray-200);
+  border: 1px solid var(--border);
   border-radius: var(--radius);
   font-size: 0.875rem;
   width: 100%;
+  background: var(--bg-input);
+  color: var(--text-primary);
 }
 .form-group input:focus,
 .form-group select:focus,
@@ -284,20 +332,20 @@ body {
   font-size: 0.875rem;
 }
 .alert-item--high {
-  background: #fef2f2;
+  background: var(--bg-alert-high);
   border-left: 4px solid var(--color-danger);
 }
 .alert-item--medium {
-  background: #fffbeb;
+  background: var(--bg-alert-medium);
   border-left: 4px solid var(--color-warning);
 }
 .alert-item--low {
-  background: #f0fdf4;
+  background: var(--bg-alert-low);
   border-left: 4px solid var(--color-success);
 }
 
 .alert-card {
-  background: #fff;
+  background: var(--bg-surface);
   border-radius: var(--radius);
   padding: 16px;
   box-shadow: var(--shadow);
@@ -352,7 +400,7 @@ body {
 
 /* Timeline */
 .timeline-item {
-  background: #fff;
+  background: var(--bg-surface);
   border-radius: var(--radius);
   padding: 14px;
   box-shadow: var(--shadow);
@@ -385,7 +433,7 @@ body {
   gap: 20px;
 }
 .detail-card {
-  background: #fff;
+  background: var(--bg-surface);
   border-radius: var(--radius);
   padding: 20px;
   box-shadow: var(--shadow);
@@ -416,7 +464,7 @@ body {
   display: flex;
   align-items: center;
   gap: 16px;
-  background: #fff;
+  background: var(--bg-surface);
   padding: 12px 16px;
   border-radius: var(--radius);
   box-shadow: var(--shadow);
@@ -431,10 +479,10 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #1e3a5f;
+  background: var(--bg-header);
 }
 .login-card {
-  background: #fff;
+  background: var(--bg-surface);
   border-radius: var(--radius);
   padding: 40px;
   width: 360px;
@@ -455,11 +503,11 @@ body {
 
 /* Error */
 .error-banner {
-  background: #fef2f2;
+  background: var(--bg-alert-high);
   color: var(--color-danger);
   padding: 10px 14px;
   border-radius: var(--radius);
-  border: 1px solid #fecaca;
+  border: 1px solid var(--border-error);
   font-size: 0.875rem;
 }
 
@@ -472,7 +520,7 @@ body {
 
 /* Import page */
 .import-section {
-  background: #fff;
+  background: var(--bg-surface);
   border: 1px solid var(--color-gray-200);
   border-radius: var(--radius);
   padding: 20px;
@@ -516,12 +564,12 @@ body {
   font-weight: 500;
 }
 .import-stat-created {
-  background: #dcfce7;
-  color: #166534;
+  background: var(--bg-import-created);
+  color: var(--text-import-created);
 }
 .import-stat-updated {
-  background: #dbeafe;
-  color: #1e40af;
+  background: var(--bg-import-updated);
+  color: var(--text-import-updated);
 }
 .import-stat-skipped {
   background: var(--color-gray-100);
@@ -594,7 +642,7 @@ body {
 }
 
 .kanban-column-body--dragging-over {
-  background: #eff6ff;
+  background: var(--bg-kanban-drag);
 }
 
 .kanban-card {
