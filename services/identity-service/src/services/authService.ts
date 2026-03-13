@@ -93,6 +93,13 @@ export async function microsoftLogin(idToken: string): Promise<AuthResult> {
     return issueToken(created, role);
   }
 
+  if ((user as any).isActive === false) {
+    logger.warn('microsoft login: account deactivated', { userId: String(user._id), email });
+    const err = new Error('Account deactivated') as Error & { status: number };
+    err.status = 403;
+    throw err;
+  }
+
   if (!user.microsoftId) {
     logger.info('microsoft login: auto-linking existing account', { userId: String(user._id), email, role });
     const updated = await userRepository.updateById(String(user._id), { microsoftId: msId, authProvider: 'microsoft' });

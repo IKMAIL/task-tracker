@@ -9,6 +9,7 @@ export interface IUser extends Document {
   authProvider: 'local' | 'microsoft';
   microsoftId?: string | null;
   role: 'admin' | 'member';
+  isActive: boolean;
   teamId?: Types.ObjectId | null;
   createdAt: Date;
   updatedAt: Date;
@@ -22,6 +23,7 @@ const UserSchema = new Schema<IUser>(
     authProvider: { type: String, enum: ['local', 'microsoft'], default: 'local' },
     microsoftId:  { type: String, unique: true, sparse: true, default: null },
     role:         { type: String, enum: ['admin', 'member'], default: 'member' },
+    isActive:     { type: Boolean, default: true },
     teamId:       { type: Schema.Types.ObjectId, ref: 'Team', default: null },
   },
   { timestamps: true }
