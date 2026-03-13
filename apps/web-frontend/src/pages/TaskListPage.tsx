@@ -37,8 +37,6 @@ export default function TaskListPage(): React.ReactElement {
   );
   const { data: teams } = useFetch<Team[]>(listTeams);
 
-  if (loading) return <Spinner />;
-
   const setFilter = (key: keyof Filters, val: string) => setFilters((f) => ({ ...f, [key]: val }));
 
   return (
@@ -74,18 +72,21 @@ export default function TaskListPage(): React.ReactElement {
           <tr><th>Title</th><th>Category</th><th>Status</th><th>Progress</th><th>Due Date</th><th>Actions</th></tr>
         </thead>
         <tbody>
-          {(tasks || []).map((task) => (
-            <tr key={task._id}>
-              <td><Link to={`/tasks/${task._id}`}>{task.title}</Link></td>
-              <td>{task.category}</td>
-              <td><StatusBadge status={task.status} /></td>
-              <td style={{ width: '150px' }}><ProgressBar value={task.completionPct} /></td>
-              <td>{task.dueDate ? new Date(task.dueDate).toLocaleDateString() : '—'}</td>
-              <td><Link to={`/progress/update/${task._id}`} className="btn btn-sm">Update</Link></td>
-            </tr>
-          ))}
-          {(tasks || []).length === 0 && (
+          {loading ? (
+            <tr><td colSpan={6} style={{ textAlign: 'center' }}><Spinner /></td></tr>
+          ) : (tasks || []).length === 0 ? (
             <tr><td colSpan={6} style={{ textAlign: 'center' }}>No tasks found.</td></tr>
+          ) : (
+            (tasks || []).map((task) => (
+              <tr key={task._id}>
+                <td><Link to={`/tasks/${task._id}`}>{task.title}</Link></td>
+                <td>{task.category}</td>
+                <td><StatusBadge status={task.status} /></td>
+                <td style={{ width: '150px' }}><ProgressBar value={task.completionPct} /></td>
+                <td>{task.dueDate ? new Date(task.dueDate).toLocaleDateString() : '—'}</td>
+                <td><Link to={`/progress/update/${task._id}`} className="btn btn-sm">Update</Link></td>
+              </tr>
+            ))
           )}
         </tbody>
       </table>
