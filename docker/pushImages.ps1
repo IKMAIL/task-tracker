@@ -1,4 +1,8 @@
-$VERSION=1.0.0
+$VERSION = "1.0.3"
+
+Set-Location "C:\Users\moham\GitHub\task-tracker\docker"
+
+docker compose build
 
 docker tag docker-alert-service:latest localhost:5000/alert-service:$VERSION
 docker push localhost:5000/alert-service:$VERSION

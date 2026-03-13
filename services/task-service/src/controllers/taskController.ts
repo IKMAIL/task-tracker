@@ -97,6 +97,17 @@ export const search = async (req: Request, res: Response, next: NextFunction): P
   }
 };
 
+export const getDependencies = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    logger.debug('taskController.getDependencies', { id: req.params.id, userId: req.user?.sub });
+    const data = await taskService.getDependencies(req.params.id);
+    logger.debug('taskController.getDependencies result', { id: req.params.id });
+    res.json({ success: true, data });
+  } catch (err) {
+    next(err);
+  }
+};
+
 export const progressSync = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     logger.debug('taskController.progressSync', { id: req.params.id, body: req.body });

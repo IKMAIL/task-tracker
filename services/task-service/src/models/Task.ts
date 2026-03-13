@@ -30,6 +30,7 @@ export interface ITask extends Document {
   nextUpdateDate: Date | null;
   lastUpdatedAt: Date | null;
   createdBy: mongoose.Types.ObjectId;
+  blockedBy: mongoose.Types.ObjectId[];
 }
 
 const TaskSchema = new Schema<ITask>(
@@ -46,6 +47,7 @@ const TaskSchema = new Schema<ITask>(
     nextUpdateDate:   { type: Date, default: null },
     lastUpdatedAt:    { type: Date, default: null },
     createdBy:        { type: Schema.Types.ObjectId, required: true },
+    blockedBy:        { type: [Schema.Types.ObjectId], default: [] },
   },
   { timestamps: true }
 );
@@ -53,6 +55,7 @@ const TaskSchema = new Schema<ITask>(
 TaskSchema.index({ assignedTeamId: 1, status: 1 });
 TaskSchema.index({ dueDate: 1, status: 1 });
 TaskSchema.index({ nextUpdateDate: 1 });
+TaskSchema.index({ blockedBy: 1 });
 
 TaskSchema.plugin(createAuditPlugin(AuditLog as any, 'task'));
 
