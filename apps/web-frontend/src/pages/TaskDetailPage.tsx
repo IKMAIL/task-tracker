@@ -14,10 +14,23 @@ import CommentInput from '../components/common/CommentInput';
 interface DependencyTask {
   _id: string; title: string; status: string;
 }
+interface Recurrence {
+  enabled: boolean;
+  frequency: string;
+  interval: number;
+  nextRunAt: string;
+  lastRunAt?: string | null;
+  endDate?: string | null;
+  maxOccurrences?: number | null;
+  occurrenceCount: number;
+}
+
 interface Task {
   _id: string; title: string; category: string; status: string; completionPct: number;
   description?: string; plannedStartDate?: string; dueDate?: string;
   nextUpdateDate?: string; lastUpdatedAt?: string; blockedBy?: string[]; assignedTeamId?: string;
+  recurrence?: Recurrence | null;
+  parentTaskId?: string | null;
 }
 interface ProgressUpdate {
   _id: string; status: string; completionPct: number; recordedAt: string; comment?: string;
@@ -60,6 +73,46 @@ export default function TaskDetailPage(): React.ReactElement {
         )}
       </div>
       <ErrorBanner message={e1 || e2} />
+
+      {/* Recurrence banner — shown on template tasks */}
+      {task.recurrence?.enabled && !task.parentTaskId && (
+        <div className="detail-card" style={{ borderLeft: '4px solid #0d6efd', marginBottom: '16px' }}>
+          <h3 style={{ marginTop: 0 }}>↻ Recurring Template</h3>
+          <dl className="detail-list">
+            <dt>Frequency</dt>
+            <dd style={{ textTransform: 'capitalize' }}>
+              Every {task.recurrence.interval} {task.recurrence.frequency}
+            </dd>
+            <dt>Next Spawn</dt>
+            <dd>{new Date(task.recurrence.nextRunAt).toLocaleDateString()}</dd>
+            <dt>Last Spawned</dt>
+            <dd>{task.recurrence.lastRunAt ? new Date(task.recurrence.lastRunAt).toLocaleDateString() : '—'}</dd>
+            <dt>Occurrences Spawned</dt>
+            <dd>
+              {task.recurrence.occurrenceCount}
+              {task.recurrence.maxOccurrences ? ` / ${task.recurrence.maxOccurrences}` : ' (unlimited)'}
+            </dd>
+            {task.recurrence.endDate && (
+              <>
+                <dt>Ends On</dt>
+                <dd>{new Date(task.recurrence.endDate).toLocaleDateString()}</dd>
+              </>
+            )}
+          </dl>
+          <Link to={`/tasks/${task._id}/edit`} className="btn btn-sm" style={{ marginTop: '8px' }}>
+            Edit Recurrence
+          </Link>
+        </div>
+      )}
+
+      {/* Parent link — shown on child tasks */}
+      {task.parentTaskId && (
+        <div style={{ marginBottom: '12px', padding: '8px 12px', background: '#f8f9fa', borderRadius: '6px', fontSize: '0.875rem', color: 'var(--text-muted)' }}>
+          ↳ Spawned from recurring template:{' '}
+          <Link to={`/tasks/${task.parentTaskId}`}>View template</Link>
+        </div>
+      )}
+
       <div className="detail-grid">
         <div className="detail-card">
           <h3>Details</h3>

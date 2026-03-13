@@ -14,7 +14,12 @@ const CATEGORIES = [
   'LEAP Framework Adherence', 'Claude Code Adoption %', 'Open Operational Items', 'Security Risk Items',
 ];
 
-interface Task { _id: string; title: string; category: string; status: string; completionPct: number; dueDate?: string; }
+interface Task {
+  _id: string; title: string; category: string; status: string;
+  completionPct: number; dueDate?: string;
+  recurrence?: { enabled: boolean };
+  parentTaskId?: string | null;
+}
 interface Team { _id: string; name: string; }
 interface Filters { status: string; category: string; teamId: string; }
 
@@ -79,7 +84,45 @@ export default function TaskListPage(): React.ReactElement {
           ) : (
             (tasks || []).map((task) => (
               <tr key={task._id}>
-                <td><Link to={`/tasks/${task._id}`}>{task.title}</Link></td>
+                <td>
+                  <Link to={`/tasks/${task._id}`}>{task.title}</Link>
+                  {task.recurrence?.enabled && !task.parentTaskId && (
+                    <span
+                      title="Recurring template — auto-spawns child tasks on schedule"
+                      style={{
+                        marginLeft: '8px',
+                        fontSize: '0.7rem',
+                        fontWeight: 600,
+                        color: '#0d6efd',
+                        background: '#e8f4fd',
+                        padding: '1px 6px',
+                        borderRadius: '10px',
+                        verticalAlign: 'middle',
+                        whiteSpace: 'nowrap',
+                      }}
+                    >
+                      ↻ Recurring
+                    </span>
+                  )}
+                  {task.parentTaskId && (
+                    <span
+                      title="Spawned from a recurring template"
+                      style={{
+                        marginLeft: '8px',
+                        fontSize: '0.7rem',
+                        fontWeight: 600,
+                        color: '#6c757d',
+                        background: '#f0f0f0',
+                        padding: '1px 6px',
+                        borderRadius: '10px',
+                        verticalAlign: 'middle',
+                        whiteSpace: 'nowrap',
+                      }}
+                    >
+                      ↳ Recurrence
+                    </span>
+                  )}
+                </td>
                 <td>{task.category}</td>
                 <td><StatusBadge status={task.status} /></td>
                 <td style={{ width: '150px' }}><ProgressBar value={task.completionPct} /></td>
