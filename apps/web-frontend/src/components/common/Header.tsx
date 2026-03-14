@@ -14,7 +14,11 @@ export default function Header() {
       <nav className="header-nav">
         <Link to="/">Dashboard</Link><Link to="/teams">Teams</Link>
         <Link to="/teams/manage">Manage Teams</Link>
-        <Link to="/tasks">Tasks</Link><Link to="/kanban">Kanban</Link><Link to="/alerts">Alerts</Link><Link to="/import">Import</Link>
+        <Link to="/tasks">Tasks</Link>
+        <Link to="/kanban">Kanban</Link>
+        <Link to="/alerts">Alerts</Link>
+        <Link to="/import">Import</Link>
+        {user?.role === 'admin' && <Link to="/settings/api-keys">API Keys</Link>}
         {user?.role === 'admin' && <Link to="/audit">Audit Log</Link>}
         {user?.role === 'admin' && <Link to="/admin/users">Users</Link>}
       </nav>

@@ -13,6 +13,7 @@ import AlertsPage from './pages/AlertsPage';
 import UpdateProgressPage from './pages/UpdateProgressPage';
 import TeamManagementPage from './pages/TeamManagementPage';
 import ImportPage from './pages/ImportPage';
+import ApiKeysPage from './pages/ApiKeysPage';
 import AuditLogPage from './pages/AuditLogPage';
 import KanbanBoard from './pages/KanbanBoard';
 import AdminUsers from './pages/AdminUsers';
@@ -36,6 +37,7 @@ function App() {
             <Route path="/alerts"                        element={<AlertsPage />} />
             <Route path="/progress/update/:taskId"       element={<UpdateProgressPage />} />
             <Route path="/import"                          element={<ImportPage />} />
+            <Route path="/settings/api-keys"              element={<ApiKeysPage />} />
             <Route path="/audit"                           element={<AuditLogPage />} />
             <Route path="/admin/users"                     element={<AdminUsers />} />
           </Route>

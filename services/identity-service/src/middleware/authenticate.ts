@@ -32,3 +32,13 @@ export function requireAdmin(req: Request, res: Response, next: NextFunction): v
   }
   next();
 }
+
+export function requireServiceToken(req: Request, res: Response, next: NextFunction): void {
+  if (req.headers['x-service-token'] !== process.env.SERVICE_TOKEN) {
+    logger.warn('auth: invalid service token', { method: req.method, path: req.path });
+    res.status(403).json({ success: false, error: { message: 'Invalid service token' } });
+    return;
+  }
+  logger.debug('auth: service token verified', { method: req.method, path: req.path });
+  next();
+}
