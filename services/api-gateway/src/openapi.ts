@@ -7,7 +7,10 @@ export const openapiSpec = {
       'REST API for Task Tracker. Authenticate with a user JWT (`Authorization: Bearer <jwt>`) ' +
       'or an API key (`Authorization: Bearer ttk_<key>`). API keys support scoped permissions.',
   },
-  servers: [{ url: '/api', description: 'API Gateway' }],
+  servers: [
+    { url: '/api/v1', description: 'API Gateway v1 (versioned)' },
+    { url: '/api',    description: 'API Gateway (unversioned, same routes)' },
+  ],
   components: {
     securitySchemes: {
       BearerAuth: {
@@ -272,6 +275,37 @@ export const openapiSpec = {
           201: {
             description: 'API key created — copy the `key` field now',
             content: { 'application/json': { schema: { allOf: [{ $ref: '#/components/schemas/ApiKey' }, { type: 'object', properties: { key: { type: 'string', example: 'ttk_a1b2c3d4...' } } }] } } },
+          },
+        },
+      },
+    },
+    '/v1/metrics': {
+      get: {
+        tags: ['Metrics'],
+        summary: 'Prometheus-compatible metrics',
+        description:
+          'Returns task and alert counts in Prometheus text format. ' +
+          'Available at `GET /api/v1/metrics` only (not on the unversioned `/api/` prefix). ' +
+          'No user auth required — uses internal service token.',
+        security: [],
+        responses: {
+          200: {
+            description: 'Prometheus text format',
+            content: {
+              'text/plain': {
+                example:
+                  '# HELP task_tracker_tasks_total Number of tasks by status\n' +
+                  '# TYPE task_tracker_tasks_total gauge\n' +
+                  'task_tracker_tasks_total{status="not_started"} 5\n' +
+                  'task_tracker_tasks_total{status="in_progress"} 3\n' +
+                  'task_tracker_tasks_total{status="completed"} 10\n' +
+                  '# HELP task_tracker_alerts_active Active alerts by severity\n' +
+                  '# TYPE task_tracker_alerts_active gauge\n' +
+                  'task_tracker_alerts_active{severity="high"} 2\n' +
+                  'task_tracker_alerts_active{severity="medium"} 4\n' +
+                  'task_tracker_alerts_active{severity="low"} 1\n',
+              },
+            },
           },
         },
       },
