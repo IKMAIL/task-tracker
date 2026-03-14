@@ -4,7 +4,7 @@ import cors from 'cors';
 import connectDB from './src/config/db';
 import authRoutes from './src/routes/authRoutes';
 import userRoutes from './src/routes/userRoutes';
-
+import auditRoutes from './src/routes/auditRoutes';
 import errorHandler from './src/utils/errorHandler';
 import { logger, requestLogger } from '@task-tracker/utils';
 
@@ -19,8 +19,7 @@ app.get('/health', (_req, res) => res.json({ status: 'ok', service: 'identity-se
 
 app.use('/auth', authRoutes);
 app.use('/users', userRoutes);
-
-
+app.use('/audit', auditRoutes);
 app.use(errorHandler);
 
 connectDB().then(() => {
