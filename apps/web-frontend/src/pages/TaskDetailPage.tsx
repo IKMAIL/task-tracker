@@ -47,7 +47,7 @@ export default function TaskDetailPage(): React.ReactElement {
   const { data: history, loading: l2, error: e2 } = useFetch<ProgressUpdate[]>(() => getHistory(id!), [id]);
   const { data: comments, loading: l3, error: e3, refetch: refetchComments } = useFetch<Comment[]>(() => getComments(id!), [id]);
   const { data: deps, loading: l4, refetch: refetchDeps } = useFetch<{ blockedBy: DependencyTask[]; blocking: DependencyTask[] }>(() => getDependencies(id!), [id]);
-  const { data: auditData } = useFetch(() => getAuditLogs('task', id!, 1, 20), [id]);
+  const { data: auditData } = useFetch<AuditLogEntry[]>(() => getAuditLogs('task', id!, 1, 20).then(r => r.data), [id]);
   const { data: allTasksData } = useFetch<DependencyTask[]>(listTasks, []);
   const { data: teamData } = useFetch(
     () => task?.assignedTeamId ? getTeam(task.assignedTeamId) : Promise.resolve(null),
@@ -293,9 +293,9 @@ export default function TaskDetailPage(): React.ReactElement {
       </section>
       <section>
         <h2>Change History</h2>
-        {(auditData?.data || []).length === 0
+        {(auditData || []).length === 0
           ? <p>No change records yet.</p>
-          : (auditData?.data || []).map((entry: AuditLogEntry) => (
+          : (auditData || []).map((entry: AuditLogEntry) => (
             <div key={entry._id} className="timeline-item">
               <div className="timeline-header">
                 <span style={{
@@ -315,9 +315,9 @@ export default function TaskDetailPage(): React.ReactElement {
             </div>
           ))
         }
-        {auditData && auditData.meta.total > 20 && (
+        {(auditData?.length ?? 0) >= 20 && (
           <p style={{ fontSize: '0.875rem', color: 'var(--text-muted)', marginTop: '8px' }}>
-            Showing 20 of {auditData.meta.total} records.{' '}
+            Showing first 20 records.{' '}
             <a href={`/audit?resourceType=task&resourceId=${id}`}>View all</a>
           </p>
         )}
