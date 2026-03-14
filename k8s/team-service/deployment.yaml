@@ -1,0 +1,65 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: team-service
+  namespace: task-tracker
+  labels:
+    app: team-service
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: team-service
+  template:
+    metadata:
+      labels:
+        app: team-service
+    spec:
+      containers:
+        - name: team-service
+          image: localhost:5000/team-service:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 3006
+          env:
+            - name: PORT
+              value: "3006"
+            - name: MONGO_ROOT_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: task-tracker-secret
+                  key: MONGO_ROOT_USERNAME
+            - name: MONGO_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: task-tracker-secret
+                  key: MONGO_ROOT_PASSWORD
+            - name: MONGO_URI
+              value: "mongodb://$(MONGO_ROOT_USERNAME):$(MONGO_ROOT_PASSWORD)@mongo-headless.task-tracker.svc.cluster.local:27017/teams?authSource=admin"
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: task-tracker-secret
+                  key: JWT_SECRET
+            - name: SERVICE_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: task-tracker-secret
+                  key: SERVICE_TOKEN
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+          readinessProbe:
+            tcpSocket:
+              port: 3006
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          livenessProbe:
+            tcpSocket:
+              port: 3006
+            initialDelaySeconds: 20
+            periodSeconds: 20

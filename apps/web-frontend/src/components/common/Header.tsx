@@ -1,9 +1,11 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import { useTheme } from '../../context/ThemeContext';
 
 export default function Header() {
   const { user, logout } = useAuth();
+  const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
   const handleLogout = () => { logout(); navigate('/login'); };
   return (
@@ -12,9 +14,21 @@ export default function Header() {
       <nav className="header-nav">
         <Link to="/">Dashboard</Link><Link to="/teams">Teams</Link>
         <Link to="/teams/manage">Manage Teams</Link>
-        <Link to="/tasks">Tasks</Link><Link to="/alerts">Alerts</Link><Link to="/import">Import</Link><Link to="/settings/api-keys">API Keys</Link>
+        <Link to="/tasks">Tasks</Link>
+        <Link to="/kanban">Kanban</Link>
+        <Link to="/alerts">Alerts</Link>
+        <Link to="/import">Import</Link>
+        {user?.role === 'admin' && <Link to="/settings/api-keys">API Keys</Link>}
+        {user?.role === 'admin' && <Link to="/audit">Audit Log</Link>}
+        {user?.role === 'admin' && <Link to="/admin/users">Users</Link>}
       </nav>
-      <div className="header-user"><span>{user?.name}</span><button onClick={handleLogout} className="btn btn-sm">Logout</button></div>
+      <div className="header-user">
+        <span>{user?.name}</span>
+        <button onClick={toggleTheme} className="btn-theme" aria-label="Toggle theme">
+          {theme === 'light' ? 'Dark' : 'Light'}
+        </button>
+        <button onClick={handleLogout} className="btn btn-sm">Logout</button>
+      </div>
     </header>
   );
 }

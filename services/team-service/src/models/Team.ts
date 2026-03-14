@@ -1,4 +1,6 @@
 import mongoose, { Document, Schema, Types } from 'mongoose';
+import { createAuditPlugin } from '@task-tracker/utils';
+import AuditLog from './AuditLog';
 
 export interface ITeam extends Document {
   name: string;
@@ -18,5 +20,7 @@ const TeamSchema = new Schema<ITeam>(
   },
   { timestamps: true }
 );
+
+TeamSchema.plugin(createAuditPlugin(AuditLog as any, 'team'));
 
 export default mongoose.model<ITeam>('Team', TeamSchema);

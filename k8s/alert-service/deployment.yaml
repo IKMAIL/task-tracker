@@ -1,0 +1,77 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: alert-service
+  namespace: task-tracker
+  labels:
+    app: alert-service
+spec:
+  # Single replica — alert-service runs an internal cron job (daily 06:00 UTC).
+  # Running multiple replicas would cause duplicate alert firings.
+  replicas: 1
+  selector:
+    matchLabels:
+      app: alert-service
+  template:
+    metadata:
+      labels:
+        app: alert-service
+    spec:
+      containers:
+        - name: alert-service
+          image: localhost:5000/alert-service:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 3004
+          env:
+            - name: PORT
+              value: "3004"
+            - name: MONGO_ROOT_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: task-tracker-secret
+                  key: MONGO_ROOT_USERNAME
+            - name: MONGO_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: task-tracker-secret
+                  key: MONGO_ROOT_PASSWORD
+            - name: MONGO_URI
+              value: "mongodb://$(MONGO_ROOT_USERNAME):$(MONGO_ROOT_PASSWORD)@mongo-headless.task-tracker.svc.cluster.local:27017/alerts?authSource=admin"
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: task-tracker-secret
+                  key: JWT_SECRET
+            - name: SERVICE_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: task-tracker-secret
+                  key: SERVICE_TOKEN
+            - name: TASK_SERVICE_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: task-tracker-config
+                  key: TASK_SERVICE_URL
+            - name: PROGRESS_SERVICE_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: task-tracker-config
+                  key: PROGRESS_SERVICE_URL
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+          readinessProbe:
+            tcpSocket:
+              port: 3004
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          livenessProbe:
+            tcpSocket:
+              port: 3004
+            initialDelaySeconds: 20
+            periodSeconds: 20

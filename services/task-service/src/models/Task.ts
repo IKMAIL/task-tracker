@@ -1,4 +1,6 @@
 import mongoose, { Document, Schema } from 'mongoose';
+import { createAuditPlugin } from '@task-tracker/utils';
+import AuditLog from './AuditLog';
 
 export const CATEGORIES = [
   'Automation Testing Coverage',
@@ -12,8 +14,22 @@ export const CATEGORIES = [
 
 export const STATUSES = ['not_started', 'in_progress', 'blocked', 'completed', 'cancelled'] as const;
 
+export const RECURRENCE_FREQUENCIES = ['daily', 'weekly', 'monthly', 'quarterly'] as const;
+
 export type Category = typeof CATEGORIES[number];
 export type Status = typeof STATUSES[number];
+export type RecurrenceFrequency = typeof RECURRENCE_FREQUENCIES[number];
+
+export interface IRecurrence {
+  enabled: boolean;
+  frequency: RecurrenceFrequency;
+  interval: number;
+  nextRunAt: Date;
+  lastRunAt: Date | null;
+  endDate: Date | null;
+  maxOccurrences: number | null;
+  occurrenceCount: number;
+}
 
 export interface ITask extends Document {
   title: string;
@@ -28,7 +44,24 @@ export interface ITask extends Document {
   nextUpdateDate: Date | null;
   lastUpdatedAt: Date | null;
   createdBy: mongoose.Types.ObjectId;
+  blockedBy: mongoose.Types.ObjectId[];
+  recurrence: IRecurrence | null;
+  parentTaskId: mongoose.Types.ObjectId | null;
 }
+
+const RecurrenceSchema = new Schema<IRecurrence>(
+  {
+    enabled:         { type: Boolean, default: false },
+    frequency:       { type: String, enum: RECURRENCE_FREQUENCIES },
+    interval:        { type: Number, default: 1, min: 1 },
+    nextRunAt:       { type: Date },
+    lastRunAt:       { type: Date, default: null },
+    endDate:         { type: Date, default: null },
+    maxOccurrences:  { type: Number, default: null },
+    occurrenceCount: { type: Number, default: 0 },
+  },
+  { _id: false }
+);
 
 const TaskSchema = new Schema<ITask>(
   {
@@ -44,6 +77,9 @@ const TaskSchema = new Schema<ITask>(
     nextUpdateDate:   { type: Date, default: null },
     lastUpdatedAt:    { type: Date, default: null },
     createdBy:        { type: Schema.Types.ObjectId, required: true },
+    blockedBy:        { type: [Schema.Types.ObjectId], default: [] },
+    recurrence:       { type: RecurrenceSchema, default: null },
+    parentTaskId:     { type: Schema.Types.ObjectId, default: null },
   },
   { timestamps: true }
 );
@@ -51,5 +87,10 @@ const TaskSchema = new Schema<ITask>(
 TaskSchema.index({ assignedTeamId: 1, status: 1 });
 TaskSchema.index({ dueDate: 1, status: 1 });
 TaskSchema.index({ nextUpdateDate: 1 });
+TaskSchema.index({ blockedBy: 1 });
+TaskSchema.index({ 'recurrence.enabled': 1, 'recurrence.nextRunAt': 1 });
+TaskSchema.index({ parentTaskId: 1 });
+
+TaskSchema.plugin(createAuditPlugin(AuditLog as any, 'task'));
 
 export default mongoose.model<ITask>('Task', TaskSchema);

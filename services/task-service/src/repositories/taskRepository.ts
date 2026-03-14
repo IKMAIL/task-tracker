@@ -1,7 +1,7 @@
 import Task from '../models/Task';
 import { FilterQuery } from 'mongoose';
-import { ITask } from '../models/Task';
-import { logger } from '@task-tracker/utils';
+import { ITask, IRecurrence } from '../models/Task';
+import { logger, AuditUser } from '@task-tracker/utils';
 
 export interface PaginationOptions {
   page?: number | string;
@@ -18,9 +18,13 @@ export interface PaginatedResult {
   };
 }
 
-export const create = async (data: Partial<ITask>) => {
+export const create = async (data: Partial<ITask>, auditUser?: AuditUser) => {
   logger.debug('taskRepository.create', { data });
-  const task = await Task.create(data);
+  const doc = new Task(data);
+  if (auditUser) {
+    doc.$locals._auditUser = auditUser;
+  }
+  const task = await doc.save();
   logger.debug('taskRepository.create result', { taskId: String(task._id) });
   return task;
 };
@@ -59,11 +63,22 @@ export const findByTeam = async (teamId: string) => {
   return tasks;
 };
 
-export const updateById = async (id: string, data: Partial<ITask>) => {
+export const updateById = async (id: string, data: Partial<ITask>, auditUser?: AuditUser) => {
   logger.debug('taskRepository.updateById', { id, data });
-  const task = await Task.findByIdAndUpdate(id, { $set: data }, { new: true, runValidators: true }).lean();
+  const task = await Task.findByIdAndUpdate(
+    id,
+    { $set: data },
+    { new: true, runValidators: true, ...(auditUser ? { auditUser } : {}) }
+  ).lean();
   logger.debug('taskRepository.updateById result', { id, found: !!task, task });
   return task;
+};
+
+export const search = async (q: string, options: PaginationOptions = {}): Promise<PaginatedResult> => {
+  const regex = new RegExp(q, 'i');
+  const query: FilterQuery<ITask> = { $or: [{ title: regex }, { description: regex }] };
+  logger.debug('taskRepository.search', { q, options });
+  return findPaginated(query, options);
 };
 
 export const summary = async () => {
@@ -73,4 +88,42 @@ export const summary = async () => {
   ]);
   logger.debug('taskRepository.summary result', { groups: result.length, result });
   return result;
+};
+
+export const findByIds = async (ids: string[]) => {
+  logger.debug('taskRepository.findByIds', { ids });
+  const tasks = await Task.find({ _id: { $in: ids } }).lean();
+  logger.debug('taskRepository.findByIds result', { count: tasks.length });
+  return tasks;
+};
+
+export const findBlocking = async (taskId: string) => {
+  logger.debug('taskRepository.findBlocking', { taskId });
+  const tasks = await Task.find({ blockedBy: taskId }).lean();
+  logger.debug('taskRepository.findBlocking result', { taskId, count: tasks.length });
+  return tasks;
+};
+
+export const findDueRecurringTasks = async (now: Date): Promise<ITask[]> => {
+  logger.debug('taskRepository.findDueRecurringTasks', { now });
+  const tasks = await Task.find({
+    'recurrence.enabled': true,
+    'recurrence.nextRunAt': { $lte: now },
+    $or: [
+      { 'recurrence.endDate': null },
+      { 'recurrence.endDate': { $gt: now } },
+    ],
+  }).lean();
+  logger.debug('taskRepository.findDueRecurringTasks result', { count: tasks.length });
+  return tasks as unknown as ITask[];
+};
+
+export const updateRecurrenceState = async (id: string, patch: Partial<IRecurrence>) => {
+  logger.debug('taskRepository.updateRecurrenceState', { id, patch });
+  const update = Object.fromEntries(
+    Object.entries(patch).map(([k, v]) => [`recurrence.${k}`, v])
+  );
+  const task = await Task.findByIdAndUpdate(id, { $set: update }, { new: true }).lean();
+  logger.debug('taskRepository.updateRecurrenceState result', { id, found: !!task });
+  return task;
 };

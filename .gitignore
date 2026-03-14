@@ -142,3 +142,6 @@ shared/utils/src/*.js
 shared/utils/src/*.js.map
 shared/utils/src/*.d.ts
 shared/utils/src/*.d.ts.map
+
+# Ignore Kubernetes secret file containing sensitive information
+k8s/secret.yaml

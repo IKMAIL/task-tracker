@@ -68,6 +68,12 @@ mount("/import/tasks",       authenticate, proxyImportTasks);
 // ── Metrics (v1 only, no user auth — uses SERVICE_TOKEN internally) ────────
 app.get("/api/v1/metrics", metricsHandler as RequestHandler);
 
+app.use(
+  "/api/audit",
+  authenticate,
+  createProxy(services.TASK_URL, { "^/": "/audit/" }),
+);
+
 // ── 404 catch-all ──────────────────────────────────────────────────────────
 app.use((_req, res) => {
   res.status(404).json({ success: false, error: { message: "Route not found" } });

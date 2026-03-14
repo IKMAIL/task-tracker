@@ -1,28 +1,66 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useFetch } from '../hooks/useFetch';
-import { getTask } from '../api/taskApi';
+import { getTask, getComments, addComment, getDependencies, listTasks, updateTask } from '../api/taskApi';
 import { getHistory } from '../api/progressApi';
+import { getTeam } from '../api/teamApi';
+import { useAuth } from '../context/AuthContext';
 import Spinner from '../components/common/Spinner';
 import ErrorBanner from '../components/common/ErrorBanner';
 import StatusBadge from '../components/common/StatusBadge';
 import ProgressBar from '../components/common/ProgressBar';
+import CommentInput from '../components/common/CommentInput';
+
+interface DependencyTask {
+  _id: string; title: string; status: string;
+}
+interface Recurrence {
+  enabled: boolean;
+  frequency: string;
+  interval: number;
+  nextRunAt: string;
+  lastRunAt?: string | null;
+  endDate?: string | null;
+  maxOccurrences?: number | null;
+  occurrenceCount: number;
+}
 
 interface Task {
   _id: string; title: string; category: string; status: string; completionPct: number;
   description?: string; plannedStartDate?: string; dueDate?: string;
-  nextUpdateDate?: string; lastUpdatedAt?: string;
+  nextUpdateDate?: string; lastUpdatedAt?: string; blockedBy?: string[]; assignedTeamId?: string;
+  recurrence?: Recurrence | null;
+  parentTaskId?: string | null;
 }
 interface ProgressUpdate {
   _id: string; status: string; completionPct: number; recordedAt: string; comment?: string;
 }
+interface Comment {
+  _id: string; authorEmail: string; body: string; createdAt: string;
+}
 
 export default function TaskDetailPage(): React.ReactElement {
   const { id } = useParams<{ id: string }>();
+  const { user } = useAuth();
   const { data: task, loading: l1, error: e1 } = useFetch<Task>(() => getTask(id!), [id]);
   const { data: history, loading: l2, error: e2 } = useFetch<ProgressUpdate[]>(() => getHistory(id!), [id]);
+  const { data: comments, loading: l3, error: e3, refetch: refetchComments } = useFetch<Comment[]>(() => getComments(id!), [id]);
+  const { data: deps, loading: l4, refetch: refetchDeps } = useFetch<{ blockedBy: DependencyTask[]; blocking: DependencyTask[] }>(() => getDependencies(id!), [id]);
+  const { data: allTasksData } = useFetch<DependencyTask[]>(listTasks, []);
+  const { data: teamData } = useFetch(
+    () => task?.assignedTeamId ? getTeam(task.assignedTeamId) : Promise.resolve(null),
+    [task?.assignedTeamId]
+  );
+  const members = (teamData?.memberIds || []) as { _id: string; name: string; loginId: string }[];
 
-  if (l1 || l2) return <Spinner />;
+  const [commentBody, setCommentBody] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [newBlockerId, setNewBlockerId] = useState('');
+  const [depSubmitting, setDepSubmitting] = useState(false);
+  const [depError, setDepError] = useState<string | null>(null);
+
+  if (l1 || l2 || l3 || l4) return <Spinner />;
   if (!task) return <ErrorBanner message={e1 || 'Task not found'} />;
 
   return (
@@ -30,8 +68,51 @@ export default function TaskDetailPage(): React.ReactElement {
       <div className="page-header">
         <h1>{task.title}</h1>
         <Link to={`/progress/update/${id}`} className="btn btn-primary">Log Progress Update</Link>
+        {user?.role === 'admin' && (
+          <Link to={`/audit?resourceType=task&resourceId=${id}`} className="btn btn-sm">Audit History</Link>
+        )}
       </div>
       <ErrorBanner message={e1 || e2} />
+
+      {/* Recurrence banner — shown on template tasks */}
+      {task.recurrence?.enabled && !task.parentTaskId && (
+        <div className="detail-card" style={{ borderLeft: '4px solid #0d6efd', marginBottom: '16px' }}>
+          <h3 style={{ marginTop: 0 }}>↻ Recurring Template</h3>
+          <dl className="detail-list">
+            <dt>Frequency</dt>
+            <dd style={{ textTransform: 'capitalize' }}>
+              Every {task.recurrence.interval} {task.recurrence.frequency}
+            </dd>
+            <dt>Next Spawn</dt>
+            <dd>{new Date(task.recurrence.nextRunAt).toLocaleDateString()}</dd>
+            <dt>Last Spawned</dt>
+            <dd>{task.recurrence.lastRunAt ? new Date(task.recurrence.lastRunAt).toLocaleDateString() : '—'}</dd>
+            <dt>Occurrences Spawned</dt>
+            <dd>
+              {task.recurrence.occurrenceCount}
+              {task.recurrence.maxOccurrences ? ` / ${task.recurrence.maxOccurrences}` : ' (unlimited)'}
+            </dd>
+            {task.recurrence.endDate && (
+              <>
+                <dt>Ends On</dt>
+                <dd>{new Date(task.recurrence.endDate).toLocaleDateString()}</dd>
+              </>
+            )}
+          </dl>
+          <Link to={`/tasks/${task._id}/edit`} className="btn btn-sm" style={{ marginTop: '8px' }}>
+            Edit Recurrence
+          </Link>
+        </div>
+      )}
+
+      {/* Parent link — shown on child tasks */}
+      {task.parentTaskId && (
+        <div style={{ marginBottom: '12px', padding: '8px 12px', background: '#f8f9fa', borderRadius: '6px', fontSize: '0.875rem', color: 'var(--text-muted)' }}>
+          ↳ Spawned from recurring template:{' '}
+          <Link to={`/tasks/${task.parentTaskId}`}>View template</Link>
+        </div>
+      )}
+
       <div className="detail-grid">
         <div className="detail-card">
           <h3>Details</h3>
@@ -64,6 +145,151 @@ export default function TaskDetailPage(): React.ReactElement {
             </div>
           ))
         }
+      </section>
+      <section>
+        <h2>Dependencies</h2>
+        <ErrorBanner message={depError} />
+        <div className="detail-grid">
+          <div className="detail-card">
+            <h3>Blocked By</h3>
+            {(deps?.blockedBy || []).length === 0
+              ? <p>This task has no blockers.</p>
+              : (deps?.blockedBy || []).map((t) => (
+                  <div key={t._id} style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
+                    <Link to={`/tasks/${t._id}`}>{t.title}</Link>
+                    <StatusBadge status={t.status} />
+                    <button
+                      className="btn btn-sm"
+                      onClick={async () => {
+                        setDepSubmitting(true);
+                        setDepError(null);
+                        try {
+                          const updated = (task?.blockedBy || []).filter((bid) => bid !== t._id);
+                          await updateTask(id!, { blockedBy: updated });
+                          refetchDeps();
+                        } catch (err: any) {
+                          setDepError(err.message);
+                        } finally {
+                          setDepSubmitting(false);
+                        }
+                      }}
+                      disabled={depSubmitting}
+                    >
+                      Remove
+                    </button>
+                  </div>
+                ))
+            }
+            <form
+              onSubmit={async (e) => {
+                e.preventDefault();
+                if (!newBlockerId) return;
+                setDepSubmitting(true);
+                setDepError(null);
+                try {
+                  const current = task?.blockedBy || [];
+                  await updateTask(id!, { blockedBy: [...current, newBlockerId] });
+                  setNewBlockerId('');
+                  refetchDeps();
+                } catch (err: any) {
+                  setDepError(err.message);
+                } finally {
+                  setDepSubmitting(false);
+                }
+              }}
+              style={{ display: 'flex', gap: '8px', marginTop: '12px' }}
+            >
+              <select
+                value={newBlockerId}
+                onChange={(e) => setNewBlockerId(e.target.value)}
+                disabled={depSubmitting}
+                style={{ flex: 1 }}
+              >
+                <option value="">Select a task to add as blocker...</option>
+                {(allTasksData || [])
+                  .filter((t: DependencyTask) =>
+                    t._id !== id &&
+                    !(deps?.blockedBy || []).some((b) => b._id === t._id)
+                  )
+                  .map((t: DependencyTask) => (
+                    <option key={t._id} value={t._id}>{t.title}</option>
+                  ))
+                }
+              </select>
+              <button
+                type="submit"
+                className="btn btn-primary"
+                disabled={depSubmitting || !newBlockerId}
+              >
+                Add Blocker
+              </button>
+            </form>
+          </div>
+          <div className="detail-card">
+            <h3>Blocking</h3>
+            {(deps?.blocking || []).length === 0
+              ? <p>This task is not blocking any other tasks.</p>
+              : (deps?.blocking || []).map((t) => (
+                  <div key={t._id} style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
+                    <Link to={`/tasks/${t._id}`}>{t.title}</Link>
+                    <StatusBadge status={t.status} />
+                  </div>
+                ))
+            }
+          </div>
+        </div>
+      </section>
+      <section>
+        <h2>Comments</h2>
+        <ErrorBanner message={e3 || submitError} />
+        {(comments || []).length === 0
+          ? <p>No comments yet.</p>
+          : (comments || []).map((c) => (
+            <div key={c._id} className="timeline-item">
+              <div className="timeline-header">
+                <span className="timeline-author">{c.authorEmail}</span>
+                <span className="timeline-date">{new Date(c.createdAt).toLocaleString()}</span>
+              </div>
+              <p className="timeline-comment">{c.body}</p>
+            </div>
+          ))
+        }
+        <div className="timeline-item">
+          <form
+            onSubmit={async (e) => {
+              e.preventDefault();
+              if (!commentBody.trim()) return;
+              setSubmitting(true);
+              setSubmitError(null);
+              try {
+                await addComment(id!, commentBody.trim());
+                setCommentBody('');
+                refetchComments();
+              } catch (err: any) {
+                setSubmitError(err.message);
+              } finally {
+                setSubmitting(false);
+              }
+            }}
+            style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}
+          >
+            <CommentInput
+              value={commentBody}
+              onChange={setCommentBody}
+              members={members}
+              disabled={submitting}
+              maxLength={2000}
+            />
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                {commentBody.length}/2000
+              </span>
+              <button type="submit" className="btn btn-primary" disabled={submitting || !commentBody.trim()}>
+                {submitting ? 'Posting...' : 'Post Comment'}
+              </button>
+            </div>
+          </form>
+        </div>
       </section>
     </div>
   );
