@@ -56,7 +56,7 @@ export const getAuditLogsByActor = async (
 
   const results = await Promise.allSettled(
     ACTOR_AUDIT_ENDPOINTS.map(endpoint =>
-      apiFetch<AuditResponse>(`${endpoint}?${params.toString()}`),
+      apiFetch(`${endpoint}?${params.toString()}`),
     ),
   );
 
