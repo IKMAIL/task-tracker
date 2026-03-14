@@ -1,0 +1,998 @@
+{
+  "_type": "export",
+  "__export_format": 4,
+  "__export_date": "2026-03-14T00:00:00.000Z",
+  "__export_source": "task-tracker",
+  "resources": [
+
+    {
+      "_id": "wrk_001",
+      "_type": "workspace",
+      "name": "Task Tracker API",
+      "description": "Complete API collection for the Task Tracker microservices platform.\n\nAll routes are proxied through the API Gateway on port 3000.\nEvery authenticated route is available on both /api/* and /api/v1/* prefixes.\nMetrics endpoint is available on /api/v1/metrics only.\n\nWorkflow:\n1. Run 'Register' or 'Login' to obtain a JWT token\n2. Set the returned token as the jwt_token environment variable\n3. All other requests will use this token automatically",
+      "scope": "collection"
+    },
+
+    {
+      "_id": "env_001",
+      "_type": "environment",
+      "parentId": "wrk_001",
+      "name": "Base Environment",
+      "data": {
+        "jwt_token": "",
+        "service_token": "replace-with-SERVICE_TOKEN-value",
+        "api_key": "",
+        "task_id": "000000000000000000000001",
+        "team_id": "000000000000000000000002",
+        "user_id": "000000000000000000000003",
+        "member_id": "000000000000000000000004",
+        "alert_id": "000000000000000000000005",
+        "apikey_id": "000000000000000000000006"
+      }
+    },
+    {
+      "_id": "env_002",
+      "_type": "environment",
+      "parentId": "env_001",
+      "name": "Test",
+      "data": {
+        "base_url": "http://localhost:3000",
+        "email": "admin@test.local",
+        "password": "password123"
+      }
+    },
+    {
+      "_id": "env_003",
+      "_type": "environment",
+      "parentId": "env_001",
+      "name": "Production",
+      "data": {
+        "base_url": "https://api.tasktracker.example.com",
+        "email": "admin@tasktracker.example.com",
+        "password": ""
+      }
+    },
+
+    {
+      "_id": "fld_001",
+      "_type": "request_group",
+      "parentId": "wrk_001",
+      "name": "Auth",
+      "description": "Authentication endpoints — no token required"
+    },
+    {
+      "_id": "fld_002",
+      "_type": "request_group",
+      "parentId": "wrk_001",
+      "name": "Users",
+      "description": "User profile management — JWT required. List endpoint requires admin role."
+    },
+    {
+      "_id": "fld_003",
+      "_type": "request_group",
+      "parentId": "wrk_001",
+      "name": "API Keys",
+      "description": "Manage scoped API keys (ttk_... format) — JWT required to create/list/revoke"
+    },
+    {
+      "_id": "fld_004",
+      "_type": "request_group",
+      "parentId": "wrk_001",
+      "name": "Teams",
+      "description": "Team CRUD and team membership management — JWT required"
+    },
+    {
+      "_id": "fld_005",
+      "_type": "request_group",
+      "parentId": "wrk_001",
+      "name": "Members",
+      "description": "Person/member directory CRUD — JWT required"
+    },
+    {
+      "_id": "fld_006",
+      "_type": "request_group",
+      "parentId": "wrk_001",
+      "name": "Tasks",
+      "description": "Task CRUD and summary aggregation — JWT required. Delete requires admin role."
+    },
+    {
+      "_id": "fld_007",
+      "_type": "request_group",
+      "parentId": "wrk_001",
+      "name": "Progress",
+      "description": "Progress update history — JWT required. POST also syncs status back to task-service."
+    },
+    {
+      "_id": "fld_008",
+      "_type": "request_group",
+      "parentId": "wrk_001",
+      "name": "Alerts",
+      "description": "Deadline and deviation alerts — JWT required. Detection cron runs daily at 06:00 UTC."
+    },
+    {
+      "_id": "fld_009",
+      "_type": "request_group",
+      "parentId": "wrk_001",
+      "name": "Import",
+      "description": "Bulk CSV/XLSX import endpoints — JWT required, multipart/form-data, max 10 MB per file"
+    },
+    {
+      "_id": "fld_010",
+      "_type": "request_group",
+      "parentId": "wrk_001",
+      "name": "Metrics & Docs",
+      "description": "Prometheus metrics (v1 only) and OpenAPI/Swagger documentation (public)"
+    },
+    {
+      "_id": "fld_011",
+      "_type": "request_group",
+      "parentId": "wrk_001",
+      "name": "Health Checks",
+      "description": "Liveness endpoints — public, no auth required"
+    },
+
+    {
+      "_id": "req_001",
+      "_type": "request",
+      "parentId": "fld_001",
+      "name": "Register",
+      "description": "Create a new user account. Valid roles: member (default), admin.",
+      "method": "POST",
+      "url": "{{base_url}}/api/auth/register",
+      "headers": [
+        { "name": "Content-Type", "value": "application/json" }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"name\": \"Alice Smith\",\n  \"email\": \"alice@example.com\",\n  \"password\": \"password123\",\n  \"role\": \"member\"\n}"
+      },
+      "authentication": {}
+    },
+    {
+      "_id": "req_002",
+      "_type": "request",
+      "parentId": "fld_001",
+      "name": "Login",
+      "description": "Authenticate with email + password. Copy the returned token into the jwt_token environment variable.",
+      "method": "POST",
+      "url": "{{base_url}}/api/auth/login",
+      "headers": [
+        { "name": "Content-Type", "value": "application/json" }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"email\": \"{{email}}\",\n  \"password\": \"{{password}}\"\n}"
+      },
+      "authentication": {}
+    },
+    {
+      "_id": "req_003",
+      "_type": "request",
+      "parentId": "fld_001",
+      "name": "Microsoft SSO Login",
+      "description": "Exchange an Azure AD id_token for a Task Tracker JWT. If the account already exists with a password, the response may include mergeRequired=true.",
+      "method": "POST",
+      "url": "{{base_url}}/api/auth/microsoft",
+      "headers": [
+        { "name": "Content-Type", "value": "application/json" }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"idToken\": \"<azure-ad-id-token>\"\n}"
+      },
+      "authentication": {}
+    },
+    {
+      "_id": "req_004",
+      "_type": "request",
+      "parentId": "fld_001",
+      "name": "Microsoft SSO Merge Account",
+      "description": "Link an existing email/password account to a Microsoft identity. Provide both the Azure id_token and the existing account password.",
+      "method": "POST",
+      "url": "{{base_url}}/api/auth/microsoft/merge",
+      "headers": [
+        { "name": "Content-Type", "value": "application/json" }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"idToken\": \"<azure-ad-id-token>\",\n  \"password\": \"{{password}}\"\n}"
+      },
+      "authentication": {}
+    },
+
+    {
+      "_id": "req_010",
+      "_type": "request",
+      "parentId": "fld_002",
+      "name": "List Users",
+      "description": "Admin role required. Returns all registered user accounts.",
+      "method": "GET",
+      "url": "{{base_url}}/api/users",
+      "headers": [],
+      "body": { "mimeType": "application/octet-stream" },
+      "authentication": {
+        "type": "bearer",
+        "token": "{{jwt_token}}"
+      }
+    },
+    {
+      "_id": "req_011",
+      "_type": "request",
+      "parentId": "fld_002",
+      "name": "Get User by ID",
+      "description": "Retrieve a single user profile. Users can fetch their own; admin can fetch any.",
+      "method": "GET",
+      "url": "{{base_url}}/api/users/{{user_id}}",
+      "headers": [],
+      "body": { "mimeType": "application/octet-stream" },
+      "authentication": {
+        "type": "bearer",
+        "token": "{{jwt_token}}"
+      }
+    },
+    {
+      "_id": "req_012",
+      "_type": "request",
+      "parentId": "fld_002",
+      "name": "Update User",
+      "description": "Update user fields such as name or role.",
+      "method": "PUT",
+      "url": "{{base_url}}/api/users/{{user_id}}",
+      "headers": [
+        { "name": "Content-Type", "value": "application/json" }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"name\": \"Alice Smith (updated)\",\n  \"role\": \"admin\"\n}"
+      },
+      "authentication": {
+        "type": "bearer",
+        "token": "{{jwt_token}}"
+      }
+    },
+
+    {
+      "_id": "req_020",
+      "_type": "request",
+      "parentId": "fld_003",
+      "name": "Create API Key",
+      "description": "Issues a scoped ttk_... API key. The raw key is returned once — store it immediately. Valid permissions: tasks:read, tasks:write, progress:read, progress:write, alerts:read, alerts:write, teams:read, teams:write.",
+      "method": "POST",
+      "url": "{{base_url}}/api/api-keys",
+      "headers": [
+        { "name": "Content-Type", "value": "application/json" }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"name\": \"CI/CD Pipeline Key\",\n  \"permissions\": [\n    \"tasks:read\",\n    \"tasks:write\",\n    \"progress:read\",\n    \"progress:write\",\n    \"alerts:read\",\n    \"teams:read\"\n  ],\n  \"expiresAt\": \"2027-03-14T00:00:00.000Z\"\n}"
+      },
+      "authentication": {
+        "type": "bearer",
+        "token": "{{jwt_token}}"
+      }
+    },
+    {
+      "_id": "req_021",
+      "_type": "request",
+      "parentId": "fld_003",
+      "name": "List API Keys",
+      "description": "Returns all API keys owned by the authenticated user (raw key is not included).",
+      "method": "GET",
+      "url": "{{base_url}}/api/api-keys",
+      "headers": [],
+      "body": { "mimeType": "application/octet-stream" },
+      "authentication": {
+        "type": "bearer",
+        "token": "{{jwt_token}}"
+      }
+    },
+    {
+      "_id": "req_022",
+      "_type": "request",
+      "parentId": "fld_003",
+      "name": "Revoke (Delete) API Key",
+      "description": "Soft-deletes (deactivates) an API key by its _id. Set apikey_id in environment first.",
+      "method": "DELETE",
+      "url": "{{base_url}}/api/api-keys/{{apikey_id}}",
+      "headers": [],
+      "body": { "mimeType": "application/octet-stream" },
+      "authentication": {
+        "type": "bearer",
+        "token": "{{jwt_token}}"
+      }
+    },
+    {
+      "_id": "req_023",
+      "_type": "request",
+      "parentId": "fld_003",
+      "name": "Example — Authenticate with API Key",
+      "description": "Demonstrates using a ttk_... API key as a Bearer token instead of a user JWT. Set the api_key environment variable to your ttk_ key.",
+      "method": "GET",
+      "url": "{{base_url}}/api/tasks",
+      "headers": [],
+      "body": { "mimeType": "application/octet-stream" },
+      "authentication": {
+        "type": "bearer",
+        "token": "{{api_key}}"
+      }
+    },
+
+    {
+      "_id": "req_030",
+      "_type": "request",
+      "parentId": "fld_004",
+      "name": "List Teams",
+      "description": "Returns all teams.",
+      "method": "GET",
+      "url": "{{base_url}}/api/teams",
+      "headers": [],
+      "body": { "mimeType": "application/octet-stream" },
+      "authentication": {
+        "type": "bearer",
+        "token": "{{jwt_token}}"
+      }
+    },
+    {
+      "_id": "req_031",
+      "_type": "request",
+      "parentId": "fld_004",
+      "name": "Get Team by ID",
+      "description": "Retrieve a single team with its members list.",
+      "method": "GET",
+      "url": "{{base_url}}/api/teams/{{team_id}}",
+      "headers": [],
+      "body": { "mimeType": "application/octet-stream" },
+      "authentication": {
+        "type": "bearer",
+        "token": "{{jwt_token}}"
+      }
+    },
+    {
+      "_id": "req_032",
+      "_type": "request",
+      "parentId": "fld_004",
+      "name": "Create Team",
+      "description": "name: 2-100 chars. description: 0-500 chars (optional).",
+      "method": "POST",
+      "url": "{{base_url}}/api/teams",
+      "headers": [
+        { "name": "Content-Type", "value": "application/json" }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"name\": \"Platform Engineering\",\n  \"description\": \"Responsible for core infrastructure and CI/CD pipeline\"\n}"
+      },
+      "authentication": {
+        "type": "bearer",
+        "token": "{{jwt_token}}"
+      }
+    },
+    {
+      "_id": "req_033",
+      "_type": "request",
+      "parentId": "fld_004",
+      "name": "Update Team",
+      "description": "At least one of name or description must be provided.",
+      "method": "PUT",
+      "url": "{{base_url}}/api/teams/{{team_id}}",
+      "headers": [
+        { "name": "Content-Type", "value": "application/json" }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"name\": \"Platform Engineering Team\",\n  \"description\": \"Core infrastructure, CI/CD, and SRE practices\"\n}"
+      },
+      "authentication": {
+        "type": "bearer",
+        "token": "{{jwt_token}}"
+      }
+    },
+    {
+      "_id": "req_034",
+      "_type": "request",
+      "parentId": "fld_004",
+      "name": "Delete Team",
+      "method": "DELETE",
+      "url": "{{base_url}}/api/teams/{{team_id}}",
+      "headers": [],
+      "body": { "mimeType": "application/octet-stream" },
+      "authentication": {
+        "type": "bearer",
+        "token": "{{jwt_token}}"
+      }
+    },
+    {
+      "_id": "req_035",
+      "_type": "request",
+      "parentId": "fld_004",
+      "name": "Add Member to Team",
+      "description": "Assigns an existing member (by memberId) to a team.",
+      "method": "POST",
+      "url": "{{base_url}}/api/teams/{{team_id}}/members",
+      "headers": [
+        { "name": "Content-Type", "value": "application/json" }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"memberId\": \"{{member_id}}\"\n}"
+      },
+      "authentication": {
+        "type": "bearer",
+        "token": "{{jwt_token}}"
+      }
+    },
+    {
+      "_id": "req_036",
+      "_type": "request",
+      "parentId": "fld_004",
+      "name": "Remove Member from Team",
+      "description": "Removes a member from a team (does not delete the member record).",
+      "method": "DELETE",
+      "url": "{{base_url}}/api/teams/{{team_id}}/members/{{member_id}}",
+      "headers": [],
+      "body": { "mimeType": "application/octet-stream" },
+      "authentication": {
+        "type": "bearer",
+        "token": "{{jwt_token}}"
+      }
+    },
+
+    {
+      "_id": "req_040",
+      "_type": "request",
+      "parentId": "fld_005",
+      "name": "List Members",
+      "description": "Returns all members in the directory.",
+      "method": "GET",
+      "url": "{{base_url}}/api/members",
+      "headers": [],
+      "body": { "mimeType": "application/octet-stream" },
+      "authentication": {
+        "type": "bearer",
+        "token": "{{jwt_token}}"
+      }
+    },
+    {
+      "_id": "req_041",
+      "_type": "request",
+      "parentId": "fld_005",
+      "name": "Get Member by ID",
+      "method": "GET",
+      "url": "{{base_url}}/api/members/{{member_id}}",
+      "headers": [],
+      "body": { "mimeType": "application/octet-stream" },
+      "authentication": {
+        "type": "bearer",
+        "token": "{{jwt_token}}"
+      }
+    },
+    {
+      "_id": "req_042",
+      "_type": "request",
+      "parentId": "fld_005",
+      "name": "Create Member",
+      "description": "name: 1-100 chars. loginId: unique identifier, 1-100 chars. position, birthday, joiningDate are optional.",
+      "method": "POST",
+      "url": "{{base_url}}/api/members",
+      "headers": [
+        { "name": "Content-Type", "value": "application/json" }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"name\": \"Bob Jones\",\n  \"loginId\": \"bjones\",\n  \"position\": \"Senior Engineer\",\n  \"birthday\": \"1990-06-15T00:00:00.000Z\",\n  \"joiningDate\": \"2022-01-10T00:00:00.000Z\"\n}"
+      },
+      "authentication": {
+        "type": "bearer",
+        "token": "{{jwt_token}}"
+      }
+    },
+    {
+      "_id": "req_043",
+      "_type": "request",
+      "parentId": "fld_005",
+      "name": "Update Member",
+      "description": "At least one field must be provided. All fields are optional.",
+      "method": "PUT",
+      "url": "{{base_url}}/api/members/{{member_id}}",
+      "headers": [
+        { "name": "Content-Type", "value": "application/json" }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"position\": \"Staff Engineer\",\n  \"loginId\": \"bjones\"\n}"
+      },
+      "authentication": {
+        "type": "bearer",
+        "token": "{{jwt_token}}"
+      }
+    },
+    {
+      "_id": "req_044",
+      "_type": "request",
+      "parentId": "fld_005",
+      "name": "Delete Member",
+      "method": "DELETE",
+      "url": "{{base_url}}/api/members/{{member_id}}",
+      "headers": [],
+      "body": { "mimeType": "application/octet-stream" },
+      "authentication": {
+        "type": "bearer",
+        "token": "{{jwt_token}}"
+      }
+    },
+
+    {
+      "_id": "req_050",
+      "_type": "request",
+      "parentId": "fld_006",
+      "name": "List Tasks",
+      "description": "Returns all tasks the user has access to.",
+      "method": "GET",
+      "url": "{{base_url}}/api/tasks",
+      "headers": [],
+      "body": { "mimeType": "application/octet-stream" },
+      "authentication": {
+        "type": "bearer",
+        "token": "{{jwt_token}}"
+      }
+    },
+    {
+      "_id": "req_051",
+      "_type": "request",
+      "parentId": "fld_006",
+      "name": "Get Task Summary",
+      "description": "Aggregated task counts grouped by status and category. Used by the metrics endpoint internally.",
+      "method": "GET",
+      "url": "{{base_url}}/api/tasks/summary",
+      "headers": [],
+      "body": { "mimeType": "application/octet-stream" },
+      "authentication": {
+        "type": "bearer",
+        "token": "{{jwt_token}}"
+      }
+    },
+    {
+      "_id": "req_052",
+      "_type": "request",
+      "parentId": "fld_006",
+      "name": "List Tasks by Team",
+      "description": "Returns all tasks assigned to a specific team. Set team_id in environment.",
+      "method": "GET",
+      "url": "{{base_url}}/api/tasks/team/{{team_id}}",
+      "headers": [],
+      "body": { "mimeType": "application/octet-stream" },
+      "authentication": {
+        "type": "bearer",
+        "token": "{{jwt_token}}"
+      }
+    },
+    {
+      "_id": "req_053",
+      "_type": "request",
+      "parentId": "fld_006",
+      "name": "Get Task by ID",
+      "method": "GET",
+      "url": "{{base_url}}/api/tasks/{{task_id}}",
+      "headers": [],
+      "body": { "mimeType": "application/octet-stream" },
+      "authentication": {
+        "type": "bearer",
+        "token": "{{jwt_token}}"
+      }
+    },
+    {
+      "_id": "req_054",
+      "_type": "request",
+      "parentId": "fld_006",
+      "name": "Create Task",
+      "description": "Valid categories: 'Automation Testing Coverage', 'DR Dry Run', 'Active-Active Setup', 'LEAP Framework Adherence', 'Claude Code Adoption %', 'Open Operational Items', 'Security Risk Items'. Valid statuses: not_started, in_progress, blocked, completed, cancelled.",
+      "method": "POST",
+      "url": "{{base_url}}/api/tasks",
+      "headers": [
+        { "name": "Content-Type", "value": "application/json" }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"title\": \"Implement DR Dry Run — Zone A failover\",\n  \"description\": \"Simulate full failover to Zone A and validate RTO/RPO targets meet the SLA\",\n  \"category\": \"DR Dry Run\",\n  \"assignedTeamId\": \"{{team_id}}\",\n  \"assignedPersonId\": \"{{member_id}}\",\n  \"status\": \"not_started\",\n  \"completionPct\": 0,\n  \"plannedStartDate\": \"2026-04-01T00:00:00.000Z\",\n  \"dueDate\": \"2026-06-30T00:00:00.000Z\",\n  \"nextUpdateDate\": \"2026-04-15T00:00:00.000Z\"\n}"
+      },
+      "authentication": {
+        "type": "bearer",
+        "token": "{{jwt_token}}"
+      }
+    },
+    {
+      "_id": "req_055",
+      "_type": "request",
+      "parentId": "fld_006",
+      "name": "Update Task",
+      "description": "All fields are optional. Provide only fields to change.",
+      "method": "PUT",
+      "url": "{{base_url}}/api/tasks/{{task_id}}",
+      "headers": [
+        { "name": "Content-Type", "value": "application/json" }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"status\": \"in_progress\",\n  \"completionPct\": 25,\n  \"nextUpdateDate\": \"2026-05-01T00:00:00.000Z\"\n}"
+      },
+      "authentication": {
+        "type": "bearer",
+        "token": "{{jwt_token}}"
+      }
+    },
+    {
+      "_id": "req_056",
+      "_type": "request",
+      "parentId": "fld_006",
+      "name": "Delete Task",
+      "description": "Admin role required.",
+      "method": "DELETE",
+      "url": "{{base_url}}/api/tasks/{{task_id}}",
+      "headers": [],
+      "body": { "mimeType": "application/octet-stream" },
+      "authentication": {
+        "type": "bearer",
+        "token": "{{jwt_token}}"
+      }
+    },
+
+    {
+      "_id": "req_060",
+      "_type": "request",
+      "parentId": "fld_007",
+      "name": "Post Progress Update",
+      "description": "Records a progress update and fire-and-forgets a sync back to task-service to update completionPct and status. completionPct: 0-100. nextUpdateDate: null clears the field.",
+      "method": "POST",
+      "url": "{{base_url}}/api/progress",
+      "headers": [
+        { "name": "Content-Type", "value": "application/json" }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"taskId\": \"{{task_id}}\",\n  \"teamId\": \"{{team_id}}\",\n  \"completionPct\": 40,\n  \"status\": \"in_progress\",\n  \"comment\": \"Zone A failover script complete. Starting Zone B validation.\",\n  \"nextUpdateDate\": \"2026-05-01T00:00:00.000Z\"\n}"
+      },
+      "authentication": {
+        "type": "bearer",
+        "token": "{{jwt_token}}"
+      }
+    },
+    {
+      "_id": "req_061",
+      "_type": "request",
+      "parentId": "fld_007",
+      "name": "Get Progress History for Task",
+      "description": "Returns all progress entries for a task, ordered newest first.",
+      "method": "GET",
+      "url": "{{base_url}}/api/progress/task/{{task_id}}",
+      "headers": [],
+      "body": { "mimeType": "application/octet-stream" },
+      "authentication": {
+        "type": "bearer",
+        "token": "{{jwt_token}}"
+      }
+    },
+    {
+      "_id": "req_062",
+      "_type": "request",
+      "parentId": "fld_007",
+      "name": "Get Latest Progress for Task",
+      "description": "Returns the single most recent progress entry for a task.",
+      "method": "GET",
+      "url": "{{base_url}}/api/progress/latest/{{task_id}}",
+      "headers": [],
+      "body": { "mimeType": "application/octet-stream" },
+      "authentication": {
+        "type": "bearer",
+        "token": "{{jwt_token}}"
+      }
+    },
+    {
+      "_id": "req_063",
+      "_type": "request",
+      "parentId": "fld_007",
+      "name": "Get Progress Updates by Team",
+      "description": "Returns all progress entries submitted by a team, across all tasks.",
+      "method": "GET",
+      "url": "{{base_url}}/api/progress/team/{{team_id}}",
+      "headers": [],
+      "body": { "mimeType": "application/octet-stream" },
+      "authentication": {
+        "type": "bearer",
+        "token": "{{jwt_token}}"
+      }
+    },
+
+    {
+      "_id": "req_070",
+      "_type": "request",
+      "parentId": "fld_008",
+      "name": "List All Alerts",
+      "description": "Returns all active and resolved alerts across all tasks.",
+      "method": "GET",
+      "url": "{{base_url}}/api/alerts",
+      "headers": [],
+      "body": { "mimeType": "application/octet-stream" },
+      "authentication": {
+        "type": "bearer",
+        "token": "{{jwt_token}}"
+      }
+    },
+    {
+      "_id": "req_071",
+      "_type": "request",
+      "parentId": "fld_008",
+      "name": "List Alerts by Team",
+      "description": "Returns alerts for tasks assigned to the specified team.",
+      "method": "GET",
+      "url": "{{base_url}}/api/alerts/team/{{team_id}}",
+      "headers": [],
+      "body": { "mimeType": "application/octet-stream" },
+      "authentication": {
+        "type": "bearer",
+        "token": "{{jwt_token}}"
+      }
+    },
+    {
+      "_id": "req_072",
+      "_type": "request",
+      "parentId": "fld_008",
+      "name": "Get Alert by ID",
+      "method": "GET",
+      "url": "{{base_url}}/api/alerts/{{alert_id}}",
+      "headers": [],
+      "body": { "mimeType": "application/octet-stream" },
+      "authentication": {
+        "type": "bearer",
+        "token": "{{jwt_token}}"
+      }
+    },
+    {
+      "_id": "req_073",
+      "_type": "request",
+      "parentId": "fld_008",
+      "name": "Resolve Alert",
+      "description": "Marks an active alert as resolved (isActive = false). Set alert_id in environment.",
+      "method": "PUT",
+      "url": "{{base_url}}/api/alerts/{{alert_id}}/resolve",
+      "headers": [],
+      "body": { "mimeType": "application/octet-stream" },
+      "authentication": {
+        "type": "bearer",
+        "token": "{{jwt_token}}"
+      }
+    },
+    {
+      "_id": "req_074",
+      "_type": "request",
+      "parentId": "fld_008",
+      "name": "Trigger Alert Detection (Manual)",
+      "description": "Manually executes the same logic as the daily cron at 06:00 UTC. Useful for testing or backfilling alerts.",
+      "method": "POST",
+      "url": "{{base_url}}/api/alerts/run-detection",
+      "headers": [],
+      "body": { "mimeType": "application/octet-stream" },
+      "authentication": {
+        "type": "bearer",
+        "token": "{{jwt_token}}"
+      }
+    },
+
+    {
+      "_id": "req_080",
+      "_type": "request",
+      "parentId": "fld_009",
+      "name": "Import Tasks (CSV/XLSX)",
+      "description": "Upload a CSV or Excel file to bulk-import tasks. File field name must be 'file'. Max 10 MB.",
+      "method": "POST",
+      "url": "{{base_url}}/api/import/tasks",
+      "headers": [],
+      "body": {
+        "mimeType": "multipart/form-data",
+        "params": [
+          {
+            "name": "file",
+            "value": "",
+            "type": "file",
+            "description": "CSV or XLSX file. Columns: title, description, category, assignedTeamId, assignedPersonId, status, completionPct, plannedStartDate, dueDate, nextUpdateDate"
+          }
+        ]
+      },
+      "authentication": {
+        "type": "bearer",
+        "token": "{{jwt_token}}"
+      }
+    },
+    {
+      "_id": "req_081",
+      "_type": "request",
+      "parentId": "fld_009",
+      "name": "Import Teams (CSV/XLSX)",
+      "description": "Bulk-import teams from a CSV or Excel file. Max 10 MB.",
+      "method": "POST",
+      "url": "{{base_url}}/api/import/teams",
+      "headers": [],
+      "body": {
+        "mimeType": "multipart/form-data",
+        "params": [
+          {
+            "name": "file",
+            "value": "",
+            "type": "file",
+            "description": "CSV or XLSX file. Columns: name, description"
+          }
+        ]
+      },
+      "authentication": {
+        "type": "bearer",
+        "token": "{{jwt_token}}"
+      }
+    },
+    {
+      "_id": "req_082",
+      "_type": "request",
+      "parentId": "fld_009",
+      "name": "Import Members (CSV/XLSX)",
+      "description": "Bulk-import person/member records from a CSV or Excel file. Max 10 MB.",
+      "method": "POST",
+      "url": "{{base_url}}/api/import/members",
+      "headers": [],
+      "body": {
+        "mimeType": "multipart/form-data",
+        "params": [
+          {
+            "name": "file",
+            "value": "",
+            "type": "file",
+            "description": "CSV or XLSX file. Columns: name, loginId, position, birthday, joiningDate"
+          }
+        ]
+      },
+      "authentication": {
+        "type": "bearer",
+        "token": "{{jwt_token}}"
+      }
+    },
+    {
+      "_id": "req_083",
+      "_type": "request",
+      "parentId": "fld_009",
+      "name": "Import Team-Member Assignments (CSV/XLSX)",
+      "description": "Bulk-assign members to teams from a CSV or Excel file. Max 10 MB.",
+      "method": "POST",
+      "url": "{{base_url}}/api/import/team-members",
+      "headers": [],
+      "body": {
+        "mimeType": "multipart/form-data",
+        "params": [
+          {
+            "name": "file",
+            "value": "",
+            "type": "file",
+            "description": "CSV or XLSX file. Columns: teamId, memberId"
+          }
+        ]
+      },
+      "authentication": {
+        "type": "bearer",
+        "token": "{{jwt_token}}"
+      }
+    },
+
+    {
+      "_id": "req_090",
+      "_type": "request",
+      "parentId": "fld_010",
+      "name": "Prometheus Metrics",
+      "description": "Returns task and alert counts in Prometheus text exposition format (text/plain; version=0.0.4). Available on /api/v1/ prefix ONLY. No user auth required — the gateway uses SERVICE_TOKEN internally to query downstream services.",
+      "method": "GET",
+      "url": "{{base_url}}/api/v1/metrics",
+      "headers": [
+        { "name": "Accept", "value": "text/plain" }
+      ],
+      "body": { "mimeType": "application/octet-stream" },
+      "authentication": {}
+    },
+    {
+      "_id": "req_091",
+      "_type": "request",
+      "parentId": "fld_010",
+      "name": "OpenAPI Spec (JSON)",
+      "description": "Returns the full OpenAPI 3.0 spec describing all gateway routes.",
+      "method": "GET",
+      "url": "{{base_url}}/api/docs/openapi.json",
+      "headers": [
+        { "name": "Accept", "value": "application/json" }
+      ],
+      "body": { "mimeType": "application/octet-stream" },
+      "authentication": {}
+    },
+    {
+      "_id": "req_092",
+      "_type": "request",
+      "parentId": "fld_010",
+      "name": "Swagger UI",
+      "description": "Interactive HTML documentation. Open in a browser for the full Swagger UI experience.",
+      "method": "GET",
+      "url": "{{base_url}}/api/docs",
+      "headers": [
+        { "name": "Accept", "value": "text/html" }
+      ],
+      "body": { "mimeType": "application/octet-stream" },
+      "authentication": {}
+    },
+
+    {
+      "_id": "req_100",
+      "_type": "request",
+      "parentId": "fld_011",
+      "name": "Gateway Health",
+      "description": "Returns { status: 'ok', service: 'api-gateway' }",
+      "method": "GET",
+      "url": "{{base_url}}/health",
+      "headers": [],
+      "body": { "mimeType": "application/octet-stream" },
+      "authentication": {}
+    },
+    {
+      "_id": "req_101",
+      "_type": "request",
+      "parentId": "fld_011",
+      "name": "Identity Service Health (direct :3001)",
+      "description": "Direct health check bypassing the gateway. Only reachable from inside the Docker network or locally.",
+      "method": "GET",
+      "url": "http://localhost:3001/health",
+      "headers": [],
+      "body": { "mimeType": "application/octet-stream" },
+      "authentication": {}
+    },
+    {
+      "_id": "req_102",
+      "_type": "request",
+      "parentId": "fld_011",
+      "name": "Task Service Health (direct :3002)",
+      "description": "Direct health check bypassing the gateway. Only reachable from inside the Docker network or locally.",
+      "method": "GET",
+      "url": "http://localhost:3002/health",
+      "headers": [],
+      "body": { "mimeType": "application/octet-stream" },
+      "authentication": {}
+    },
+    {
+      "_id": "req_103",
+      "_type": "request",
+      "parentId": "fld_011",
+      "name": "Progress Service Health (direct :3003)",
+      "description": "Direct health check bypassing the gateway. Only reachable from inside the Docker network or locally.",
+      "method": "GET",
+      "url": "http://localhost:3003/health",
+      "headers": [],
+      "body": { "mimeType": "application/octet-stream" },
+      "authentication": {}
+    },
+    {
+      "_id": "req_104",
+      "_type": "request",
+      "parentId": "fld_011",
+      "name": "Alert Service Health (direct :3004)",
+      "description": "Direct health check bypassing the gateway. Only reachable from inside the Docker network or locally.",
+      "method": "GET",
+      "url": "http://localhost:3004/health",
+      "headers": [],
+      "body": { "mimeType": "application/octet-stream" },
+      "authentication": {}
+    },
+    {
+      "_id": "req_105",
+      "_type": "request",
+      "parentId": "fld_011",
+      "name": "Team Service Health (direct :3006)",
+      "description": "Direct health check bypassing the gateway. Only reachable from inside the Docker network or locally.",
+      "method": "GET",
+      "url": "http://localhost:3006/health",
+      "headers": [],
+      "body": { "mimeType": "application/octet-stream" },
+      "authentication": {}
+    }
+
+  ]
+}
