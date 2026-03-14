@@ -70,9 +70,7 @@ export default function TaskDetailPage(): React.ReactElement {
       <div className="page-header">
         <h1>{task.title}</h1>
         <Link to={`/progress/update/${id}`} className="btn btn-primary">Log Progress Update</Link>
-        {user?.role === 'admin' && (
-          <Link to={`/audit?resourceType=task&resourceId=${id}`} className="btn btn-sm">Audit History</Link>
-        )}
+        <Link to={`/audit?resourceType=task&resourceId=${id}`} className="btn btn-sm">Audit History</Link>
       </div>
       <ErrorBanner message={e1 || e2} />
 
