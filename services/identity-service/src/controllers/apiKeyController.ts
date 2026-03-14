@@ -6,7 +6,7 @@ export async function create(req: Request, res: Response, next: NextFunction): P
   try {
     const userId = req.user!.sub as string;
     logger.debug('apiKeyController.create', { userId });
-    const result = await apiKeyService.createKey({ userId, name: req.body.name, expiresAt: req.body.expiresAt });
+    const result = await apiKeyService.createKey({ userId, name: req.body.name, permissions: req.body.permissions, expiresAt: req.body.expiresAt });
     res.status(201).json({ success: true, data: result });
   } catch (err) { next(err); }
 }

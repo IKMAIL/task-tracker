@@ -7,6 +7,7 @@ import { createProxy } from "./src/utils/proxy";
 import services from "./src/config/services";
 import path from "path";
 import { logger, requestLogger } from '@task-tracker/utils';
+import { openapiSpec, swaggerUiHtml } from "./src/openapi";
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -20,6 +21,15 @@ app.use(requestLogger);
 app.get("/health", (_req, res) =>
   res.json({ status: "ok", service: "api-gateway" }),
 );
+
+// API documentation (no auth required)
+app.get("/api/docs", (_req, res) => {
+  res.setHeader("Content-Type", "text/html");
+  res.send(swaggerUiHtml("/api/docs/openapi.json"));
+});
+app.get("/api/docs/openapi.json", (_req, res) => {
+  res.json(openapiSpec);
+});
 
 app.use("/api/auth", createProxy(services.IDENTITY_URL, { "^/": "/auth/" }));
 
