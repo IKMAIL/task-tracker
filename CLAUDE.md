@@ -2,6 +2,12 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## **_Important_** as a responsibler and professional developer, you must refer to each of the bisted files for every and each task, never skip any of the files or instructions in that file :
+
+- .claude\WORKFLOW.md to understand the worflow to follow to start any development task
+- .claude\INSTRUCTIONS.md for guidelines and restrictions
+- .claude\LEARNING.md for instructions on how to deal with errors and mistakes, and how to use that for future development
+
 ## Commands
 
 ### Development
@@ -84,6 +90,7 @@ Each service has its own MongoDB database (identity, tasks, progress, alerts, te
 ### Alert detection (alert-service)
 
 Four alert types, upserted (one active per task per type):
+
 - `past_due` — dueDate passed, task incomplete → HIGH
 - `update_overdue` — nextUpdateDate passed → MEDIUM
 - `behind_schedule` — completionPct 15%+ below linear expectation → MEDIUM/HIGH
@@ -97,12 +104,12 @@ React Router v6 SPA. API calls go through `apps/web-frontend/src/api/client.ts` 
 
 Copy `.env.example` to `.env` in the root and in each service directory. Key vars:
 
-| Var | Where |
-|-----|-------|
-| `JWT_SECRET` | All services + gateway |
-| `SERVICE_TOKEN` | Services that call each other |
-| `MONGO_URI` | Each service (separate DB per service) |
-| `MICROSOFT_CLIENT_ID/SECRET/TENANT_ID` | identity-service only |
+| Var                                    | Where                                  |
+| -------------------------------------- | -------------------------------------- |
+| `JWT_SECRET`                           | All services + gateway                 |
+| `SERVICE_TOKEN`                        | Services that call each other          |
+| `MONGO_URI`                            | Each service (separate DB per service) |
+| `MICROSOFT_CLIENT_ID/SECRET/TENANT_ID` | identity-service only                  |
 
 ## TypeScript
 
