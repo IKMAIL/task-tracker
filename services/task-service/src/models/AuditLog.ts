@@ -18,5 +18,6 @@ const AuditLogSchema = new Schema<IAuditLog>(
 );
 
 AuditLogSchema.index({ resourceType: 1, resourceId: 1, timestamp: -1 });
+AuditLogSchema.index({ userId: 1, timestamp: -1 });
 
 export default mongoose.model<IAuditLog>('AuditLog', AuditLogSchema);

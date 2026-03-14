@@ -1,4 +1,6 @@
 import mongoose, { Document, Schema } from 'mongoose';
+import { createAuditPlugin } from '@task-tracker/utils';
+import AuditLog from './AuditLog';
 
 export type AlertType = 'past_due' | 'update_overdue' | 'behind_schedule' | 'stalled';
 export type AlertSeverity = 'low' | 'medium' | 'high';
@@ -39,5 +41,7 @@ const AlertSchema = new Schema<IAlert>(
 
 AlertSchema.index({ taskId: 1, type: 1, isActive: 1 });
 AlertSchema.index({ teamId: 1, isActive: 1 });
+
+AlertSchema.plugin(createAuditPlugin(AuditLog as any, 'alert'));
 
 export default mongoose.model<IAlert>('Alert', AlertSchema);

@@ -3,6 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import { useFetch } from '../hooks/useFetch';
 import { getTask, getComments, addComment, getDependencies, listTasks, updateTask } from '../api/taskApi';
 import { getHistory } from '../api/progressApi';
+import { getAuditLogs, AuditLog as AuditLogEntry } from '../api/auditApi';
 import { getTeam } from '../api/teamApi';
 import { useAuth } from '../context/AuthContext';
 import Spinner from '../components/common/Spinner';
@@ -46,6 +47,7 @@ export default function TaskDetailPage(): React.ReactElement {
   const { data: history, loading: l2, error: e2 } = useFetch<ProgressUpdate[]>(() => getHistory(id!), [id]);
   const { data: comments, loading: l3, error: e3, refetch: refetchComments } = useFetch<Comment[]>(() => getComments(id!), [id]);
   const { data: deps, loading: l4, refetch: refetchDeps } = useFetch<{ blockedBy: DependencyTask[]; blocking: DependencyTask[] }>(() => getDependencies(id!), [id]);
+  const { data: auditData } = useFetch<AuditLogEntry[]>(() => getAuditLogs('task', id!, 1, 20).then(r => r.data), [id]);
   const { data: allTasksData } = useFetch<DependencyTask[]>(listTasks, []);
   const { data: teamData } = useFetch(
     () => task?.assignedTeamId ? getTeam(task.assignedTeamId) : Promise.resolve(null),
@@ -68,9 +70,7 @@ export default function TaskDetailPage(): React.ReactElement {
       <div className="page-header">
         <h1>{task.title}</h1>
         <Link to={`/progress/update/${id}`} className="btn btn-primary">Log Progress Update</Link>
-        {user?.role === 'admin' && (
-          <Link to={`/audit?resourceType=task&resourceId=${id}`} className="btn btn-sm">Audit History</Link>
-        )}
+        <Link to={`/audit?resourceType=task&resourceId=${id}`} className="btn btn-sm">Audit History</Link>
       </div>
       <ErrorBanner message={e1 || e2} />
 
@@ -290,6 +290,37 @@ export default function TaskDetailPage(): React.ReactElement {
             </div>
           </form>
         </div>
+      </section>
+      <section>
+        <h2>Change History</h2>
+        {(auditData || []).length === 0
+          ? <p>No change records yet.</p>
+          : (auditData || []).map((entry: AuditLogEntry) => (
+            <div key={entry._id} className="timeline-item">
+              <div className="timeline-header">
+                <span style={{
+                  background: entry.action === 'create' ? '#27ae60' : entry.action === 'delete' ? '#e74c3c' : '#2980b9',
+                  color: '#fff',
+                  borderRadius: '4px',
+                  padding: '2px 8px',
+                  fontSize: '0.75rem',
+                  fontWeight: 600,
+                  textTransform: 'uppercase' as const,
+                }}>
+                  {entry.action}
+                </span>
+                <span className="timeline-author">{entry.userEmail || entry.userId || 'system'}</span>
+                <span className="timeline-date">{new Date(entry.timestamp).toLocaleString()}</span>
+              </div>
+            </div>
+          ))
+        }
+        {(auditData?.length ?? 0) >= 20 && (
+          <p style={{ fontSize: '0.875rem', color: 'var(--text-muted)', marginTop: '8px' }}>
+            Showing first 20 records.{' '}
+            <a href={`/audit?resourceType=task&resourceId=${id}`}>View all</a>
+          </p>
+        )}
       </section>
     </div>
   );

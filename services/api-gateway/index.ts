@@ -82,6 +82,30 @@ app.use(
 );
 
 app.use(
+  "/api/audit/alerts",
+  authenticate,
+  createProxy(services.ALERT_URL, { "^/": "/audit/" }),
+);
+
+app.use(
+  "/api/audit/users",
+  authenticate,
+  createProxy(services.IDENTITY_URL, { "^/": "/audit/" }),
+);
+
+app.use(
+  "/api/audit/progress",
+  authenticate,
+  createProxy(services.PROGRESS_URL, { "^/": "/audit/" }),
+);
+
+app.use(
+  "/api/audit/teams",
+  authenticate,
+  createProxy(services.TEAM_URL, { "^/": "/audit/" }),
+);
+
+app.use(
   "/api/audit",
   authenticate,
   createProxy(services.TASK_URL, { "^/": "/audit/" }),

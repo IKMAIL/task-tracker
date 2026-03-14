@@ -3,6 +3,7 @@ import express from 'express';
 import cors from 'cors';
 import connectDB from './src/config/db';
 import progressRoutes from './src/routes/progressRoutes';
+import auditRoutes from './src/routes/auditRoutes';
 import errorHandler from './src/utils/errorHandler';
 import { logger, requestLogger } from '@task-tracker/utils';
 
@@ -15,6 +16,7 @@ app.use(requestLogger);
 
 app.get('/health', (req, res) => res.json({ status: 'ok', service: 'progress-service' }));
 app.use('/progress', progressRoutes);
+app.use('/audit', auditRoutes);
 app.use(errorHandler);
 
 connectDB().then(() => {
