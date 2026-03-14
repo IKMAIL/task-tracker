@@ -12,7 +12,7 @@ export default function Header() {
       <nav className="header-nav">
         <Link to="/">Dashboard</Link><Link to="/teams">Teams</Link>
         <Link to="/teams/manage">Manage Teams</Link>
-        <Link to="/tasks">Tasks</Link><Link to="/alerts">Alerts</Link><Link to="/import">Import</Link>
+        <Link to="/tasks">Tasks</Link><Link to="/alerts">Alerts</Link><Link to="/import">Import</Link><Link to="/settings/api-keys">API Keys</Link>
       </nav>
       <div className="header-user"><span>{user?.name}</span><button onClick={handleLogout} className="btn btn-sm">Logout</button></div>
     </header>

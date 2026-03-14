@@ -81,6 +81,12 @@ app.use(
   createProxy(services.TASK_URL, { "^/": "/import/tasks/" }),
 );
 
+app.use(
+  "/api/api-keys",
+  authenticate,
+  createProxy(services.IDENTITY_URL, { "^/": "/api-keys/" }),
+);
+
 app.use((_req, res) => {
   res
     .status(404)

@@ -12,6 +12,10 @@ export const createProxy = (target: string, pathRewrite: Record<string, string>)
     pathRewrite,
     on: {
       proxyReq: (proxyReq: any, req: Request) => {
+        if ((req as any).syntheticJwt) {
+          proxyReq.setHeader('Authorization', `Bearer ${(req as any).syntheticJwt}`);
+          logger.debug('proxy: injected synthetic JWT', { target, method: req.method, path: req.path });
+        }
         logger.debug('proxy request', { target, method: req.method, path: req.path, rewrittenPath: proxyReq.path });
       },
       proxyRes: (proxyRes: any, req: Request) => {
