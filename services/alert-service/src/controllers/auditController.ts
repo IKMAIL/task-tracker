@@ -21,7 +21,7 @@ export const list = async (req: Request, res: Response, next: NextFunction): Pro
     if (actorId) filter.userId = actorId;
     if (since) filter.timestamp = { $gte: new Date(since) };
 
-    logger.debug('auditController.list', { filter, pageNum, limitNum });
+    logger.debug('auditController.list (alert-service)', { filter, pageNum, limitNum });
 
     const [logs, total] = await Promise.all([
       AuditLog.find(filter)

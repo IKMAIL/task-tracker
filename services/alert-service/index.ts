@@ -3,6 +3,7 @@ import express from 'express';
 import cors from 'cors';
 import connectDB from './src/config/db';
 import alertRoutes from './src/routes/alertRoutes';
+import auditRoutes from './src/routes/auditRoutes';
 import startScheduler from './src/utils/scheduler';
 import errorHandler from './src/utils/errorHandler';
 import { logger, requestLogger } from '@task-tracker/utils';
@@ -16,6 +17,7 @@ app.use(requestLogger);
 
 app.get('/health', (req, res) => res.json({ status: 'ok', service: 'alert-service' }));
 app.use('/alerts', alertRoutes);
+app.use('/audit', auditRoutes);
 app.use(errorHandler);
 
 connectDB().then(() => {
