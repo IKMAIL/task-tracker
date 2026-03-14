@@ -3,6 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import { useFetch } from '../hooks/useFetch';
 import { getTask, getComments, addComment, getDependencies, listTasks, updateTask } from '../api/taskApi';
 import { getHistory } from '../api/progressApi';
+import { getAuditLogs, AuditLog as AuditLogEntry } from '../api/auditApi';
 import { getTeam } from '../api/teamApi';
 import { useAuth } from '../context/AuthContext';
 import Spinner from '../components/common/Spinner';
@@ -46,6 +47,7 @@ export default function TaskDetailPage(): React.ReactElement {
   const { data: history, loading: l2, error: e2 } = useFetch<ProgressUpdate[]>(() => getHistory(id!), [id]);
   const { data: comments, loading: l3, error: e3, refetch: refetchComments } = useFetch<Comment[]>(() => getComments(id!), [id]);
   const { data: deps, loading: l4, refetch: refetchDeps } = useFetch<{ blockedBy: DependencyTask[]; blocking: DependencyTask[] }>(() => getDependencies(id!), [id]);
+  const { data: auditData } = useFetch(() => getAuditLogs('task', id!, 1, 20), [id]);
   const { data: allTasksData } = useFetch<DependencyTask[]>(listTasks, []);
   const { data: teamData } = useFetch(
     () => task?.assignedTeamId ? getTeam(task.assignedTeamId) : Promise.resolve(null),
@@ -290,6 +292,37 @@ export default function TaskDetailPage(): React.ReactElement {
             </div>
           </form>
         </div>
+      </section>
+      <section>
+        <h2>Change History</h2>
+        {(auditData?.data || []).length === 0
+          ? <p>No change records yet.</p>
+          : (auditData?.data || []).map((entry: AuditLogEntry) => (
+            <div key={entry._id} className="timeline-item">
+              <div className="timeline-header">
+                <span style={{
+                  background: entry.action === 'create' ? '#27ae60' : entry.action === 'delete' ? '#e74c3c' : '#2980b9',
+                  color: '#fff',
+                  borderRadius: '4px',
+                  padding: '2px 8px',
+                  fontSize: '0.75rem',
+                  fontWeight: 600,
+                  textTransform: 'uppercase' as const,
+                }}>
+                  {entry.action}
+                </span>
+                <span className="timeline-author">{entry.userEmail || entry.userId || 'system'}</span>
+                <span className="timeline-date">{new Date(entry.timestamp).toLocaleString()}</span>
+              </div>
+            </div>
+          ))
+        }
+        {auditData && auditData.meta.total > 20 && (
+          <p style={{ fontSize: '0.875rem', color: 'var(--text-muted)', marginTop: '8px' }}>
+            Showing 20 of {auditData.meta.total} records.{' '}
+            <a href={`/audit?resourceType=task&resourceId=${id}`}>View all</a>
+          </p>
+        )}
       </section>
     </div>
   );

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
-import { getAuditLogs, AuditLog, AuditMeta } from '../api/auditApi';
+import { getAuditLogs, getAuditLogsByActor, AuditLog, AuditMeta } from '../api/auditApi';
 import Spinner from '../components/common/Spinner';
 import ErrorBanner from '../components/common/ErrorBanner';
 
@@ -15,22 +15,26 @@ const ACTION_COLORS: Record<string, string> = {
 export default function AuditLogPage(): React.ReactElement {
   const location = useLocation();
   const params = new URLSearchParams(location.search);
+
+  const [mode, setMode] = useState<'resource' | 'actor'>('resource');
   const [resourceType, setResourceType] = useState(params.get('resourceType') || 'task');
   const [resourceId, setResourceId] = useState(params.get('resourceId') || '');
+  const [actorId, setActorId] = useState('');
+  const [since, setSince] = useState('');
   const [page, setPage] = useState(1);
 
-  const initialResourceId = params.get('resourceId') || '';
   const [logs, setLogs] = useState<AuditLog[] | null>(null);
   const [meta, setMeta] = useState<AuditMeta | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const search = async (p = 1, type = resourceType, id = resourceId) => {
-    if (!id.trim()) return;
+  const search = async (p = 1) => {
     setLoading(true);
     setError(null);
     try {
-      const res = await getAuditLogs(type, id.trim(), p);
+      const res = mode === 'resource'
+        ? await getAuditLogs(resourceType, resourceId.trim(), p)
+        : await getAuditLogsByActor(actorId.trim(), since || undefined, p);
       setLogs(res.data);
       setMeta(res.meta);
       setPage(p);
@@ -41,9 +45,12 @@ export default function AuditLogPage(): React.ReactElement {
     }
   };
 
+  const canSearch = mode === 'resource' ? !!resourceId.trim() : !!actorId.trim();
+
   useEffect(() => {
+    const initialResourceId = params.get('resourceId') || '';
     if (initialResourceId) {
-      search(1, params.get('resourceType') || 'task', initialResourceId);
+      search(1);
     }
   }, []);
 
@@ -58,26 +65,64 @@ export default function AuditLogPage(): React.ReactElement {
         <h1>Audit Log</h1>
       </div>
 
-      <form onSubmit={handleSubmit} style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', marginBottom: '1.5rem' }}>
-        <select
-          value={resourceType}
-          onChange={(e) => setResourceType(e.target.value)}
-          className="form-control"
-          style={{ width: 'auto' }}
+      <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem' }}>
+        <button
+          className={`btn btn-sm${mode === 'resource' ? ' btn-primary' : ''}`}
+          onClick={() => { setMode('resource'); setLogs(null); }}
         >
-          {RESOURCE_TYPES.map((t) => (
-            <option key={t} value={t}>{t}</option>
-          ))}
-        </select>
-        <input
-          type="text"
-          className="form-control"
-          placeholder="Resource ID"
-          value={resourceId}
-          onChange={(e) => setResourceId(e.target.value)}
-          style={{ flex: 1, minWidth: '220px' }}
-        />
-        <button type="submit" className="btn btn-primary" disabled={loading || !resourceId.trim()}>
+          By Resource
+        </button>
+        <button
+          className={`btn btn-sm${mode === 'actor' ? ' btn-primary' : ''}`}
+          onClick={() => { setMode('actor'); setLogs(null); }}
+        >
+          By Actor
+        </button>
+      </div>
+
+      <form onSubmit={handleSubmit} style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', marginBottom: '1.5rem' }}>
+        {mode === 'resource' ? (
+          <>
+            <select
+              value={resourceType}
+              onChange={(e) => setResourceType(e.target.value)}
+              className="form-control"
+              style={{ width: 'auto' }}
+            >
+              {RESOURCE_TYPES.map((t) => (
+                <option key={t} value={t}>{t}</option>
+              ))}
+            </select>
+            <input
+              type="text"
+              className="form-control"
+              placeholder="Resource ID"
+              value={resourceId}
+              onChange={(e) => setResourceId(e.target.value)}
+              style={{ flex: 1, minWidth: '220px' }}
+            />
+          </>
+        ) : (
+          <>
+            <input
+              type="text"
+              className="form-control"
+              placeholder="User ID (actorId)"
+              value={actorId}
+              onChange={(e) => setActorId(e.target.value)}
+              style={{ flex: 1, minWidth: '220px' }}
+            />
+            <input
+              type="date"
+              className="form-control"
+              value={since}
+              onChange={(e) => setSince(e.target.value)}
+              style={{ width: 'auto' }}
+              title="Since date (optional)"
+            />
+          </>
+        )}
+        <button type="submit" className="btn btn-primary" disabled={loading || !canSearch}>
           {loading ? 'Loading...' : 'Search'}
         </button>
       </form>
@@ -110,7 +155,7 @@ export default function AuditLogPage(): React.ReactElement {
                       {log.action}
                     </span>
                     <span style={{ color: '#555', fontSize: '0.875rem' }}>
-                      {log.actorEmail || log.actorId}
+                      {log.userEmail || log.userId}
                     </span>
                     <span style={{ marginLeft: 'auto', color: '#888', fontSize: '0.8rem' }}>
                       {new Date(log.timestamp).toLocaleString()}

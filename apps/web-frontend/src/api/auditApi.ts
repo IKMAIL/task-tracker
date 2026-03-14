@@ -5,13 +5,12 @@ export interface AuditLog {
   resourceType: string;
   resourceId: string;
   action: 'create' | 'update' | 'delete';
-  actorId: string;
-  actorEmail: string | null;
+  userId: string | null;
+  userEmail: string | null;
   changes: {
     before: Record<string, unknown> | null;
     after: Record<string, unknown> | null;
   };
-  metadata: Record<string, unknown>;
   timestamp: string;
 }
 
@@ -37,3 +36,14 @@ export const getAuditLogs = (
   apiFetch(
     `/audit?resourceType=${encodeURIComponent(resourceType)}&resourceId=${encodeURIComponent(resourceId)}&page=${page}&limit=${limit}`,
   );
+
+export const getAuditLogsByActor = (
+  actorId: string,
+  since?: string,
+  page = 1,
+  limit = 50,
+): Promise<AuditResponse> => {
+  const params = new URLSearchParams({ actorId, page: String(page), limit: String(limit) });
+  if (since) params.set('since', since);
+  return apiFetch(`/audit?${params.toString()}`);
+};
