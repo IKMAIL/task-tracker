@@ -1,0 +1,216 @@
+# NetworkPolicy manifests for the task-tracker namespace.
+#
+# Strategy: default-deny all ingress, then selectively allow per service.
+# Egress is unrestricted (allows kube-dns, inter-service calls, and external APIs).
+#
+# Requires a CNI plugin that supports NetworkPolicy (e.g. Calico, Cilium, Weave).
+# Standard managed clusters (GKE, EKS, AKS) support this by default.
+
+# --- 1. Default deny all ingress to every pod in the namespace ---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-ingress
+  namespace: task-tracker
+spec:
+  podSelector: {}       # matches all pods
+  policyTypes:
+    - Ingress
+  # no ingress rules = deny all inbound traffic
+
+---
+# --- 2. api-gateway — allow ingress from the nginx Ingress controller only ---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-ingress-to-api-gateway
+  namespace: task-tracker
+spec:
+  podSelector:
+    matchLabels:
+      app: api-gateway
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: ingress-nginx
+          podSelector:
+            matchLabels:
+              app.kubernetes.io/name: ingress-nginx
+      ports:
+        - protocol: TCP
+          port: 3000
+
+---
+# --- 3. web-frontend — allow ingress from the nginx Ingress controller only ---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-ingress-to-web-frontend
+  namespace: task-tracker
+spec:
+  podSelector:
+    matchLabels:
+      app: web-frontend
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: ingress-nginx
+          podSelector:
+            matchLabels:
+              app.kubernetes.io/name: ingress-nginx
+      ports:
+        - protocol: TCP
+          port: 3005
+
+---
+# --- 4. identity-service — allow ingress from api-gateway only ---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-ingress-to-identity-service
+  namespace: task-tracker
+spec:
+  podSelector:
+    matchLabels:
+      app: identity-service
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app: api-gateway
+      ports:
+        - protocol: TCP
+          port: 3001
+
+---
+# --- 5. task-service — allow ingress from api-gateway, progress-service, alert-service ---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-ingress-to-task-service
+  namespace: task-tracker
+spec:
+  podSelector:
+    matchLabels:
+      app: task-service
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app: api-gateway
+        - podSelector:
+            matchLabels:
+              app: progress-service
+        - podSelector:
+            matchLabels:
+              app: alert-service
+      ports:
+        - protocol: TCP
+          port: 3002
+
+---
+# --- 6. progress-service — allow ingress from api-gateway, alert-service ---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-ingress-to-progress-service
+  namespace: task-tracker
+spec:
+  podSelector:
+    matchLabels:
+      app: progress-service
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app: api-gateway
+        - podSelector:
+            matchLabels:
+              app: alert-service
+      ports:
+        - protocol: TCP
+          port: 3003
+
+---
+# --- 7. alert-service — deny all ingress (cron-driven, no inbound calls needed) ---
+# Covered by default-deny-ingress above; explicit policy for clarity.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: deny-ingress-to-alert-service
+  namespace: task-tracker
+spec:
+  podSelector:
+    matchLabels:
+      app: alert-service
+  policyTypes:
+    - Ingress
+  # no ingress rules = deny all
+
+---
+# --- 8. team-service — allow ingress from api-gateway only ---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-ingress-to-team-service
+  namespace: task-tracker
+spec:
+  podSelector:
+    matchLabels:
+      app: team-service
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app: api-gateway
+      ports:
+        - protocol: TCP
+          port: 3006
+
+---
+# --- 9. MongoDB — allow ingress from all backend services ---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-ingress-to-mongo
+  namespace: task-tracker
+spec:
+  podSelector:
+    matchLabels:
+      app: mongo
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app: identity-service
+        - podSelector:
+            matchLabels:
+              app: task-service
+        - podSelector:
+            matchLabels:
+              app: progress-service
+        - podSelector:
+            matchLabels:
+              app: alert-service
+        - podSelector:
+            matchLabels:
+              app: team-service
+      ports:
+        - protocol: TCP
+          port: 27017

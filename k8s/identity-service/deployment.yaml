@@ -67,6 +67,11 @@ spec:
                 secretKeyRef:
                   name: task-tracker-secret
                   key: MICROSOFT_TENANT_ID
+            - name: ADMIN_GROUP_ID
+              valueFrom:
+                secretKeyRef:
+                  name: task-tracker-secret
+                  key: ADMIN_GROUP_ID
           resources:
             requests:
               cpu: 100m
