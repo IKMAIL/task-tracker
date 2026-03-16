@@ -13,11 +13,11 @@ function fail(err: unknown) {
 export function registerAlertTools(server: McpServer): void {
   server.registerTool('list_alerts', {
     description: 'List active alerts, optionally filtered by team, type, or severity',
-    inputSchema: z.object({
+    inputSchema: {
       teamId:   z.string().optional(),
       type:     z.enum(['past_due', 'update_overdue', 'behind_schedule', 'stalled']).optional(),
       severity: z.enum(['low', 'medium', 'high']).optional(),
-    }),
+    },
   }, async (args) => {
     try {
       return ok(await client.listAlerts(args as Record<string, string | undefined>));
@@ -26,7 +26,7 @@ export function registerAlertTools(server: McpServer): void {
 
   server.registerTool('resolve_alert', {
     description: 'Resolve an active alert by ID',
-    inputSchema: z.object({ id: z.string() }),
+    inputSchema: { id: z.string() },
   }, async ({ id }) => {
     try {
       return ok(await client.resolveAlert(id));

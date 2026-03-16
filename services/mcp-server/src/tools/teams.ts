@@ -18,7 +18,7 @@ export function registerTeamTools(server: McpServer): void {
 
   server.registerTool('get_team_summary', {
     description: 'Summarize team progress: task counts by status, average completion %, and active alert counts',
-    inputSchema: z.object({ id: z.string() }),
+    inputSchema: { id: z.string() },
   }, async ({ id }) => {
     try {
       const [teamRes, tasksRes, alertsRes] = await Promise.all([
