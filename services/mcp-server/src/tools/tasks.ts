@@ -1,16 +1,9 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { z } from 'zod';
 import * as client from '../client.js';
+import { ok, fail } from '../utils/response.js';
 
 const STATUS_ENUM = z.enum(['not_started', 'in_progress', 'blocked', 'completed', 'cancelled']);
-
-function ok(data: unknown) {
-  return { content: [{ type: 'text' as const, text: JSON.stringify(data, null, 2) }] };
-}
-
-function fail(err: unknown) {
-  return { content: [{ type: 'text' as const, text: `Error: ${(err as Error).message || err}` }], isError: true };
-}
 
 export function registerTaskTools(server: McpServer): void {
   server.registerTool('list_tasks', {

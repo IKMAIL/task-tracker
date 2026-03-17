@@ -44,29 +44,32 @@ alert-service, and team-service — mirrors the existing pattern in task-service
 
 ## Priority 1 — Security (HIGH)
 
-- [ ] **ReDoS in task-service search**: `new RegExp(q, 'i')` uses raw user input — escape regex metacharacters
-  - File: `services/task-service/src/repositories/taskRepository.ts` (search method)
+- [x] **ReDoS in task-service search**: escape user input with `replace(/[.*+?^${}()|[\]\\]/g, '\\$&')` before constructing RegExp
+  - File: `services/task-service/src/repositories/taskRepository.ts`
 
-- [ ] **Fail-fast env validation in mcp-server**: SERVICE_TOKEN and all service URLs must be validated on startup
+- [x] **Fail-fast env validation in mcp-server**: validate `SERVICE_TOKEN` + all 4 service URLs at startup; `process.exit(1)` if missing
   - File: `services/mcp-server/src/index.ts`
 
-- [ ] **Restrict CORS in api-gateway**: `cors()` with no config allows any origin — restrict to configured origin
+- [x] **Restrict CORS in api-gateway**: lock to `CORS_ORIGIN` env var (default `http://localhost:3005`), `credentials: true`
   - File: `services/api-gateway/index.ts`
 
 ## Priority 2 — Error Handling (HIGH)
 
-- [ ] **Add try-catch to MCP resource handlers**: taskResource, teamResource, dashboardResource have unhandled promise rejections
+- [x] **Add try-catch to MCP resource handlers**: wrap all 3 resource handlers; return error text on failure
   - Files: `services/mcp-server/src/resources/*.ts`
 
-- [ ] **Extract shared ok/fail helpers**: `ok()` and `fail()` are duplicated across tasks.ts, alerts.ts, progress.ts
-  - Extract to `services/mcp-server/src/utils/response.ts`; update tool files
+- [x] **Extract shared ok/fail helpers**: created `src/utils/response.ts`; all 4 tool files now import from it
 
 ## Priority 3 — Type Safety (MEDIUM)
 
-- [ ] **Add HTTP timeout to mcp-server client**: fetch() calls have no timeout, can hang indefinitely
+- [x] **Add HTTP timeout to mcp-server client**: `withTimeout()` (10s) wraps all `httpClient` calls via `Promise.race`
   - File: `services/mcp-server/src/client.ts`
 
 ## Priority 4 — Test Coverage (MEDIUM)
 
-- [ ] **Meaningful mcp-server tool tests**: existing tests only validate schemas — add real tool invocation tests with mocked client
+- [x] **Meaningful mcp-server tool tests**: 28 tests — 13 schema + 15 real tool invocation tests (success + error paths)
   - File: `services/mcp-server/tests/tools.test.ts`
+
+## Review
+
+### Build: ✓ (0 tsc errors) | Tests: ✓ (28/28 pass)

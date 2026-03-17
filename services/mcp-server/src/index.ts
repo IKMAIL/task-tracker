@@ -2,6 +2,22 @@ import 'dotenv/config';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { logger } from '@task-tracker/utils';
+
+const REQUIRED_ENV = [
+  'SERVICE_TOKEN',
+  'TASK_SERVICE_URL',
+  'PROGRESS_SERVICE_URL',
+  'ALERT_SERVICE_URL',
+  'TEAM_SERVICE_URL',
+] as const;
+
+for (const key of REQUIRED_ENV) {
+  if (!process.env[key]) {
+    process.stderr.write(`[mcp-server] missing required env var: ${key}\n`);
+    process.exit(1);
+  }
+}
+
 import { registerTaskTools }        from './tools/tasks.js';
 import { registerProgressTools }    from './tools/progress.js';
 import { registerAlertTools }       from './tools/alerts.js';

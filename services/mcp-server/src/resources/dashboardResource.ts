@@ -10,8 +10,13 @@ export function registerDashboardResources(server: McpServer): void {
       mimeType: 'text/plain',
     },
     async (uri) => {
-      const data = await client.listAlerts({});
-      return { contents: [{ uri: uri.href, mimeType: 'text/plain', text: JSON.stringify(data, null, 2) }] };
+      try {
+        const data = await client.listAlerts({});
+        return { contents: [{ uri: uri.href, mimeType: 'text/plain', text: JSON.stringify(data, null, 2) }] };
+      } catch (err) {
+        const text = `Error: ${(err as Error).message || err}`;
+        return { contents: [{ uri: uri.href, mimeType: 'text/plain', text }] };
+      }
     },
   );
 
@@ -23,6 +28,7 @@ export function registerDashboardResources(server: McpServer): void {
       mimeType: 'text/plain',
     },
     async (uri) => {
+      try {
       const [teamsRes, tasksRes, alertsRes] = await Promise.all([
         client.listTeams(),
         client.listTasks({ limit: '500' }),
@@ -62,6 +68,10 @@ export function registerDashboardResources(server: McpServer): void {
       };
 
       return { contents: [{ uri: uri.href, mimeType: 'text/plain', text: JSON.stringify(dashboard, null, 2) }] };
+      } catch (err) {
+        const text = `Error: ${(err as Error).message || err}`;
+        return { contents: [{ uri: uri.href, mimeType: 'text/plain', text }] };
+      }
     },
   );
 }

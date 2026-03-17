@@ -1,6 +1,7 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { z } from 'zod';
 import * as client from '../client.js';
+import { ok, fail } from '../utils/response.js';
 
 export function registerProgressTools(server: McpServer): void {
   server.registerTool('log_progress', {
@@ -15,10 +16,9 @@ export function registerProgressTools(server: McpServer): void {
     },
   }, async (args) => {
     try {
-      const data = await client.logProgress(args);
-      return { content: [{ type: 'text' as const, text: JSON.stringify(data, null, 2) }] };
+      return ok(await client.logProgress(args));
     } catch (err) {
-      return { content: [{ type: 'text' as const, text: `Error: ${(err as Error).message || err}` }], isError: true };
+      return fail(err);
     }
   });
 }

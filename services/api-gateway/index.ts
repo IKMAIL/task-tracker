@@ -12,7 +12,10 @@ import { metricsHandler } from "./src/metrics";
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-app.use(cors());
+app.use(cors({
+  origin: process.env.CORS_ORIGIN || 'http://localhost:3005',
+  credentials: true,
+}));
 // app.use(express.json()); // intentionally off — gateway is a pass-through proxy
 
 app.use(rateLimit({ windowMs: 60 * 1000, max: 200 }));

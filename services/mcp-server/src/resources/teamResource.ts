@@ -10,6 +10,7 @@ export function registerTeamResource(server: McpServer): void {
       mimeType: 'text/plain',
     },
     async (uri, { id }) => {
+      try {
       const teamId = String(id);
       const [teamRes, tasksRes, alertsRes] = await Promise.all([
         client.getTeam(teamId),
@@ -44,6 +45,10 @@ export function registerTeamResource(server: McpServer): void {
       };
 
       return { contents: [{ uri: uri.href, mimeType: 'text/plain', text: JSON.stringify(summary, null, 2) }] };
+      } catch (err) {
+        const text = `Error: ${(err as Error).message || err}`;
+        return { contents: [{ uri: uri.href, mimeType: 'text/plain', text }] };
+      }
     },
   );
 }

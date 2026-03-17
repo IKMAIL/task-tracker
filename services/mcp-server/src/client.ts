@@ -6,6 +6,17 @@ const ALERT_URL    = () => process.env.ALERT_SERVICE_URL    || 'http://localhost
 const TEAM_URL     = () => process.env.TEAM_SERVICE_URL     || 'http://localhost:3006';
 const tok          = () => process.env.SERVICE_TOKEN;
 
+const TIMEOUT_MS = 10_000;
+
+function withTimeout<T>(p: Promise<T>): Promise<T> {
+  return Promise.race([
+    p,
+    new Promise<never>((_, reject) =>
+      setTimeout(() => reject(new Error(`Request timed out after ${TIMEOUT_MS}ms`)), TIMEOUT_MS)
+    ),
+  ]);
+}
+
 function qs(params: Record<string, string | undefined>): string {
   const p = new URLSearchParams();
   for (const [k, v] of Object.entries(params)) {
@@ -17,40 +28,40 @@ function qs(params: Record<string, string | undefined>): string {
 // ── Task service ──────────────────────────────────────────────────────────────
 
 export const listTasks = (params: Record<string, string | undefined> = {}) =>
-  httpClient.get(`${TASK_URL()}/tasks?${qs(params)}`, tok());
+  withTimeout(httpClient.get(`${TASK_URL()}/tasks?${qs(params)}`, tok()));
 
 export const getTask = (id: string) =>
-  httpClient.get(`${TASK_URL()}/tasks/${id}`, tok());
+  withTimeout(httpClient.get(`${TASK_URL()}/tasks/${id}`, tok()));
 
 export const createTask = (body: unknown) =>
-  httpClient.post(`${TASK_URL()}/tasks`, body, tok());
+  withTimeout(httpClient.post(`${TASK_URL()}/tasks`, body, tok()));
 
 export const updateTask = (id: string, body: unknown) =>
-  httpClient.put(`${TASK_URL()}/tasks/${id}`, body, tok());
+  withTimeout(httpClient.put(`${TASK_URL()}/tasks/${id}`, body, tok()));
 
 // ── Progress service ──────────────────────────────────────────────────────────
 
 export const logProgress = (body: unknown) =>
-  httpClient.post(`${PROGRESS_URL()}/progress`, body, tok());
+  withTimeout(httpClient.post(`${PROGRESS_URL()}/progress`, body, tok()));
 
 export const getProgressHistory = (taskId: string) =>
-  httpClient.get(`${PROGRESS_URL()}/progress/task/${taskId}`, tok());
+  withTimeout(httpClient.get(`${PROGRESS_URL()}/progress/task/${taskId}`, tok()));
 
 // ── Alert service ─────────────────────────────────────────────────────────────
 
 export const listAlerts = (params: Record<string, string | undefined> = {}) =>
-  httpClient.get(`${ALERT_URL()}/alerts?${qs(params)}`, tok());
+  withTimeout(httpClient.get(`${ALERT_URL()}/alerts?${qs(params)}`, tok()));
 
 export const resolveAlert = (id: string) =>
-  httpClient.put(`${ALERT_URL()}/alerts/${id}/resolve`, {}, tok());
+  withTimeout(httpClient.put(`${ALERT_URL()}/alerts/${id}/resolve`, {}, tok()));
 
 export const runDetection = () =>
-  httpClient.post(`${ALERT_URL()}/alerts/run-detection`, {}, tok());
+  withTimeout(httpClient.post(`${ALERT_URL()}/alerts/run-detection`, {}, tok()));
 
 // ── Team service ──────────────────────────────────────────────────────────────
 
 export const listTeams = () =>
-  httpClient.get(`${TEAM_URL()}/teams`, tok());
+  withTimeout(httpClient.get(`${TEAM_URL()}/teams`, tok()));
 
 export const getTeam = (id: string) =>
-  httpClient.get(`${TEAM_URL()}/teams/${id}`, tok());
+  withTimeout(httpClient.get(`${TEAM_URL()}/teams/${id}`, tok()));

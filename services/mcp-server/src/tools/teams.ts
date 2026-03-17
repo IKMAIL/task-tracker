@@ -1,18 +1,14 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { z } from 'zod';
 import * as client from '../client.js';
-
-function fail(err: unknown) {
-  return { content: [{ type: 'text' as const, text: `Error: ${(err as Error).message || err}` }], isError: true };
-}
+import { ok, fail } from '../utils/response.js';
 
 export function registerTeamTools(server: McpServer): void {
   server.registerTool('list_teams', {
     description: 'List all teams',
   }, async () => {
     try {
-      const data = await client.listTeams();
-      return { content: [{ type: 'text' as const, text: JSON.stringify(data, null, 2) }] };
+      return ok(await client.listTeams());
     } catch (err) { return fail(err); }
   });
 
@@ -45,7 +41,7 @@ export function registerTeamTools(server: McpServer): void {
       }, {});
 
       const summary = { team: teamRes, taskCounts, totalTasks: tasks.length, avgCompletion, alertCounts, totalAlerts: alerts.length };
-      return { content: [{ type: 'text' as const, text: JSON.stringify(summary, null, 2) }] };
+      return ok(summary);
     } catch (err) { return fail(err); }
   });
 }
