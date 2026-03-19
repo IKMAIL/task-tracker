@@ -30,6 +30,7 @@ interface Task {
   _id: string; title: string; category: string; status: string; completionPct: number;
   description?: string; plannedStartDate?: string; dueDate?: string;
   nextUpdateDate?: string; lastUpdatedAt?: string; blockedBy?: string[]; assignedTeamId?: string;
+  assignedPersonId?: string | null;
   recurrence?: Recurrence | null;
   parentTaskId?: string | null;
 }
@@ -43,7 +44,7 @@ interface Comment {
 export default function TaskDetailPage(): React.ReactElement {
   const { id } = useParams<{ id: string }>();
   const { user } = useAuth();
-  const { data: task, loading: l1, error: e1 } = useFetch<Task>(() => getTask(id!), [id]);
+  const { data: task, loading: l1, error: e1, refetch: refetchTask } = useFetch<Task>(() => getTask(id!), [id]);
   const { data: history, loading: l2, error: e2 } = useFetch<ProgressUpdate[]>(() => getHistory(id!), [id]);
   const { data: comments, loading: l3, error: e3, refetch: refetchComments } = useFetch<Comment[]>(() => getComments(id!), [id]);
   const { data: deps, loading: l4, refetch: refetchDeps } = useFetch<{ blockedBy: DependencyTask[]; blocking: DependencyTask[] }>(() => getDependencies(id!), [id]);
@@ -61,6 +62,11 @@ export default function TaskDetailPage(): React.ReactElement {
   const [newBlockerId, setNewBlockerId] = useState('');
   const [depSubmitting, setDepSubmitting] = useState(false);
   const [depError, setDepError] = useState<string | null>(null);
+  const [showAssignForm, setShowAssignForm] = useState(false);
+  const [assignPersonId, setAssignPersonId] = useState('');
+  const [assignReason, setAssignReason] = useState('');
+  const [assignSubmitting, setAssignSubmitting] = useState(false);
+  const [assignError, setAssignError] = useState<string | null>(null);
 
   if (l1 || l2 || l3 || l4) return <Spinner />;
   if (!task) return <ErrorBanner message={e1 || 'Task not found'} />;
@@ -124,7 +130,80 @@ export default function TaskDetailPage(): React.ReactElement {
             <dt>Due Date</dt>    <dd>{task.dueDate ? new Date(task.dueDate).toLocaleDateString() : '—'}</dd>
             <dt>Next Update</dt> <dd>{task.nextUpdateDate ? new Date(task.nextUpdateDate).toLocaleDateString() : '—'}</dd>
             <dt>Last Updated</dt><dd>{task.lastUpdatedAt ? new Date(task.lastUpdatedAt).toLocaleDateString() : '—'}</dd>
+            <dt>Assignee</dt>
+            <dd style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              {task.assignedPersonId
+                ? (members.find((m) => m._id === task.assignedPersonId)?.name ?? task.assignedPersonId)
+                : '—'}
+              {members.length > 0 && (
+                <button
+                  className="btn btn-sm"
+                  onClick={() => {
+                    setAssignPersonId(task.assignedPersonId ?? '');
+                    setAssignReason('');
+                    setAssignError(null);
+                    setShowAssignForm(true);
+                  }}
+                >
+                  {task.assignedPersonId ? 'Reassign' : 'Assign'}
+                </button>
+              )}
+            </dd>
           </dl>
+          {showAssignForm && (
+            <form
+              onSubmit={async (e) => {
+                e.preventDefault();
+                if (task.assignedPersonId && !assignReason.trim()) {
+                  setAssignError('Reason is required when reassigning.');
+                  return;
+                }
+                setAssignSubmitting(true);
+                setAssignError(null);
+                try {
+                  await updateTask(id!, {
+                    assignedPersonId: assignPersonId || null,
+                    ...(task.assignedPersonId ? { reason: assignReason.trim() } : {}),
+                  } as any);
+                  setShowAssignForm(false);
+                  refetchTask();
+                } catch (err: any) {
+                  setAssignError(err.message);
+                } finally {
+                  setAssignSubmitting(false);
+                }
+              }}
+              style={{ marginTop: '12px', display: 'flex', flexDirection: 'column', gap: '8px' }}
+            >
+              {assignError && <ErrorBanner message={assignError} />}
+              <select
+                value={assignPersonId}
+                onChange={(e) => setAssignPersonId(e.target.value)}
+                disabled={assignSubmitting}
+              >
+                <option value="">Unassigned</option>
+                {members.map((m) => <option key={m._id} value={m._id}>{m.name}</option>)}
+              </select>
+              {task.assignedPersonId && (
+                <textarea
+                  placeholder="Reason for reassignment *"
+                  value={assignReason}
+                  onChange={(e) => setAssignReason(e.target.value)}
+                  rows={2}
+                  disabled={assignSubmitting}
+                  required
+                />
+              )}
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <button type="submit" className="btn btn-primary" disabled={assignSubmitting}>
+                  {assignSubmitting ? 'Saving...' : 'Save'}
+                </button>
+                <button type="button" className="btn btn-sm" onClick={() => setShowAssignForm(false)} disabled={assignSubmitting}>
+                  Cancel
+                </button>
+              </div>
+            </form>
+          )}
         </div>
         {task.description && (
           <div className="detail-card"><h3>Description</h3><p>{task.description}</p></div>
@@ -312,6 +391,7 @@ export default function TaskDetailPage(): React.ReactElement {
                 <span className="timeline-author">{entry.userEmail || entry.userId || 'system'}</span>
                 <span className="timeline-date">{new Date(entry.timestamp).toLocaleString()}</span>
               </div>
+              {entry.reason && <p className="timeline-comment" style={{ fontStyle: 'italic' }}>Reason: {entry.reason}</p>}
             </div>
           ))
         }

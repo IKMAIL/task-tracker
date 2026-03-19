@@ -51,9 +51,9 @@ export const getTask = async (id: string) => {
   return task;
 };
 
-export const updateTask = async (id: string, data: Partial<ITask>, auditUser?: AuditUser) => {
+export const updateTask = async (id: string, data: Partial<ITask>, auditUser?: AuditUser, auditReason?: string) => {
   logger.debug('taskService.updateTask', { id, data });
-  const task = await taskRepository.updateById(id, data, auditUser);
+  const task = await taskRepository.updateById(id, data, auditUser, auditReason);
   if (!task) {
     logger.warn('task not found for update', { taskId: id });
     throw Object.assign(new Error('Task not found'), { status: 404 });
