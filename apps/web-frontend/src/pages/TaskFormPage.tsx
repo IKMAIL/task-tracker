@@ -123,7 +123,11 @@ export default function TaskFormPage(): React.ReactElement {
                 if (teamId) {
                   try {
                     const res = await getTeam(teamId);
-                    setTeamMembers((res?.memberIds || []) as Member[]);
+                    setTeamMembers((prev) => {
+                      // Guard against stale response from a previous slower request
+                      if (e.target.value !== teamId) return prev;
+                      return (res?.memberIds || []) as Member[];
+                    });
                   } catch {
                     setTeamMembers([]);
                   }

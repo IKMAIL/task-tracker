@@ -164,7 +164,7 @@ export default function TaskDetailPage(): React.ReactElement {
                   await updateTask(id!, {
                     assignedPersonId: assignPersonId || null,
                     ...(task.assignedPersonId ? { reason: assignReason.trim() } : {}),
-                  } as any);
+                  });
                   setShowAssignForm(false);
                   refetchTask();
                 } catch (err: any) {
