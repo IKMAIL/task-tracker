@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 
-export const useFetch = <T>(fetchFn: () => Promise<T>, deps: any[] = []) => {
+export const useFetch = <T>(fetchFn: () => Promise<unknown>, deps: unknown[] = []) => {
   const [data, setData] = useState<T | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -9,10 +9,14 @@ export const useFetch = <T>(fetchFn: () => Promise<T>, deps: any[] = []) => {
     setLoading(true);
     setError(null);
     try {
-      const result: any = await fetchFn();
-      setData(result?.data ?? result);
-    } catch (err: any) {
-      setError(err.message);
+      const raw = await fetchFn();
+      const value =
+        raw !== null && raw !== undefined && typeof raw === 'object' && 'data' in (raw as object)
+          ? (raw as { data: T }).data
+          : (raw as T | null);
+      setData(value);
+    } catch (err: unknown) {
+      setError((err as Error).message);
     } finally {
       setLoading(false);
     }

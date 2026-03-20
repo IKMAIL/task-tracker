@@ -8,6 +8,7 @@ const AuditLogSchema = new Schema<IAuditLog>(
     action:       { type: String, enum: ['create', 'update', 'delete'], required: true },
     userId:       { type: String, default: null },
     userEmail:    { type: String, default: null },
+    reason:       { type: String, default: null },
     changes: {
       before: { type: Schema.Types.Mixed, default: null },
       after:  { type: Schema.Types.Mixed, default: null },

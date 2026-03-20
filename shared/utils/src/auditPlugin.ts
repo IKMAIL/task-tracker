@@ -7,6 +7,7 @@ export interface IAuditLog {
   action: 'create' | 'update' | 'delete';
   userId: string | null;
   userEmail: string | null;
+  reason?: string | null;
   changes: {
     before: Record<string, unknown> | null;
     after: Record<string, unknown> | null;
@@ -89,12 +90,14 @@ export function createAuditPlugin(AuditLog: Model<Document & IAuditLog>, resourc
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const opts = (this as any).getOptions() as Record<string, unknown>;
         const auditUser = (opts.auditUser ?? {}) as Partial<AuditUser>;
+        const auditReason = (opts.auditReason as string | undefined) ?? null;
         await AuditLog.create({
           resourceType,
           resourceId: String(doc?._id ?? before?._id ?? 'unknown'),
           action: 'update',
           userId: auditUser.userId ?? null,
           userEmail: auditUser.userEmail ?? null,
+          reason: auditReason,
           changes: { before, after: doc },
           timestamp: new Date(),
         });

@@ -63,12 +63,12 @@ export const findByTeam = async (teamId: string) => {
   return tasks;
 };
 
-export const updateById = async (id: string, data: Partial<ITask>, auditUser?: AuditUser) => {
+export const updateById = async (id: string, data: Partial<ITask>, auditUser?: AuditUser, auditReason?: string) => {
   logger.debug('taskRepository.updateById', { id, data });
   const task = await Task.findByIdAndUpdate(
     id,
     { $set: data },
-    { new: true, runValidators: true, ...(auditUser ? { auditUser } : {}) }
+    { new: true, runValidators: true, ...(auditUser ? { auditUser } : {}), ...(auditReason ? { auditReason } : {}) }
   ).lean();
   logger.debug('taskRepository.updateById result', { id, found: !!task, task });
   return task;

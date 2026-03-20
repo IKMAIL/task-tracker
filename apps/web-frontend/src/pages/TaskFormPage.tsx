@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { createTask } from '../api/taskApi';
 import { useFetch } from '../hooks/useFetch';
-import { listTeams } from '../api/teamApi';
+import { listTeams, getTeam } from '../api/teamApi';
 import ErrorBanner from '../components/common/ErrorBanner';
 
 const CATEGORIES = [
@@ -21,9 +21,10 @@ const FREQUENCY_LABELS: Record<RecurrenceFrequency, string> = {
 };
 
 interface Team { _id: string; name: string; }
+interface Member { _id: string; name: string; loginId: string; }
 interface TaskForm {
   title: string; description: string; category: string;
-  assignedTeamId: string; status: string;
+  assignedTeamId: string; assignedPersonId: string; status: string;
   plannedStartDate: string; dueDate: string; nextUpdateDate: string;
 }
 interface RecurrenceForm {
@@ -38,9 +39,10 @@ interface RecurrenceForm {
 export default function TaskFormPage(): React.ReactElement {
   const navigate = useNavigate();
   const { data: teams } = useFetch<Team[]>(listTeams);
+  const [teamMembers, setTeamMembers] = useState<Member[]>([]);
   const [form, setForm] = useState<TaskForm>({
     title: '', description: '', category: '',
-    assignedTeamId: '', status: 'not_started',
+    assignedTeamId: '', assignedPersonId: '', status: 'not_started',
     plannedStartDate: '', dueDate: '', nextUpdateDate: '',
   });
   const [recurrence, setRecurrence] = useState<RecurrenceForm>({
@@ -63,9 +65,11 @@ export default function TaskFormPage(): React.ReactElement {
     setError('');
     setSubmitting(true);
     try {
+      const { assignedPersonId, ...formRest } = form;
       const payload: Record<string, unknown> = {
-        ...form,
+        ...formRest,
         nextUpdateDate: form.nextUpdateDate || undefined,
+        ...(assignedPersonId ? { assignedPersonId } : {}),
       };
 
       if (recurrence.enabled) {
@@ -110,9 +114,42 @@ export default function TaskFormPage(): React.ReactElement {
           </div>
           <div className="form-group">
             <label>Assigned Team *</label>
-            <select value={form.assignedTeamId} onChange={(e) => set('assignedTeamId', e.target.value)} required>
+            <select
+              value={form.assignedTeamId}
+              onChange={async (e) => {
+                const teamId = e.target.value;
+                set('assignedTeamId', teamId);
+                set('assignedPersonId', '');
+                if (teamId) {
+                  try {
+                    const res = await getTeam(teamId);
+                    setTeamMembers((prev) => {
+                      // Guard against stale response from a previous slower request
+                      if (e.target.value !== teamId) return prev;
+                      return (res?.memberIds || []) as Member[];
+                    });
+                  } catch {
+                    setTeamMembers([]);
+                  }
+                } else {
+                  setTeamMembers([]);
+                }
+              }}
+              required
+            >
               <option value="">Select team</option>
               {(teams || []).map((t) => <option key={t._id} value={t._id}>{t.name}</option>)}
+            </select>
+          </div>
+          <div className="form-group">
+            <label>Assignee</label>
+            <select
+              value={form.assignedPersonId}
+              onChange={(e) => set('assignedPersonId', e.target.value)}
+              disabled={teamMembers.length === 0}
+            >
+              <option value="">Unassigned</option>
+              {teamMembers.map((m) => <option key={m._id} value={m._id}>{m.name}</option>)}
             </select>
           </div>
         </div>

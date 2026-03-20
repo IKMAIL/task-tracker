@@ -41,7 +41,8 @@ export const update = async (req: Request, res: Response, next: NextFunction): P
   try {
     logger.debug('taskController.update', { id: req.params.id, body: req.body, userId: req.user?.sub });
     const auditUser = req.user?.sub ? { userId: req.user.sub, userEmail: req.user.email as string } : undefined;
-    const task = await taskService.updateTask(req.params.id, req.body, auditUser);
+    const { reason, ...taskData } = req.body;
+    const task = await taskService.updateTask(req.params.id, taskData, auditUser, reason);
     logger.debug('taskController.update result', { task });
     res.json({ success: true, data: task });
   } catch (err) {

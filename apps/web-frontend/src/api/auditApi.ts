@@ -7,6 +7,7 @@ export interface AuditLog {
   action: 'create' | 'update' | 'delete';
   userId: string | null;
   userEmail: string | null;
+  reason?: string | null;
   changes: {
     before: Record<string, unknown> | null;
     after: Record<string, unknown> | null;
