@@ -1,5 +1,20 @@
 import { apiFetch } from './client';
 
+export interface ChecklistItem {
+  _id: string;
+  text: string;
+  completed: boolean;
+  assignedPersonId: string | null;
+  order: number;
+  children: ChecklistItem[];
+}
+
+export interface Checklist {
+  _id: string;
+  title: string;
+  items: ChecklistItem[];
+}
+
 export const listTasks  = (params: Record<string, string> = {}): Promise<any> => {
   const qs = new URLSearchParams(params).toString();
   return apiFetch(`/tasks${qs ? `?${qs}` : ''}`);

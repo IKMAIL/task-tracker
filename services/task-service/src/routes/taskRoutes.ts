@@ -4,6 +4,7 @@ import validate from '../middleware/validate';
 import { authenticate, requireAdmin, requireServiceToken } from '../middleware/authenticate';
 import * as taskController from '../controllers/taskController';
 import * as commentController from '../controllers/commentController';
+import * as checklistController from '../controllers/checklistController';
 
 const router: Router = Router();
 
@@ -75,5 +76,28 @@ router.get('/:id', authenticate, taskController.get);
 router.put('/:id', authenticate, validate(updateSchema), taskController.update);
 router.delete('/:id', authenticate, requireAdmin, taskController.remove);
 router.put('/:id/progress-sync', requireServiceToken, taskController.progressSync);
+
+// ── Checklist routes ──────────────────────────────────────────────────────────
+const checklistSchema = Joi.object({ title: Joi.string().min(1).max(200).required() });
+const itemSchema = Joi.object({
+  text:             Joi.string().min(1).max(500).required(),
+  assignedPersonId: Joi.string().length(24).allow(null).optional(),
+  parentItemId:     Joi.string().length(24).optional(),
+});
+const itemUpdateSchema = Joi.object({
+  text:             Joi.string().min(1).max(500),
+  completed:        Joi.boolean(),
+  assignedPersonId: Joi.string().length(24).allow(null),
+}).min(1);
+const reorderSchema = Joi.object({ orderedIds: Joi.array().items(Joi.string().length(24)).required() });
+
+router.post('/:id/checklists', authenticate, validate(checklistSchema), checklistController.createChecklist);
+router.patch('/:id/checklists/:clId', authenticate, validate(checklistSchema), checklistController.renameChecklist);
+router.delete('/:id/checklists/:clId', authenticate, checklistController.deleteChecklist);
+router.post('/:id/checklists/:clId/items', authenticate, validate(itemSchema), checklistController.addItem);
+router.patch('/:id/checklists/:clId/items/:itemId', authenticate, validate(itemUpdateSchema), checklistController.updateItem);
+router.delete('/:id/checklists/:clId/items/:itemId', authenticate, checklistController.deleteItem);
+router.put('/:id/checklists/:clId/reorder', authenticate, validate(reorderSchema), checklistController.reorderItems);
+router.put('/:id/checklists/:clId/items/:itemId/reorder', authenticate, validate(reorderSchema), checklistController.reorderSubItems);
 
 export default router;

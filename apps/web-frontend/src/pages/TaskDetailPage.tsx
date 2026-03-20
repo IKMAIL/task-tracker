@@ -11,6 +11,8 @@ import ErrorBanner from '../components/common/ErrorBanner';
 import StatusBadge from '../components/common/StatusBadge';
 import ProgressBar from '../components/common/ProgressBar';
 import CommentInput from '../components/common/CommentInput';
+import ChecklistSection from '../components/common/ChecklistSection';
+import { Checklist } from '../api/taskApi';
 
 interface DependencyTask {
   _id: string; title: string; status: string;
@@ -33,6 +35,7 @@ interface Task {
   assignedPersonId?: string | null;
   recurrence?: Recurrence | null;
   parentTaskId?: string | null;
+  checklists?: Checklist[];
 }
 interface ProgressUpdate {
   _id: string; status: string; completionPct: number; recordedAt: string; comment?: string;
@@ -318,6 +321,14 @@ export default function TaskDetailPage(): React.ReactElement {
             }
           </div>
         </div>
+      </section>
+      <section>
+        <ChecklistSection
+          taskId={id!}
+          checklists={task.checklists ?? []}
+          members={members.map(m => ({ _id: m._id, name: m.name }))}
+          onUpdate={refetchTask}
+        />
       </section>
       <section>
         <h2>Comments</h2>
