@@ -33,12 +33,24 @@ You are running the full requirements gathering process for a MERN + TypeScript 
 For each phase (1 through 7):
 
 1. **Announce** the phase: "Starting Phase N — [Phase Name]"
-2. **Execute** the phase following its skill instructions exactly
-3. **Verify** the quality gate at the end of each phase
-4. **If quality gate fails**: Work with the user to resolve gaps before moving on
-5. **Save** the deliverable to `docs/requirements/`
-6. **Ask** the user: "Phase N is complete. Ready to proceed to Phase N+1?"
+2. **Execute** the phase following its skill structure — present the required questions/decisions, allow clarifying questions, and adapt when the user needs to revisit prior answers
+3. **Verify** the quality gate at the end of each phase using the **Quality Gate Decision Tree** below
+4. **Save** the deliverable to `docs/requirements/`
+5. **Ask** the user: "Phase N is complete. Ready to proceed to Phase N+1?"
    - If no: allow them to revisit or pause
+
+### Quality Gate Decision Tree
+
+When evaluating a phase's quality gate:
+
+1. **All checklist items pass** → Proceed to next phase
+2. **Only non-blocking items are incomplete** (items explicitly marked Deferred with an ambiguity log ID and owner) → Proceed, but announce: "Proceeding with N deferred items — these must be resolved before Phase 7 sign-off"
+3. **Any blocking item fails** (no measurable target, no persona defined, no sign-off authority, etc.) → **STOP**. Work with the user to resolve. Do not proceed until the blocking item is resolved or the user explicitly accepts the risk and it is logged to the ambiguity log with status **Accepted Risk**, owner, and date
+
+**Blocking vs. non-blocking rules:**
+- Quality gate items that use words like "specific", "measurable", "defined", "documented" are **blocking** — vague or missing answers cannot be deferred
+- Quality gate items about completeness counts (e.g., "at least 2 KPIs") are **blocking** — the threshold must be met
+- Quality gate items about coverage (e.g., "all integrations documented") are **non-blocking** only if the missing items are logged to the ambiguity log with owner and due date
 
 ### Step 2: Cross-Phase Checks
 
