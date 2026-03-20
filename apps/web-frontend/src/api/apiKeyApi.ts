@@ -1,4 +1,4 @@
-import { apiFetch } from './client';
+import { apiFetch, ApiResponse } from './client';
 
 export const ALL_PERMISSIONS = [
   'tasks:read',
@@ -28,15 +28,15 @@ export interface CreateApiKeyResponse extends ApiKeyInfo {
   key: string;
 }
 
-export const listApiKeys = (): Promise<any> =>
+export const listApiKeys = (): Promise<ApiResponse<ApiKeyInfo[]>> =>
   apiFetch('/api-keys');
 
 export const createApiKey = (body: {
   name: string;
   permissions: ApiKeyPermission[];
   expiresAt?: string | null;
-}): Promise<any> =>
+}): Promise<ApiResponse<CreateApiKeyResponse>> =>
   apiFetch('/api-keys', { method: 'POST', body: JSON.stringify(body) });
 
-export const revokeApiKey = (id: string): Promise<any> =>
+export const revokeApiKey = (id: string): Promise<ApiResponse<{ message: string }>> =>
   apiFetch(`/api-keys/${id}`, { method: 'DELETE' });

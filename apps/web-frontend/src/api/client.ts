@@ -1,3 +1,8 @@
+export interface ApiResponse<T = unknown> {
+  success: boolean;
+  data: T;
+}
+
 const BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:3000/api';
 const getToken = (): string | null => localStorage.getItem('token');
 

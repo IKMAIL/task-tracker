@@ -50,11 +50,11 @@ export default function TaskDetailPage(): React.ReactElement {
   const { data: deps, loading: l4, refetch: refetchDeps } = useFetch<{ blockedBy: DependencyTask[]; blocking: DependencyTask[] }>(() => getDependencies(id!), [id]);
   const { data: auditData } = useFetch<AuditLogEntry[]>(() => getAuditLogs('task', id!, 1, 20).then(r => r.data), [id]);
   const { data: allTasksData } = useFetch<DependencyTask[]>(listTasks, []);
-  const { data: teamData } = useFetch(
+  const { data: teamData } = useFetch<{ memberIds: { _id: string; name: string; loginId: string }[] }>(
     () => task?.assignedTeamId ? getTeam(task.assignedTeamId) : Promise.resolve(null),
     [task?.assignedTeamId]
   );
-  const members = (teamData?.memberIds || []) as { _id: string; name: string; loginId: string }[];
+  const members = teamData?.memberIds || [];
 
   const [commentBody, setCommentBody] = useState('');
   const [submitting, setSubmitting] = useState(false);
