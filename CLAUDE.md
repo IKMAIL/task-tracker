@@ -118,3 +118,24 @@ All services share `tsconfig.base.json` (ES2020, strict, commonjs). Run `npm run
 ## Testing
 
 Jest + Supertest for backends. Test files live in `services/<name>/tests/`. Currently minimal coverage — new features should add tests.
+
+## Requirements Gathering Skills
+
+Slash commands for structured requirements gathering. Run `/requirements` for the full process or individual phases as needed.
+
+| Command | Phase | Deliverable |
+|---|---|---|
+| `/requirements` | Full orchestrator | Runs all phases sequentially |
+| `/req-check` | Pre-check | Scans for existing requirements docs |
+| `/req-phase1-business` | 1 — Business Context | Problem statement, KPIs, personas |
+| `/req-phase2-stakeholders` | 2 — Stakeholders | Stakeholder register, RACI matrix |
+| `/req-phase3-functional` | 3 — Functional Reqs | User stories, business rules, data dictionary |
+| `/req-phase4-nonfunctional` | 4 — Non-Functional Reqs | NFR spec, security checklist |
+| `/req-phase5-technical` | 5 — Technical (MERN) | Constraints, ADRs, dependencies |
+| `/req-phase6-scope` | 6 — Scope & Priority | MVP definition, MoSCoW backlog |
+| `/req-phase7-validation` | 7 — Validation | Sign-off checklist, gap analysis |
+| `/req-ambiguity-log` | Supplementary | Open questions tracker |
+| `/req-traceability` | Supplementary | Cross-phase requirement linking |
+| `/req-change-management` | Supplementary | Post-sign-off change requests |
+
+All outputs are saved to `docs/requirements/`.
