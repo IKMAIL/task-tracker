@@ -139,3 +139,38 @@ Slash commands for structured requirements gathering. Run `/requirements` for th
 | `/req-change-management` | Supplementary | Post-sign-off change requests |
 
 All outputs are saved to `docs/requirements/`.
+
+## System Design & Architecture Skills
+
+Slash commands for structured system design. Run `/design` after requirements sign-off, or run individual workstreams as needed.
+
+| Command | Workstream | Deliverable |
+|---|---|---|
+| `/design` | Full orchestrator | Runs all workstreams sequentially |
+| `/design-check` | Pre-check | Scans for existing design docs, inventories requirements inputs |
+| `/design-hld` | WS1 — High-Level Design | Architecture diagram, decision register, component catalogue |
+| `/design-data-model` | WS2 — Data Modelling | TypeScript interfaces, Mongoose schemas, ER diagram, index plan |
+| `/design-api-contracts` | WS3 — API Contracts | OpenAPI spec, shared types, error codes, API conventions |
+| `/design-security` | WS4 — Security Architecture | Auth flows, RBAC, CORS, CSP, rate limiting, secrets management |
+| `/design-folder-structure` | WS5 — Folder Structure | Annotated project layout, naming conventions, scaffold plan |
+| `/design-adrs` | WS6 — ADRs | Full ADR log (8 mandatory + project-specific), ADR index |
+| `/design-review` | Validation & Phase Gate | Consistency checks, gap analysis, sign-off |
+
+**Workstream dependency order** (strict sequential):
+WS1 → WS2 → WS3 → WS4 + WS5 → WS6 → Review
+
+Design outputs are saved to `docs/design/`. ADRs are saved to `docs/adr/`.
+
+## Master SDLC Workflow
+
+Run `/workflow` at any time to see the full 7-step SDLC status and get guided to the next phase.
+
+| Step | Phase | Orchestrator | Status |
+|---|---|---|---|
+| 1 | Requirements Gathering | `/requirements` | Available |
+| 2 | System Design & Architecture | `/design` | Available |
+| 3 | UI/UX Design | *(coming soon)* | Planned |
+| 4 | Project Setup & DevOps | *(coming soon)* | Planned |
+| 5 | Development (Sprints) | *(coming soon)* | Planned |
+| 6 | QA & Testing | *(coming soon)* | Planned |
+| 7 | Deployment & Go-Live | *(coming soon)* | Planned |
