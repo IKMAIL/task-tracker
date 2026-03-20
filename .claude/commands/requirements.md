@@ -85,6 +85,10 @@ All deliverables saved to: docs/requirements/
 - **Reference previous phases** — each phase builds on the last
 - **Be concise** in questions — respect the user's time
 - **Push for specificity** — reject vague answers and ask for measurable targets
+- **Detect contradictions** — if an answer in Phase N conflicts with a prior phase, flag it immediately and resolve before continuing
+- **Support partial save** — each phase supports pause/resume via draft files; honour "pause", "stop", or "save and continue later"
+- **Carry the glossary forward** — terms defined in Phase 1 should be used consistently in all subsequent phases
+- **Do not invent answers** — if the user hasn't answered a question, mark it "[TBD]" rather than assuming
 
 ## Guiding Principle
 

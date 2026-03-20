@@ -10,6 +10,16 @@ Check that `docs/requirements/business-context.md` exists from Phase 1. If it do
 
 Ask the user the following questions **one at a time**. Wait for each answer before proceeding.
 
+### Handling Incomplete Answers
+
+- If the user answers "I don't know" or is unsure about a stakeholder, log the item to the ambiguity log (`docs/requirements/ambiguity-log.md`) with status **Open** and continue
+- If the user cannot identify a product owner or sign-off authority, flag this as a **blocker** — the project cannot proceed without one
+
+### Behavioral Guardrails
+
+- Do not invent stakeholders the user hasn't mentioned — if a typical role is missing (e.g., no QA representative), ask whether it's intentional
+- Do not assign influence/interest levels without user confirmation
+
 ### Questions to Ask
 
 1. **Who is the product owner and who has final sign-off on requirements?**

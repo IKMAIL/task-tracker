@@ -58,14 +58,19 @@ Present this checklist to the user and go through each item:
 - [ ] All user roles and permissions are defined
 - [ ] All integrations are documented with owners confirmed
 - [ ] NFRs are measurable (no vague terms like "fast" or "secure")
+- [ ] MERN-specific security checklist is complete (Phase 4)
 - [ ] MVP scope is agreed and signed
+- [ ] T-shirt sizing is assigned to all backlog items (Phase 6)
 - [ ] Ambiguity log has zero unresolved blockers
-- [ ] Data model covers all identified entities
+- [ ] Assumptions register has no unvalidated high-impact assumptions
+- [ ] Data model covers all identified entities (embedded/referenced decisions documented)
 - [ ] Compliance and security obligations are captured
 - [ ] Stakeholder register and RACI are complete
-- [ ] Technical constraints and ADRs are documented
+- [ ] Technical constraints, ADRs, and testing strategy are documented
+- [ ] Microservice boundaries and communication patterns are documented (Phase 5)
 - [ ] Out-of-scope register is documented and agreed
 - [ ] Change management process is defined
+- [ ] Glossary is consistent across all phase documents
 
 ### Step 6: Formal Sign-Off
 
@@ -93,14 +98,16 @@ Generate the **Deliverables Summary Table**:
 
 | Deliverable | File | Status | Owner |
 |---|---|---|---|
-| Problem statement + KPIs | business-context.md | Complete/Incomplete | Product Owner |
+| Problem statement + KPIs + Glossary | business-context.md | Complete/Incomplete | Product Owner |
 | Stakeholder register + RACI | stakeholder-register.md | Complete/Incomplete | BA / PM |
 | Prioritised user story backlog | functional-requirements.md | Complete/Incomplete | BA + Dev Lead |
 | Business rules catalogue | functional-requirements.md | Complete/Incomplete | BA + Domain Expert |
-| Data dictionary | functional-requirements.md | Complete/Incomplete | Dev Lead + BA |
-| NFR specification sheet | nonfunctional-requirements.md | Complete/Incomplete | Dev Lead |
-| Technical constraints document | technical-constraints.md | Complete/Incomplete | Dev Lead |
-| Scope definition + out-of-scope | scope-definition.md | Complete/Incomplete | PM + PO |
+| Data dictionary (MongoDB-oriented) | functional-requirements.md | Complete/Incomplete | Dev Lead + BA |
+| Assumptions register | functional-requirements.md | Complete/Incomplete | BA |
+| NFR specification + MERN security checklist | nonfunctional-requirements.md | Complete/Incomplete | Dev Lead |
+| Technical constraints + ADRs + Testing strategy | technical-constraints.md | Complete/Incomplete | Dev Lead |
+| Scope definition + T-shirt sizing + out-of-scope | scope-definition.md | Complete/Incomplete | PM + PO |
+| Ambiguity log | ambiguity-log.md | Complete/Incomplete | BA |
 | Signed requirements baseline | validation-signoff.md | Complete/Incomplete | All stakeholders |
 
 ## Quality Gate
