@@ -7,12 +7,24 @@
 
 const { execSync, execFileSync } = require('child_process');
 
+// Only review source files — skip config, json, markdown, etc.
+const SOURCE_PATTERN = /\.(ts|tsx|js|jsx|mjs|cjs|py|go|java|cs|cpp|c|rb|rs|php)$/;
+
 function getDiff() {
-  // Prefer uncommitted working-tree changes; fall back to staged
+  // Suppress git's stderr (e.g. CRLF warnings) with stdio pipe
+  const opts = { encoding: 'utf8', timeout: 5000, stdio: ['pipe', 'pipe', 'ignore'] };
   for (const cmd of ['git diff HEAD', 'git diff --staged']) {
     try {
-      const out = execSync(cmd, { encoding: 'utf8', timeout: 5000 }).trim();
-      if (out) return out;
+      const raw = execSync(cmd, opts).trim();
+      if (!raw) continue;
+
+      // Filter diff blocks to source files only
+      const filtered = raw
+        .split(/^(?=diff --git )/m)
+        .filter((block) => SOURCE_PATTERN.test(block.split('\n')[0]))
+        .join('');
+
+      if (filtered.trim()) return filtered;
     } catch {
       // ignore
     }
