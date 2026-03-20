@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { createTask } from '../api/taskApi';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, Link, useParams } from 'react-router-dom';
+import { createTask, getTask, updateTask } from '../api/taskApi';
 import { useFetch } from '../hooks/useFetch';
 import { listTeams, getTeam } from '../api/teamApi';
 import ErrorBanner from '../components/common/ErrorBanner';
+import Spinner from '../components/common/Spinner';
 
 const CATEGORIES = [
   'Automation Testing Coverage', 'DR Dry Run', 'Active-Active Setup',
@@ -38,6 +39,47 @@ interface RecurrenceForm {
 
 export default function TaskFormPage(): React.ReactElement {
   const navigate = useNavigate();
+  const { id: taskId } = useParams<{ id: string }>();
+  const isEditMode = Boolean(taskId);
+
+  const { data: existingTask, loading: loadingTask } = useFetch<any>(
+    () => isEditMode ? getTask(taskId) : Promise.resolve(null),
+    [isEditMode, taskId]
+  );
+
+  // Populate form when existing task data loads
+  useEffect(() => {
+    if (isEditMode && existingTask) {
+      const task = existingTask.data || existingTask;
+      setForm({
+        title: task.title || '',
+        description: task.description || '',
+        category: task.category || '',
+        assignedTeamId: task.assignedTeamId || '',
+        assignedPersonId: task.assignedPersonId || '',
+        status: task.status || 'not_started',
+        plannedStartDate: task.plannedStartDate ? task.plannedStartDate.split('T')[0] : '',
+        dueDate: task.dueDate ? task.dueDate.split('T')[0] : '',
+        nextUpdateDate: task.nextUpdateDate ? task.nextUpdateDate.split('T')[0] : '',
+      });
+      if (task.assignedTeamId) {
+        getTeam(task.assignedTeamId).then((res) => {
+          setTeamMembers((res?.data?.memberIds || []) as Member[]);
+        }).catch(() => setTeamMembers([]));
+      }
+      if (task.recurrence?.enabled) {
+        setRecurrence({
+          enabled: true,
+          frequency: task.recurrence.frequency || 'weekly',
+          interval: task.recurrence.interval || 1,
+          nextRunAt: task.recurrence.nextRunAt ? task.recurrence.nextRunAt.split('T')[0] : '',
+          endDate: task.recurrence.endDate ? task.recurrence.endDate.split('T')[0] : '',
+          maxOccurrences: task.recurrence.maxOccurrences?.toString() || '',
+        });
+      }
+    }
+  }, [isEditMode, existingTask]);
+
   const { data: teams } = useFetch<Team[]>(listTeams);
   const [teamMembers, setTeamMembers] = useState<Member[]>([]);
   const [form, setForm] = useState<TaskForm>({
@@ -88,8 +130,13 @@ export default function TaskFormPage(): React.ReactElement {
         };
       }
 
-      const res = await createTask(payload);
-      navigate(`/tasks/${res.data._id}`);
+      if (isEditMode) {
+        await updateTask(taskId!, payload);
+        navigate(`/tasks/${taskId}`);
+      } else {
+        const res = await createTask(payload);
+        navigate(`/tasks/${res.data._id}`);
+      }
     } catch (err: unknown) {
       setError((err as Error).message);
     } finally {
@@ -97,9 +144,11 @@ export default function TaskFormPage(): React.ReactElement {
     }
   };
 
+  if (isEditMode && loadingTask) return <div className="page"><Spinner /></div>;
+
   return (
     <div className="page">
-      <div className="page-header"><h1>New Task</h1><Link to="/tasks" className="btn btn-sm">← Back</Link></div>
+      <div className="page-header"><h1>{isEditMode ? 'Edit Task' : 'New Task'}</h1><Link to={isEditMode ? `/tasks/${taskId}` : '/tasks'} className="btn btn-sm">← Back</Link></div>
       <ErrorBanner message={error} />
       <form className="form-card" onSubmit={handleSubmit}>
         <div className="form-group"><label>Title *</label><input value={form.title} onChange={(e) => set('title', e.target.value)} required /></div>
@@ -126,7 +175,7 @@ export default function TaskFormPage(): React.ReactElement {
                     setTeamMembers((prev) => {
                       // Guard against stale response from a previous slower request
                       if (e.target.value !== teamId) return prev;
-                      return (res?.memberIds || []) as Member[];
+                      return (res?.data?.memberIds || []) as Member[];
                     });
                   } catch {
                     setTeamMembers([]);
@@ -241,7 +290,7 @@ export default function TaskFormPage(): React.ReactElement {
         </div>
 
         <button type="submit" className="btn btn-primary" disabled={submitting} style={{ marginTop: '16px' }}>
-          {submitting ? 'Creating...' : 'Create Task'}
+          {submitting ? (isEditMode ? 'Saving...' : 'Creating...') : (isEditMode ? 'Save Changes' : 'Create Task')}
         </button>
       </form>
     </div>

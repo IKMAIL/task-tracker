@@ -32,6 +32,7 @@ function App() {
             <Route path="/tasks"                         element={<TaskListPage />} />
             <Route path="/kanban"                        element={<KanbanBoard />} />
             <Route path="/tasks/new"                     element={<TaskFormPage />} />
+            <Route path="/tasks/:id/edit"                element={<TaskFormPage />} />
             <Route path="/tasks/:id"                     element={<TaskDetailPage />} />
             <Route path="/teams/manage"                   element={<TeamManagementPage />} />
             <Route path="/alerts"                        element={<AlertsPage />} />

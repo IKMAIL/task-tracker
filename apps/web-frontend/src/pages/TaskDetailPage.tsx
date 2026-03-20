@@ -75,6 +75,7 @@ export default function TaskDetailPage(): React.ReactElement {
     <div className="page">
       <div className="page-header">
         <h1>{task.title}</h1>
+        <Link to={`/tasks/${id}/edit`} className="btn btn-sm">Edit Task</Link>
         <Link to={`/progress/update/${id}`} className="btn btn-primary">Log Progress Update</Link>
         <Link to={`/audit?resourceType=task&resourceId=${id}`} className="btn btn-sm">Audit History</Link>
       </div>
