@@ -1,0 +1,30 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node .claude/tsc-check.js",
+            "timeout": 60,
+            "statusMessage": "Checking TypeScript..."
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node .claude/code-review.js",
+            "timeout": 120,
+            "statusMessage": "Running code review...",
+            "asyncRewake": true
+          }
+        ]
+      }
+    ]
+  }
+}

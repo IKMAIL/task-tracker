@@ -145,3 +145,4 @@ shared/utils/src/*.d.ts.map
 
 # Ignore Kubernetes secret file containing sensitive information
 k8s/secret.yaml
+.claude/settings.local.json
