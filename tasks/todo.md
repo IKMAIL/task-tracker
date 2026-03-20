@@ -1,27 +1,34 @@
-# Requirements Gathering Skills - Implementation Plan
+# System Design & Architecture Phase — Skills Implementation Plan
 
-## Task
-Create Claude Code slash commands (skills) for a 7-phase requirements gathering process, plus an orchestrator and supplementary skills.
+## Context
+Create Claude Code slash commands for the System Design & Architecture Phase (MERN + TypeScript), following patterns from the requirements gathering skills. Then create a master workflow command orchestrating requirements → design.
 
 ## Skills to Create (in `.claude/commands/`)
 
-- [x] `req-check.md` — Pre-check: scan for existing requirements docs before starting
-- [x] `req-phase1-business.md` — Phase 1: Business Context (interactive Q&A → problem statement + KPIs)
-- [x] `req-phase2-stakeholders.md` — Phase 2: Stakeholders (interactive Q&A → stakeholder register + RACI)
-- [x] `req-phase3-functional.md` — Phase 3: Functional Requirements (interactive → user stories + business rules + data dictionary)
-- [x] `req-phase4-nonfunctional.md` — Phase 4: Non-Functional Requirements (interactive → NFR spec + security checklist)
-- [x] `req-phase5-technical.md` — Phase 5: Technical Clarifications MERN-specific (interactive → constraints doc + ADR stubs + deps list)
-- [x] `req-phase6-scope.md` — Phase 6: Scope Definition & Prioritisation (interactive → MVP def + prioritised backlog + out-of-scope register)
-- [x] `req-phase7-validation.md` — Phase 7: Validation & Sign-Off (interactive → checklist + gap analysis)
-- [x] `req-ambiguity-log.md` — Ambiguity Log: structured template for tracking open questions
-- [x] `req-traceability.md` — Traceability Matrix: cross-phase linking (stakeholders → stories → NFRs → tech decisions)
-- [x] `req-change-management.md` — Change Management: post-sign-off scope change process
-- [x] `requirements.md` — Master Orchestrator: runs all phases sequentially
+### Pre-check
+- [ ] `design-check.md` — Scan for existing design/architecture docs
 
-## Other
-- [x] Create `docs/requirements/` directory with a README
-- [x] Update CLAUDE.md to reference the new skills
-- [ ] Git: commit and push to `claude/mern-requirements-skills-CyVY5`
+### Workstream Skills (from user spec)
+- [ ] `design-hld.md` — WS1: High-Level Design (arch diagram, communication patterns, auth strategy, state mgmt, SSR/SPA)
+- [ ] `design-data-model.md` — WS2: Data Modelling (MongoDB schemas, TypeScript interfaces, embed/ref, indexes)
+- [ ] `design-api-contracts.md` — WS3: API Contract Design (OpenAPI spec, shared types, error codes, conventions)
+- [ ] `design-folder-structure.md` — WS4: Folder Structure & Code Architecture (layers, separation of concerns)
+- [ ] `design-adrs.md` — WS5: Architecture Decision Records (numbered ADR docs)
+
+### Additional Skills (proposed gaps)
+- [ ] `design-security.md` — Security Architecture (auth flow diagrams, CORS, CSP, rate limiting, secrets)
+- [ ] `design-review.md` — Design Validation & Phase Gate (mirrors req-phase7)
+
+### Orchestrators
+- [ ] `design.md` — Master design orchestrator
+- [ ] `workflow.md` — Master workflow: requirements → design
+
+### Updates
+- [ ] Update CLAUDE.md with new skill table
+- [ ] Git: commit and push
+
+## Questions / Gaps to Discuss with User
+Resolved — user confirmed: add all three extra skills, full SDLC skeleton, strict sequential workstream order.
 
 ---
 
@@ -151,15 +158,29 @@ All 10 implementation items completed and pushed on `claude/plan-tracking-progre
 ## Previous Review
 
 ### Summary
-Created 12 Claude Code slash commands for structured requirements gathering:
-- **7 phase skills** (business context, stakeholders, functional, NFR, technical, scope, validation)
-- **4 supplementary skills** (pre-check, ambiguity log, traceability matrix, change management)
-- **1 orchestrator** (`/requirements`) that runs all phases sequentially
+Created 10 Claude Code slash commands for the System Design & Architecture phase, plus a master SDLC workflow:
+
+**Pre-check:** `/design-check`
+
+**Workstream skills (strict sequential):**
+1. `/design-hld` — High-Level Design (10 architecture decisions, component catalogue, integration map)
+2. `/design-data-model` — MongoDB schemas, TypeScript interfaces, ER diagram, index strategy
+3. `/design-api-contracts` — REST conventions, OpenAPI spec, shared types, error codes
+4. `/design-security` — Auth flows, RBAC, CORS, CSP, rate limiting, secrets (10 security domains)
+5. `/design-folder-structure` — Annotated project layout for mono/micro/SSR patterns, naming conventions
+6. `/design-adrs` — 8 mandatory ADRs + project-specific, filed in `docs/adr/`
+
+**Validation:** `/design-review` — consistency checks, gap analysis, phase gate, sign-off
+
+**Orchestrators:**
+- `/design` — Runs all 8 steps sequentially with dependency enforcement
+- `/workflow` — Full 7-step SDLC status tracker (Steps 1-2 available, 3-7 planned)
 
 ### Additions beyond original spec
-- `/req-check` — Pre-flight scan for existing docs to avoid duplication
-- `/req-ambiguity-log` — Structured tracker with owner/due date/impact for open questions
-- `/req-traceability` — Cross-phase linking with orphan analysis
-- `/req-change-management` — Post-sign-off change request process with impact assessment
+- `/design-security` — dedicated workstream (security was spread across HLD in the original spec)
+- `/design-review` — formal validation gate (mirrors `/req-phase7-validation`)
+- `/design-check` — pre-flight scan for existing design docs
+- Strict workstream dependency graph documented in `/design` orchestrator
+- Full 7-step `/workflow` orchestrator linking requirements → design → UI/UX → setup → dev → QA → deployment
 
-### All skills are interactive (Q&A), generate deliverables to `docs/requirements/`, and include quality gates.
+### All skills include: guardrails, partial save/resume, contradiction detection, quality gates, cross-workstream traceability.
