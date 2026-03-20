@@ -106,9 +106,47 @@ completionPct = totalItems > 0 ? Math.round((completedItems/totalItems)*100) : e
 - [ ] **10. Commit & push** — Commit all changes on `claude/plan-tracking-progress-FE6aI` and push
 
 ## Review
-_(to be filled in after implementation)_
+All 10 implementation items completed and pushed on `claude/plan-tracking-progress-FE6aI`.
+
+### What was built
+- **Backend**: `IChecklist`/`IChecklistItem` schemas on Task model; `checklistService.ts` (CRUD + progress roll-up); `checklistController.ts`; 8 JWT-protected endpoints in `taskRoutes.ts`; `syncProgress()` skips `completionPct` when checklists exist.
+- **Frontend**: `Checklist`/`ChecklistItem` types in `taskApi.ts`; `checklistApi.ts` fetch wrappers; `ChecklistSection.tsx` (collapsible, DnD reorder, inline edit, assignee picker, sub-items); integrated into `TaskDetailPage.tsx`.
+
+### Gaps identified (post-review)
+1. No error handling in `ChecklistSection` UI mutations
+2. No tests for `computeCompletionPct` or the checklist endpoints
+3. `syncProgress` fragility — `{ ...data, completionPct: undefined }` relies on Mongoose stripping `undefined`
+4. `tasks/todo.md` items never checked off and review section empty
+5. `MistakeJournal.md` not created (required by LEARNING.md)
 
 ---
+
+# Gap-Fix Plan
+
+## Branch
+`claude/plan-tracking-progress-FE6aI` (same branch — these are corrections to the same feature)
+
+## Todo Checklist
+
+### Process / Housekeeping
+- [ ] **A. Mark prior todo items done** — update items 1-10 above to `[x]`
+- [ ] **B. Create `MistakeJournal.md`** — root-level file, populate with mistakes found in review
+
+### Backend
+- [ ] **C. Fix `syncProgress` fragility** — use explicit destructuring in `taskService.ts` to exclude `completionPct` instead of spreading `undefined`
+- [ ] **D. Unit tests for `computeCompletionPct`** — add `tests/checklist.test.ts` covering: empty checklists → null, all complete → 100, mixed items + sub-items → correct %, single item
+
+### Frontend
+- [ ] **E. Error handling in `ChecklistSection`** — wrap every API call in `try/catch`; add `error` state per `ChecklistCard`; display inline error message on failure; clear on next attempt
+
+### Git
+- [ ] **F. Commit & push** — single commit on `claude/plan-tracking-progress-FE6aI`
+
+## Decisions
+- `order` field left as-is (dead but harmless; removing it is a schema migration risk with no user-facing benefit)
+- Repository pattern bypass left as-is (functional, minimal-change principle)
+
+
 
 ## Previous Review
 
