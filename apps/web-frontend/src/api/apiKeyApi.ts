@@ -28,15 +28,15 @@ export interface CreateApiKeyResponse extends ApiKeyInfo {
   key: string;
 }
 
-export const listApiKeys = (): Promise<{ success: boolean; data: ApiKeyInfo[] }> =>
+export const listApiKeys = (): Promise<any> =>
   apiFetch('/api-keys');
 
 export const createApiKey = (body: {
   name: string;
   permissions: ApiKeyPermission[];
   expiresAt?: string | null;
-}): Promise<{ success: boolean; data: CreateApiKeyResponse }> =>
+}): Promise<any> =>
   apiFetch('/api-keys', { method: 'POST', body: JSON.stringify(body) });
 
-export const revokeApiKey = (id: string): Promise<{ success: boolean; data: { message: string } }> =>
+export const revokeApiKey = (id: string): Promise<any> =>
   apiFetch(`/api-keys/${id}`, { method: 'DELETE' });
