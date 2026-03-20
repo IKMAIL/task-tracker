@@ -20,6 +20,21 @@ export type Category = typeof CATEGORIES[number];
 export type Status = typeof STATUSES[number];
 export type RecurrenceFrequency = typeof RECURRENCE_FREQUENCIES[number];
 
+export interface IChecklistItem {
+  _id: mongoose.Types.ObjectId;
+  text: string;
+  completed: boolean;
+  assignedPersonId: mongoose.Types.ObjectId | null;
+  order: number;
+  children: IChecklistItem[];
+}
+
+export interface IChecklist {
+  _id: mongoose.Types.ObjectId;
+  title: string;
+  items: IChecklistItem[];
+}
+
 export interface IRecurrence {
   enabled: boolean;
   frequency: RecurrenceFrequency;
@@ -47,7 +62,38 @@ export interface ITask extends Document {
   blockedBy: mongoose.Types.ObjectId[];
   recurrence: IRecurrence | null;
   parentTaskId: mongoose.Types.ObjectId | null;
+  checklists: IChecklist[];
 }
+
+const SubItemSchema = new Schema<IChecklistItem>(
+  {
+    text:             { type: String, required: true, trim: true },
+    completed:        { type: Boolean, default: false },
+    assignedPersonId: { type: Schema.Types.ObjectId, default: null },
+    order:            { type: Number, default: 0 },
+    children:         { type: [], default: [] },
+  },
+  { _id: true }
+);
+
+const ChecklistItemSchema = new Schema<IChecklistItem>(
+  {
+    text:             { type: String, required: true, trim: true },
+    completed:        { type: Boolean, default: false },
+    assignedPersonId: { type: Schema.Types.ObjectId, default: null },
+    order:            { type: Number, default: 0 },
+    children:         { type: [SubItemSchema], default: [] },
+  },
+  { _id: true }
+);
+
+const ChecklistSchema = new Schema<IChecklist>(
+  {
+    title: { type: String, required: true, trim: true },
+    items: { type: [ChecklistItemSchema], default: [] },
+  },
+  { _id: true }
+);
 
 const RecurrenceSchema = new Schema<IRecurrence>(
   {
@@ -80,6 +126,7 @@ const TaskSchema = new Schema<ITask>(
     blockedBy:        { type: [Schema.Types.ObjectId], default: [] },
     recurrence:       { type: RecurrenceSchema, default: null },
     parentTaskId:     { type: Schema.Types.ObjectId, default: null },
+    checklists:       { type: [ChecklistSchema], default: [] },
   },
   { timestamps: true }
 );

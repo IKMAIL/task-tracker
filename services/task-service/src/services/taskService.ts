@@ -115,9 +115,13 @@ export const getDependencies = async (id: string) => {
 
 export const syncProgress = async (id: string, data: Partial<ITask>) => {
   logger.debug('taskService.syncProgress', { id, data });
-  const task = await taskRepository.updateById(id, data);
-  logger.debug('progress synced to task', { taskId: id, completionPct: data.completionPct });
-  logger.debug('taskService.syncProgress result', { task });
+  // If the task has checklist items, completionPct is driven by checklists — don't override it.
+  const existing = await taskRepository.findById(id);
+  const hasChecklistItems = existing?.checklists?.some((cl: any) => cl.items?.length > 0);
+  const { completionPct: _omit, ...rest } = data as any;
+  const patch = hasChecklistItems ? rest : data;
+  const task = await taskRepository.updateById(id, patch);
+  logger.debug('progress synced to task', { taskId: id, completionPct: data.completionPct, skippedPct: hasChecklistItems });
   return task;
 };
 
