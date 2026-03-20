@@ -29,47 +29,58 @@ interface ItemRowProps {
   isSubItem?: boolean;
   dragHandleProps?: any;
   onUpdate: () => void;
+  onError: (msg: string) => void;
 }
 
-function ItemRow({ taskId, clId, item, members, isSubItem = false, dragHandleProps, onUpdate }: ItemRowProps) {
+function ItemRow({ taskId, clId, item, members, isSubItem = false, dragHandleProps, onUpdate, onError }: ItemRowProps) {
   const [editing, setEditing] = useState(false);
   const [editText, setEditText] = useState(item.text);
   const [addingSub, setAddingSub] = useState(false);
   const [subText, setSubText] = useState('');
 
   const toggle = async () => {
-    await checklistApi.updateItem(taskId, clId, item._id, { completed: !item.completed });
-    onUpdate();
+    try {
+      await checklistApi.updateItem(taskId, clId, item._id, { completed: !item.completed });
+      onUpdate();
+    } catch (err) { onError((err as Error).message); }
   };
 
   const saveEdit = async () => {
     const trimmed = editText.trim();
     if (trimmed && trimmed !== item.text) {
-      await checklistApi.updateItem(taskId, clId, item._id, { text: trimmed });
-      onUpdate();
+      try {
+        await checklistApi.updateItem(taskId, clId, item._id, { text: trimmed });
+        onUpdate();
+      } catch (err) { onError((err as Error).message); }
     }
     setEditing(false);
   };
 
   const handleDelete = async () => {
-    await checklistApi.deleteItem(taskId, clId, item._id);
-    onUpdate();
+    try {
+      await checklistApi.deleteItem(taskId, clId, item._id);
+      onUpdate();
+    } catch (err) { onError((err as Error).message); }
   };
 
   const handleAssignee = async (e: React.ChangeEvent<HTMLSelectElement>) => {
     const val = e.target.value || null;
-    await checklistApi.updateItem(taskId, clId, item._id, { assignedPersonId: val });
-    onUpdate();
+    try {
+      await checklistApi.updateItem(taskId, clId, item._id, { assignedPersonId: val });
+      onUpdate();
+    } catch (err) { onError((err as Error).message); }
   };
 
   const handleAddSub = async (e: React.FormEvent) => {
     e.preventDefault();
     const trimmed = subText.trim();
     if (!trimmed) return;
-    await checklistApi.addItem(taskId, clId, { text: trimmed, parentItemId: item._id });
-    setSubText('');
-    setAddingSub(false);
-    onUpdate();
+    try {
+      await checklistApi.addItem(taskId, clId, { text: trimmed, parentItemId: item._id });
+      setSubText('');
+      setAddingSub(false);
+      onUpdate();
+    } catch (err) { onError((err as Error).message); }
   };
 
   const assigneeName = item.assignedPersonId
@@ -142,7 +153,7 @@ function ItemRow({ taskId, clId, item, members, isSubItem = false, dragHandlePro
       {item.children.length > 0 && (
         <div>
           {item.children.map(sub => (
-            <ItemRow key={sub._id} taskId={taskId} clId={clId} item={sub} members={members} isSubItem onUpdate={onUpdate} />
+            <ItemRow key={sub._id} taskId={taskId} clId={clId} item={sub} members={members} isSubItem onUpdate={onUpdate} onError={onError} />
           ))}
         </div>
       )}
@@ -178,29 +189,39 @@ function ChecklistCard({ taskId, checklist, members, onUpdate }: ChecklistCardPr
   const [newItemText, setNewItemText] = useState('');
   const [editingTitle, setEditingTitle] = useState(false);
   const [titleText, setTitleText] = useState(checklist.title);
+  const [error, setError] = useState<string | null>(null);
   const { done, total } = countProgress(checklist.items);
 
   const handleAddItem = async (e: React.FormEvent) => {
     e.preventDefault();
     const trimmed = newItemText.trim();
     if (!trimmed) return;
-    await checklistApi.addItem(taskId, checklist._id, { text: trimmed });
-    setNewItemText('');
-    setAddingItem(false);
-    onUpdate();
+    setError(null);
+    try {
+      await checklistApi.addItem(taskId, checklist._id, { text: trimmed });
+      setNewItemText('');
+      setAddingItem(false);
+      onUpdate();
+    } catch (err) { setError((err as Error).message); }
   };
 
   const handleDeleteChecklist = async () => {
     if (!window.confirm(`Delete checklist "${checklist.title}"?`)) return;
-    await checklistApi.deleteChecklist(taskId, checklist._id);
-    onUpdate();
+    setError(null);
+    try {
+      await checklistApi.deleteChecklist(taskId, checklist._id);
+      onUpdate();
+    } catch (err) { setError((err as Error).message); }
   };
 
   const saveTitle = async () => {
     const trimmed = titleText.trim();
     if (trimmed && trimmed !== checklist.title) {
-      await checklistApi.renameChecklist(taskId, checklist._id, trimmed);
-      onUpdate();
+      setError(null);
+      try {
+        await checklistApi.renameChecklist(taskId, checklist._id, trimmed);
+        onUpdate();
+      } catch (err) { setError((err as Error).message); }
     }
     setEditingTitle(false);
   };
@@ -210,8 +231,11 @@ function ChecklistCard({ taskId, checklist, members, onUpdate }: ChecklistCardPr
     const ids = checklist.items.map(i => i._id);
     const [moved] = ids.splice(result.source.index, 1);
     ids.splice(result.destination.index, 0, moved);
-    await checklistApi.reorderItems(taskId, checklist._id, ids);
-    onUpdate();
+    setError(null);
+    try {
+      await checklistApi.reorderItems(taskId, checklist._id, ids);
+      onUpdate();
+    } catch (err) { setError((err as Error).message); }
   };
 
   const pctLabel = total > 0 ? `${done}/${total}` : '0 items';
@@ -243,6 +267,11 @@ function ChecklistCard({ taskId, checklist, members, onUpdate }: ChecklistCardPr
           style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#aaa', fontSize: '14px' }}>✕</button>
       </div>
 
+      {/* Inline error */}
+      {error && (
+        <p style={{ color: '#dc3545', fontSize: '0.8rem', margin: '0 0 6px 0' }}>{error}</p>
+      )}
+
       {/* Progress bar */}
       {total > 0 && (
         <div style={{ height: '4px', background: '#e9ecef', borderRadius: '2px', marginBottom: '8px' }}>
@@ -268,6 +297,7 @@ function ChecklistCard({ taskId, checklist, members, onUpdate }: ChecklistCardPr
                             members={members}
                             dragHandleProps={prov.dragHandleProps}
                             onUpdate={onUpdate}
+                            onError={setError}
                           />
                         </div>
                       )}
@@ -307,15 +337,19 @@ function ChecklistCard({ taskId, checklist, members, onUpdate }: ChecklistCardPr
 export default function ChecklistSection({ taskId, checklists, members, onUpdate }: Props) {
   const [addingChecklist, setAddingChecklist] = useState(false);
   const [newTitle, setNewTitle] = useState('');
+  const [createError, setCreateError] = useState<string | null>(null);
 
   const handleCreateChecklist = async (e: React.FormEvent) => {
     e.preventDefault();
     const trimmed = newTitle.trim();
     if (!trimmed) return;
-    await checklistApi.createChecklist(taskId, trimmed);
-    setNewTitle('');
-    setAddingChecklist(false);
-    onUpdate();
+    setCreateError(null);
+    try {
+      await checklistApi.createChecklist(taskId, trimmed);
+      setNewTitle('');
+      setAddingChecklist(false);
+      onUpdate();
+    } catch (err) { setCreateError((err as Error).message); }
   };
 
   return (
@@ -332,7 +366,7 @@ export default function ChecklistSection({ taskId, checklists, members, onUpdate
       ))}
 
       {addingChecklist && (
-        <form onSubmit={handleCreateChecklist} style={{ display: 'flex', gap: '8px', marginTop: '8px' }}>
+        <form onSubmit={handleCreateChecklist} style={{ display: 'flex', gap: '8px', marginTop: '8px', flexWrap: 'wrap' }}>
           <input
             autoFocus
             value={newTitle}
@@ -342,6 +376,9 @@ export default function ChecklistSection({ taskId, checklists, members, onUpdate
           />
           <button type="submit" className="btn btn-primary btn-sm">Create</button>
           <button type="button" onClick={() => setAddingChecklist(false)} className="btn btn-sm">Cancel</button>
+          {createError && (
+            <p style={{ color: '#dc3545', fontSize: '0.8rem', margin: '4px 0 0 0', width: '100%' }}>{createError}</p>
+          )}
         </form>
       )}
     </div>

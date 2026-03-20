@@ -85,25 +85,25 @@ completionPct = totalItems > 0 ? Math.round((completedItems/totalItems)*100) : e
 ## Todo Checklist
 
 ### Backend
-- [ ] **1. Task model** — Add `IChecklistItem`, `IChecklist` interfaces + Mongoose schemas + `checklists` field to `ITask`/`TaskSchema`
-- [ ] **2. Checklist service** — Create `checklistService.ts` with all CRUD operations + `computeCompletionPct` helper
-- [ ] **3. Checklist controller** — Create `checklistController.ts` wrapping service calls
-- [ ] **4. Routes** — Add 8 checklist endpoints to `taskRoutes.ts`
-- [ ] **5. Progress-sync fix** — In `taskService.ts` `syncProgress()`, skip writing `completionPct` when task has checklist items
+- [x] **1. Task model** — Add `IChecklistItem`, `IChecklist` interfaces + Mongoose schemas + `checklists` field to `ITask`/`TaskSchema`
+- [x] **2. Checklist service** — Create `checklistService.ts` with all CRUD operations + `computeCompletionPct` helper
+- [x] **3. Checklist controller** — Create `checklistController.ts` wrapping service calls
+- [x] **4. Routes** — Add 8 checklist endpoints to `taskRoutes.ts`
+- [x] **5. Progress-sync fix** — In `taskService.ts` `syncProgress()`, skip writing `completionPct` when task has checklist items
 
 ### Frontend
-- [ ] **6. Types** — Add `ChecklistItem` and `Checklist` interfaces to `taskApi.ts`; update `Task` interface
-- [ ] **7. Checklist API** — Create `checklistApi.ts` with fetch wrappers for all 8 endpoints
-- [ ] **8. ChecklistSection component** — Create component with:
+- [x] **6. Types** — Add `ChecklistItem` and `Checklist` interfaces to `taskApi.ts`; update `Task` interface
+- [x] **7. Checklist API** — Create `checklistApi.ts` with fetch wrappers for all 8 endpoints
+- [x] **8. ChecklistSection component** — Create component with:
   - List of checklists, each collapsible, showing "X / Y" progress count
   - Items: drag handle (DnD), checkbox, inline-editable text, assignee picker, delete button
   - Sub-items: indented below parent, same structure (no drag handle, or inner DnD)
   - "Add item" input, "Add checklist" button
   - Uses `@hello-pangea/dnd` for reordering
-- [ ] **9. TaskDetailPage integration** — Import `ChecklistSection`, render it below the Details card; refetch task on any checklist mutation (to update displayed `completionPct`)
+- [x] **9. TaskDetailPage integration** — Import `ChecklistSection`, render it below the Details card; refetch task on any checklist mutation (to update displayed `completionPct`)
 
 ### Git
-- [ ] **10. Commit & push** — Commit all changes on `claude/plan-tracking-progress-FE6aI` and push
+- [x] **10. Commit & push** — Commit all changes on `claude/plan-tracking-progress-FE6aI` and push
 
 ## Review
 All 10 implementation items completed and pushed on `claude/plan-tracking-progress-FE6aI`.
@@ -129,15 +129,15 @@ All 10 implementation items completed and pushed on `claude/plan-tracking-progre
 ## Todo Checklist
 
 ### Process / Housekeeping
-- [ ] **A. Mark prior todo items done** — update items 1-10 above to `[x]`
-- [ ] **B. Create `MistakeJournal.md`** — root-level file, populate with mistakes found in review
+- [x] **A. Mark prior todo items done** — update items 1-10 above to `[x]`
+- [x] **B. Create `MistakeJournal.md`** — root-level file, populate with mistakes found in review
 
 ### Backend
-- [ ] **C. Fix `syncProgress` fragility** — use explicit destructuring in `taskService.ts` to exclude `completionPct` instead of spreading `undefined`
-- [ ] **D. Unit tests for `computeCompletionPct`** — add `tests/checklist.test.ts` covering: empty checklists → null, all complete → 100, mixed items + sub-items → correct %, single item
+- [x] **C. Fix `syncProgress` fragility** — use explicit destructuring in `taskService.ts` to exclude `completionPct` instead of spreading `undefined`
+- [x] **D. Unit tests for `computeCompletionPct`** — add `tests/checklist.test.ts` covering: empty checklists → null, all complete → 100, mixed items + sub-items → correct %, single item
 
 ### Frontend
-- [ ] **E. Error handling in `ChecklistSection`** — wrap every API call in `try/catch`; add `error` state per `ChecklistCard`; display inline error message on failure; clear on next attempt
+- [x] **E. Error handling in `ChecklistSection`** — wrap every API call in `try/catch`; add `error` state per `ChecklistCard`; display inline error message on failure; clear on next attempt
 
 ### Git
 - [ ] **F. Commit & push** — single commit on `claude/plan-tracking-progress-FE6aI`
