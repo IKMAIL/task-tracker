@@ -45,9 +45,6 @@ services:
       JWT_SECRET: ${JWT_SECRET}
       SERVICE_TOKEN: ${SERVICE_TOKEN}
       TASK_SERVICE_URL: http://task-service:3002
-    depends_on:
-      task-service:
-        condition: service_started
 
   alert-service:
     build:
@@ -63,11 +60,6 @@ services:
       SERVICE_TOKEN: ${SERVICE_TOKEN}
       TASK_SERVICE_URL: http://task-service:3002
       PROGRESS_SERVICE_URL: http://progress-service:3003
-    depends_on:
-      task-service:
-        condition: service_started
-      progress-service:
-        condition: service_started
 
   team-service:
     build:
@@ -97,12 +89,6 @@ services:
       PROGRESS_SERVICE_URL: http://progress-service:3003
       ALERT_SERVICE_URL: http://alert-service:3004
       TEAM_SERVICE_URL: http://team-service:3006
-    depends_on:
-      - identity-service
-      - task-service
-      - progress-service
-      - alert-service
-      - team-service
 
   web-frontend:
     build:
@@ -112,8 +98,6 @@ services:
     restart: unless-stopped
     ports:
       - "3005:3005"
-    depends_on:
-      - api-gateway
 
 volumes:
   mongo_data:
