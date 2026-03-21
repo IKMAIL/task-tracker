@@ -8,7 +8,7 @@ You are running the full software development lifecycle for a MERN + TypeScript 
 |---|---|---|---|---|
 | 1 | Requirements Gathering | `/requirements` | Business context, user stories, NFRs, technical constraints, scope | Signed requirements baseline |
 | 2 | System Design & Architecture | `/design` | HLD, data model, API contracts, security architecture, folder structure, ADRs | Signed design baseline |
-| 3 | UI/UX Design | *(coming soon)* | Wireframes, component library, design system, user flow diagrams | Design approved by stakeholders |
+| 3 | UI/UX Design | `/uiux` | IA & user flows, wireframes, design system, hi-fi specs, developer handoff | Signed UI/UX design baseline |
 | 4 | Project Setup & DevOps | *(coming soon)* | Repository scaffold, CI/CD pipeline, Docker, environments, secrets | Dev environment running, CI green |
 | 5 | Development (Sprints) | *(coming soon)* | Working software, sprint deliverables, code review | Sprint acceptance criteria met |
 | 6 | QA & Testing | *(coming soon)* | Test reports, coverage metrics, bug triage | All Must Have stories pass |
@@ -44,7 +44,7 @@ Before starting any phase:
    =================
    Step 1 — Requirements:  [Complete ✓ / In Progress / Not Started]
    Step 2 — Design:        [Complete ✓ / In Progress / Not Started]
-   Step 3 — UI/UX:         [Coming soon]
+   Step 3 — UI/UX:         [Complete ✓ / In Progress / Not Started]
    Step 4 — Setup:         [Coming soon]
    Step 5 — Development:   [Coming soon]
    Step 6 — QA:            [Coming soon]
@@ -94,19 +94,18 @@ Run `/design` which orchestrates:
 
 **Phase 2 Gate:** `docs/design/design-signoff.md` exists with "Approved" status.
 
-### Phase 3 — UI/UX Design *(coming soon)*
+### Phase 3 — UI/UX Design
 
-This phase will cover:
-- Wireframing and prototyping (Figma, Sketch, or similar)
-- Component library selection and design token definition
-- User flow diagrams for all Must Have user stories
-- Responsive design strategy and breakpoints
-- Accessibility audit against WCAG level defined in Phase 4
-- Design handoff format for developers
+Run `/uiux` which orchestrates:
+- `/uiux-check` → Pre-check, existing UI/UX artifacts scan, frontend audit
+- `/uiux-stage1-ia-flows` → Information architecture, sitemap, user flow diagrams, screen inventory
+- `/uiux-stage2-wireframes` → Text-based wireframe specifications for all screens
+- `/uiux-stage3-design-system` → Color/typography/spacing tokens, component inventory, library decision
+- `/uiux-stage4-hifi` → High-fidelity screen specifications with tokens, real copy, all states
+- `/uiux-stage5-handoff` → Stakeholder review, change requests, developer handoff package, accessibility annotations
+- `/uiux-review` → Cross-stage consistency checks, requirements traceability, phase gate sign-off
 
-**Phase 3 Gate:** All Must Have user story screens are wireframed and approved by stakeholders.
-
-To be implemented as `/uiux-kickoff`, `/uiux-components`, `/uiux-flows`, `/uiux-review`.
+**Phase 3 Gate:** `docs/design/uiux/uiux-signoff.md` exists with "Approved" status.
 
 ### Phase 4 — Project Setup & DevOps *(coming soon)*
 

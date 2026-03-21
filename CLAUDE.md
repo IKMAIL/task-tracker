@@ -161,6 +161,23 @@ WS1 → WS2 → WS3 → WS4 + WS5 → WS6 → Review
 
 Design outputs are saved to `docs/design/`. ADRs are saved to `docs/adr/`.
 
+## UI/UX Design Skills
+
+Slash commands for structured UI/UX design. Run `/uiux` for the full process or individual stages as needed.
+
+| Command | Stage | Deliverable |
+|---|---|---|
+| `/uiux` | Full orchestrator | Runs all stages sequentially |
+| `/uiux-check` | Pre-check | Scans for existing UI/UX artifacts |
+| `/uiux-stage1-ia-flows` | 1 — IA & User Flows | Sitemap, user flow diagrams, route mapping |
+| `/uiux-stage2-wireframes` | 2 — Wireframes | Low-fidelity screen specifications |
+| `/uiux-stage3-design-system` | 3 — Design System | Tokens, typography, component inventory |
+| `/uiux-stage4-hifi` | 4 — Hi-Fi Specifications | Full-fidelity screen specs with all states |
+| `/uiux-stage5-handoff` | 5 — Review & Handoff | Stakeholder sign-off, developer handoff package |
+| `/uiux-review` | Phase Gate | Consistency checks, accessibility audit, sign-off |
+
+All outputs are saved to `docs/design/uiux/`.
+
 ## Master SDLC Workflow
 
 Run `/workflow` at any time to see the full 7-step SDLC status and get guided to the next phase.
@@ -169,7 +186,7 @@ Run `/workflow` at any time to see the full 7-step SDLC status and get guided to
 |---|---|---|---|
 | 1 | Requirements Gathering | `/requirements` | Available |
 | 2 | System Design & Architecture | `/design` | Available |
-| 3 | UI/UX Design | *(coming soon)* | Planned |
+| 3 | UI/UX Design | `/uiux` | Available |
 | 4 | Project Setup & DevOps | *(coming soon)* | Planned |
 | 5 | Development (Sprints) | *(coming soon)* | Planned |
 | 6 | QA & Testing | *(coming soon)* | Planned |
