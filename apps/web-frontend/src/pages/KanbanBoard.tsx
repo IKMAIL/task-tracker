@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
 import { listTasks, updateTask } from '../api/taskApi';
 import StatusBadge from '../components/common/StatusBadge';
+import EmptyState from '../components/common/EmptyState';
 import ProgressBar from '../components/common/ProgressBar';
 import Spinner from '../components/common/Spinner';
 import ErrorBanner from '../components/common/ErrorBanner';
@@ -177,7 +178,7 @@ export default function KanbanBoard() {
                       ))}
                       {provided.placeholder}
                       {tasks.length === 0 && (
-                        <div className="kanban-empty">No tasks</div>
+                        <EmptyState title="No tasks" />
                       )}
                     </div>
                   )}

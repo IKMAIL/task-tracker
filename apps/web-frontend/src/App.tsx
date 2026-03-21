@@ -2,6 +2,8 @@ import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { ThemeProvider } from './context/ThemeContext';
+import { ToastProvider } from './context/ToastContext';
+import { ConfirmProvider } from './context/ConfirmContext';
 import PrivateRoute from './components/common/PrivateRoute';
 import LoginPage from './pages/LoginPage';
 import DashboardPage from './pages/DashboardPage';
@@ -22,6 +24,8 @@ import './styles/global.css';
 function App() {
   return (
     <ThemeProvider>
+    <ToastProvider>
+    <ConfirmProvider>
     <AuthProvider>
       <BrowserRouter>
         <Routes>
@@ -46,6 +50,8 @@ function App() {
         </Routes>
       </BrowserRouter>
     </AuthProvider>
+    </ConfirmProvider>
+    </ToastProvider>
     </ThemeProvider>
   );
 }

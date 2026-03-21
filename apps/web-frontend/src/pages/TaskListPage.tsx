@@ -7,6 +7,7 @@ import Spinner from '../components/common/Spinner';
 import ErrorBanner from '../components/common/ErrorBanner';
 import StatusBadge from '../components/common/StatusBadge';
 import ProgressBar from '../components/common/ProgressBar';
+import EmptyState from '../components/common/EmptyState';
 
 const STATUSES = ['not_started', 'in_progress', 'blocked', 'completed', 'cancelled'];
 const CATEGORIES = [
@@ -80,7 +81,7 @@ export default function TaskListPage(): React.ReactElement {
           {loading ? (
             <tr><td colSpan={6} style={{ textAlign: 'center' }}><Spinner /></td></tr>
           ) : (tasks || []).length === 0 ? (
-            <tr><td colSpan={6} style={{ textAlign: 'center' }}>No tasks found.</td></tr>
+            <tr><td colSpan={6}><EmptyState title="No tasks found" body="Try adjusting your filters or create a new task." action={{ label: '+ New Task', onClick: () => navigate('/tasks/new') }} /></td></tr>
           ) : (
             (tasks || []).map((task) => (
               <tr key={task._id}>

@@ -5,6 +5,7 @@ import { getTask } from '../api/taskApi';
 import { logProgress } from '../api/progressApi';
 import Spinner from '../components/common/Spinner';
 import ErrorBanner from '../components/common/ErrorBanner';
+import LoadingButton from '../components/common/LoadingButton';
 
 const STATUSES = ['not_started', 'in_progress', 'blocked', 'completed', 'cancelled'];
 
@@ -98,9 +99,9 @@ export default function UpdateProgressPage() {
           />
         </div>
 
-        <button type="submit" className="btn btn-primary" disabled={submitting}>
-          {submitting ? 'Saving...' : 'Submit Update'}
-        </button>
+        <LoadingButton type="submit" className="btn btn-primary" loading={submitting}>
+          Submit Update
+        </LoadingButton>
       </form>
     </div>
   );
