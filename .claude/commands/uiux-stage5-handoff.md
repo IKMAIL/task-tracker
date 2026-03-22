@@ -1,29 +1,29 @@
 # Stage 5 — Stakeholder Review & Developer Handoff
 
-You are conducting Stage 5 of the UI/UX Design phase. The goal is to **validate all designs against requirements with stakeholders**, capture change requests, and produce a **complete developer handoff package** so that any developer can build the interface without making significant design decisions.
+You are conducting Stage 5 of the UI/UX Design phase. The goal is to **validate all designs against requirements with stakeholders**, capture change requests, and produce a **complete developer handoff package** so that implementation can begin without ambiguity.
 
 ## Pre-Requisite
 
 Check that these documents exist and read them before starting:
-- `docs/design/uiux/ia-user-flows.md` — sitemap, user flows, screen inventory (from Stage 1)
-- `docs/design/uiux/wireframes.md` — low-fidelity screen specifications (from Stage 2)
-- `docs/design/uiux/design-system.md` — tokens, component inventory, library decision (from Stage 3)
-- `docs/design/uiux/hifi-specifications.md` — full-fidelity screen specs with all states (from Stage 4)
+- `docs/design/uiux/ia-user-flows.md` — Stage 1: sitemap, user flows, screen inventory
+- `docs/design/uiux/wireframes.md` — Stage 2: low-fidelity screen specifications
+- `docs/design/uiux/design-system.md` — Stage 3: tokens, typography, component inventory
+- `docs/design/uiux/hifi-specifications.md` — Stage 4: full-fidelity screen specs with states
 - `docs/requirements/functional-requirements.md` — user stories, acceptance criteria, business rules
 - `docs/requirements/scope-definition.md` — MVP scope, MoSCoW backlog
-- `docs/design/api-contracts.md` — endpoints, response shapes, error codes
+- `docs/design/api-contracts.md` — API endpoints and response shapes
 
-If any Stage 1-4 output is missing, inform the user that the preceding stages must be completed first. If requirements or design documents are missing, log gaps to `docs/design/uiux/design-ambiguity-log.md` and allow the user to proceed with documented limitations.
+If any Stage 1–4 output is missing, inform the user that the missing stage must be completed first — the handoff package requires all prior stages. If requirements or design docs are missing, log gaps to `docs/design/uiux/design-ambiguity-log.md` and allow the user to proceed.
 
 ## Instructions
 
-Work through each section **sequentially**, presenting results to the user for review and confirmation before moving to the next section.
+Walk through each section **one at a time**. Present findings and recommendations to the user and wait for confirmation before moving on.
 
 ### Partial Save & Resume
 
-- After completing each of the 5 sections below, auto-save progress to `docs/design/uiux/handoff.draft.md` with a `## Progress` section listing completed and remaining sections
+- After completing each section, auto-save progress to `docs/design/uiux/handoff.draft.md` with a `## Progress` section listing completed and remaining sections
 - Support "pause", "stop", "save and continue later" — save immediately and note the next section
-- On resume: read the draft, summarise which sections are done, continue from the next section
+- On resume: read the draft, summarise what's done, continue from the next section
 
 ### Handling Incomplete Answers
 
@@ -32,50 +32,41 @@ Work through each section **sequentially**, presenting results to the user for r
 
 ### Behavioral Guardrails
 
-- Do not invent new screens, flows, or components not documented in Stages 1-4 — this stage validates and packages what already exists
-- Do not redesign or second-guess confirmed Stage 4 specifications — carry them forward exactly
+- Do not invent new screens, components, or requirements — only document what was designed in Stages 1–4
+- Do not re-design elements — if the user requests changes, log them as change requests (Section 2)
 - Reference specific user stories (US-NNN) and business rules (BR-NNN) when verifying acceptance criteria
-- If a gap is found between the design and requirements, log it as a change request — do not silently fix it
 - Tag any inferred details with `[assumed]`
+- Cross-reference the API contracts for every endpoint mapping — do not guess endpoint paths
 
 ### Contradiction Detection
 
-- If a hi-fi spec contradicts a user story's acceptance criteria, flag it: "US-NNN acceptance criterion [X] is not fully addressed by the [Screen] specification. Should we add a change request?"
-- If a component mapping references a component not in the design system, flag it before proceeding
-- If an API endpoint referenced in the handoff doesn't exist in `api-contracts.md`, flag it explicitly
+- If a hi-fi spec conflicts with a user story's acceptance criteria, flag it: "Hi-fi spec for [Screen] shows [X] but US-NNN acceptance criterion says [Y]. Which is correct?"
+- If a component-to-code mapping references a component not in the design system, flag it before proceeding
+- If an API endpoint referenced in the handoff doesn't exist in `api-contracts.md`, flag it
 
 ---
 
 ## Section 1: Stakeholder Walkthrough
 
-For each **Must-Have** user story from the requirements:
+For each **Must-Have** user story from `docs/requirements/scope-definition.md`:
 
-1. **Identify the user flow** from Stage 1 that covers this story
-2. **Walk through the hi-fi screens** from Stage 4 that implement the flow
-3. **Verify each acceptance criterion** against the screen specifications:
-
-```markdown
-### US-NNN: [Story Title]
-
-**User Flow Reference:** [flow name from ia-user-flows.md]
-**Screens Involved:** [list of screens from hifi-specifications.md]
-
-| Acceptance Criterion | Screen | Element / Component | Status |
-|----------------------|--------|---------------------|--------|
-| [AC text from requirements] | [Screen name] | [Specific element that satisfies it] | ✅ Met / ⚠️ Partial / ❌ Not Met |
-
-**Notes:** [Any observations, partial coverage details, or concerns]
-```
-
-4. **Build the traceability matrix** connecting requirements → flows → screens → components → API endpoints:
+1. **Locate the user flow** (Stage 1) — identify which flow covers this story
+2. **Walk through the hi-fi spec** (Stage 4) — verify every acceptance criterion is visually represented
+3. **Build a traceability entry** in this format:
 
 ```markdown
-| User Story | Flow (Stage 1) | Screen(s) (Stage 4) | Components (Stage 3) | API Endpoint(s) |
-|------------|----------------|----------------------|----------------------|-----------------|
-| US-NNN | [flow name] | [screen names] | [components used] | [endpoints called] |
+| US-NNN | Story Title | Flow(s) | Screen(s) | Component(s) | API Endpoint(s) | AC Coverage |
+|--------|-------------|---------|-----------|---------------|-----------------|-------------|
+| US-001 | [title] | [flow ref] | [screen names] | [components used] | [endpoints] | Full / Partial / Missing |
 ```
 
-5. **Present the walkthrough results** to the user and ask: "Are there any changes needed based on this review?"
+4. **Flag gaps** — if any acceptance criterion is not covered by the design:
+   - Document what's missing
+   - Ask the user: resolve now (add to change request log) or defer (log to ambiguity log)
+
+Present the complete **Traceability Matrix** to the user for review.
+
+**After Should-Have stories:** repeat the same process but mark gaps as non-blocking.
 
 ---
 
@@ -84,202 +75,203 @@ For each **Must-Have** user story from the requirements:
 Capture all feedback from the stakeholder walkthrough as structured change requests:
 
 ```markdown
-## Change Request Log
-
-| CR-ID | Screen | Description | Priority | Impact | Status |
-|-------|--------|-------------|----------|--------|--------|
-| CR-001 | [Screen name] | [What needs to change] | Must / Should / Could / Won't | [Affected stages: Stage 2/3/4] | Open / Approved / Deferred / Rejected |
+| CR-ID | Screen | Description | Priority | Impact on Stage(s) | Status |
+|-------|--------|-------------|----------|-------------------|--------|
+| CR-001 | [screen] | [what needs to change] | Must/Should/Could/Won't | Stage 2,4 | Open / Resolved / Deferred |
 ```
 
 **Rules:**
-- **Must-Have CRs** block sign-off — these must be resolved before proceeding to development
-- **Should/Could CRs** are logged for future sprints — they do not block sign-off
-- **Won't CRs** are documented as explicitly out of scope with rationale
+- **Must-Have CRs block sign-off** — these must be resolved before the phase gate
+- **Should/Could/Won't CRs** are logged for future sprints — they do not block sign-off
+- For each resolved CR: note which stage output was updated (e.g., "Updated wireframe in Section X, hi-fi spec in Section Y")
+- For each deferred CR: log to `docs/requirements/ambiguity-log.md`
 
-For each **Must-Have CR**:
-1. Identify which stage output needs to change (wireframe, design system, hi-fi spec)
-2. Describe the specific change needed
-3. Ask the user whether to apply the change now or defer to a future iteration
-4. If applying now, note which documents need to be updated and flag them for re-review
+Present the CR log to the user. Ask: "Are all Must-Have change requests resolved?"
 
 ---
 
 ## Section 3: Developer Handoff Package
 
-For each screen in the hi-fi specifications, produce a developer-ready summary card:
+For each screen in the screen inventory (from Stage 1), produce a **handoff summary card**:
 
 ```markdown
-### [Screen Name] — Developer Card
+### [Screen Name] — Developer Handoff
 
-**Route:** [URL path from ia-user-flows.md]
-**Page Component:** [React component file — existing path or "NEW: suggested path"]
+**Route:** [URL path from Stage 1]
+**Page Component:** [React component name — existing file path or "New: needs implementation"]
 **User Stories:** [US-NNN references]
+**Layout:** [Desktop/Tablet/Mobile layout summary from Stage 4]
 
 #### Components Required
 
 | Design System Component | Existing Code | Status | Notes |
 |------------------------|---------------|--------|-------|
-| [Component name from Stage 3] | [file path in apps/web-frontend/src/] | ✅ Exists / 🆕 New / 🔄 Modify | [What to change if Modify] |
+| PageHeader | `components/common/PageHeader.tsx` | Exists | — |
+| DataTable | — | New | Needs implementation per DS spec |
+| StatusBadge | `components/common/StatusBadge.tsx` | Exists | Add "overdue" variant |
 
-#### API Integration
+#### API Endpoints
 
-| Action | Method | Endpoint | Request Body | Response Shape | Error Handling |
-|--------|--------|----------|-------------|----------------|----------------|
-| [user action] | GET/POST/PUT/DELETE | [from api-contracts.md] | [key fields] | [key response fields] | [error states from hi-fi spec] |
+| Endpoint | Method | Purpose | Response Shape |
+|----------|--------|---------|---------------|
+| `/api/tasks` | GET | Fetch task list | `Task[]` from api-contracts |
+| `/api/tasks/:id` | PUT | Update task | `Task` from api-contracts |
 
 #### State Management
 
-| State | Source | Scope | Notes |
-|-------|--------|-------|-------|
-| [state name] | [API / local / context / URL params] | [page / global / shared] | [initialization, persistence] |
-
-#### Assets Required
-
-| Asset Type | Name / Description | Source | Format |
-|------------|-------------------|--------|--------|
-| Icon | [icon name] | [icon set from Stage 3] | SVG / Component |
-| Image | [description] | [source — stock, custom, generated] | [format, dimensions] |
+- **Reads:** [what state/context this screen reads — e.g., AuthContext for user role, TaskContext for task list]
+- **Writes:** [what state this screen modifies — e.g., creates new task, updates progress]
+- **Side effects:** [API calls, redirects, toast notifications]
 
 #### Interaction Notes
 
-| Element | Interaction | Behavior |
-|---------|-------------|----------|
-| [element name] | [click / hover / focus / drag] | [exact behavior — debounce timing, optimistic updates, transitions, error recovery] |
+| Element | Behavior | Timing |
+|---------|----------|--------|
+| [element] | [exact interaction — e.g., "debounce search input"] | [e.g., 300ms] |
+| [element] | [e.g., "optimistic update on status change, rollback on API error"] | — |
+| [element] | [e.g., "confirm dialog before delete"] | — |
 ```
 
-After all screen cards, produce a **Component Implementation Summary**:
+After all screen cards are complete, generate a **Component Implementation Status** summary:
 
 ```markdown
-## Component Implementation Summary
+| Component | In Design System | Exists in Code | File Path | Action Needed |
+|-----------|-----------------|----------------|-----------|---------------|
+| Button | ✓ | ✓ | `components/common/Button.tsx` | None |
+| DataTable | ✓ | ✗ | — | New implementation |
+| StatusBadge | ✓ | ✓ | `components/common/StatusBadge.tsx` | Add variants |
+```
 
-### New Components to Build
+And an **Asset Inventory**:
 
-| Component | Design System Ref | Used On Screens | Priority |
-|-----------|-------------------|-----------------|----------|
-| [name] | [DS section ref] | [screen list] | Must / Should |
-
-### Existing Components to Modify
-
-| Component | File Path | Modification Needed | Used On Screens |
-|-----------|-----------|---------------------|-----------------|
-| [name] | [path] | [what to change] | [screen list] |
-
-### Components Ready As-Is
-
-| Component | File Path | Used On Screens |
-|-----------|-----------|-----------------|
-| [name] | [path] | [screen list] |
+```markdown
+| Asset Type | Name | Source | Used On |
+|-----------|------|--------|---------|
+| Icon | [name] | [icon set from Stage 3] | [screen names] |
+| Image | [name] | [source/generation needed] | [screen names] |
+| Font | [name] | [CDN/self-hosted] | Global |
 ```
 
 ---
 
 ## Section 4: Accessibility Annotations
 
-For each screen, produce accessibility implementation notes:
+For each screen, document:
 
 ```markdown
 ### [Screen Name] — Accessibility
 
 #### ARIA Roles & Labels
 
-| Element | Role | aria-label / aria-labelledby | aria-describedby | Live Region |
-|---------|------|------------------------------|------------------|-------------|
-| [element] | [role] | [label text or ID ref] | [description ID ref] | [polite / assertive / off] |
+| Element | ARIA Role | ARIA Label / Labelled-by | Notes |
+|---------|-----------|-------------------------|-------|
+| Main content | `main` | — | Landmark |
+| Navigation | `navigation` | "Main navigation" | Landmark |
+| [form] | `form` | [aria-label] | — |
+| [dialog] | `dialog` | [aria-labelledby="title-id"] | Modal |
+| [status message] | `status` | — | Live region, `aria-live="polite"` |
 
 #### Focus Order (Tab Sequence)
 
-1. [First focusable element] — [component, expected behavior on Enter/Space]
-2. [Second focusable element] — [component, expected behavior]
+1. [First focusable element] — [what it is]
+2. [Second focusable element] — [what it is]
 3. ...
-n. [Last focusable element before focus wraps or moves to next section]
-
-**Focus traps:** [List any modals, dialogs, or popovers that trap focus — describe entry/exit behavior]
-**Skip navigation:** [Describe skip-to-main-content link behavior]
+n. [Last focusable element] — [what it is]
 
 #### Keyboard Navigation
 
-| Key | Context | Action |
-|-----|---------|--------|
-| Tab | Page | Move to next focusable element |
-| Shift+Tab | Page | Move to previous focusable element |
-| Enter | Button / Link | Activate |
-| Space | Checkbox / Toggle | Toggle state |
-| Escape | Modal / Dropdown | Close and return focus to trigger |
-| Arrow keys | [context — menu, table, tabs] | [navigation behavior] |
+| Key | Action | Context |
+|-----|--------|---------|
+| Tab | Move to next focusable element | Global |
+| Shift+Tab | Move to previous focusable element | Global |
+| Enter/Space | Activate button / submit form | Button/Link focus |
+| Escape | Close modal / cancel action | Modal/Dropdown open |
+| Arrow Up/Down | Navigate list items | List/Dropdown |
 
 #### Screen Reader Flow
 
-Describe the experience for a screen reader user navigating this page:
-1. [Page landmark announcements — main, nav, aside, footer]
-2. [Heading hierarchy — h1 → h2 → h3 with expected text]
-3. [Dynamic content announcements — what is announced when data loads, when actions succeed/fail]
-4. [Form field announcements — label, required status, current value, error messages]
+1. Page title announced: "[exact text]"
+2. Skip navigation link available
+3. Main landmark: [content summary]
+4. [Dynamic content]: `aria-live` region announces "[text]" on [trigger]
 
 #### Contrast Verification
 
-| Foreground Token | Background Token | Ratio | WCAG AA | WCAG AAA |
-|-----------------|-----------------|-------|---------|----------|
-| [text token] | [bg token] | [computed ratio] | ✅/❌ | ✅/❌ |
+| Foreground Token | Background Token | Ratio | WCAG AA |
+|-----------------|-----------------|-------|---------|
+| `color/text-primary` | `color/surface-primary` | [X.X:1] | Pass/Fail |
+| `color/text-muted` | `color/surface-primary` | [X.X:1] | Pass/Fail |
+```
+
+After all screens, produce an **Accessibility Summary**:
+
+```markdown
+| Screen | Landmarks | Focus Order | Keyboard Nav | Screen Reader | Contrast | Status |
+|--------|-----------|-------------|--------------|---------------|----------|--------|
+| Login | ✓ | ✓ | ✓ | ✓ | ✓ | Complete |
+| Dashboard | ✓ | ✓ | ✓ | ✓ | ✓ | Complete |
 ```
 
 ---
 
 ## Section 5: Implementation Priority
 
-Order screens by dependency and complexity for sprint planning:
+Order screens by dependency for development:
 
 ```markdown
-## Implementation Priority
-
-### Phase 1: Foundation (Sprint 1)
-| Priority | Screen | Dependencies | Complexity | Notes |
-|----------|--------|-------------|------------|-------|
-| 1 | Login | None — entry point | Medium | Auth flow must work before any other screen |
-| 2 | App Layout (Header, Sidebar, Footer) | Login | Medium | Shared shell for all authenticated pages |
-
-### Phase 2: Core Features (Sprint 2-3)
-| Priority | Screen | Dependencies | Complexity | Notes |
-|----------|--------|-------------|------------|-------|
-| ... | ... | ... | ... | ... |
-
-### Phase 3: Secondary Features (Sprint 4+)
-| Priority | Screen | Dependencies | Complexity | Notes |
-|----------|--------|-------------|------------|-------|
-| ... | ... | ... | ... | ... |
-
-### Shared Components to Build First
-| Component | Used By (Screen Count) | Build In |
-|-----------|----------------------|----------|
-| [most-used component] | [count] screens | Sprint 1 |
+| Priority | Screen(s) | Rationale | Dependencies | Sprint Suggestion |
+|----------|-----------|-----------|--------------|-------------------|
+| 1 | Login, Registration | Auth required for all other screens | None | Sprint 1 |
+| 2 | Dashboard | Landing page after login | Auth complete | Sprint 1 |
+| 3 | [next screens] | [why this order] | [what must exist first] | Sprint N |
 ```
 
-**Present the implementation priority** to the user and confirm the ordering makes sense for their team's capacity and sprint cadence.
+**Ordering rules:**
+1. Authentication screens first (all other screens depend on auth)
+2. Core entity CRUD screens next (tasks, teams — the primary value)
+3. Supporting screens after (alerts, progress, admin)
+4. Settings and profile screens last
+
+Map to the sprint backlog from `docs/requirements/scope-definition.md` if available.
+
+Present the implementation priority to the user for review.
 
 ---
 
 ## After All Sections Are Complete
 
-Generate the final deliverable combining all five sections.
+Generate the **final handoff document** combining all five sections:
 
-**Present to the user** for final review before saving.
+1. **Traceability Matrix** (Section 1)
+2. **Change Request Log** (Section 2)
+3. **Developer Handoff Cards** — all screens (Section 3)
+4. **Component Implementation Status** (Section 3)
+5. **Asset Inventory** (Section 3)
+6. **Accessibility Annotations** — all screens (Section 4)
+7. **Accessibility Summary** (Section 4)
+8. **Implementation Priority** (Section 5)
+
+**Present** the complete document to the user for review before saving.
 
 **Save** to `docs/design/uiux/handoff.md`
 
-Delete the draft file `docs/design/uiux/handoff.draft.md` if it exists.
+**Delete** the draft file `docs/design/uiux/handoff.draft.md` if it exists.
 
-**Recommend** proceeding to `/uiux-review` for the final phase gate validation.
+**Recommend** proceeding to `/uiux-review` for the phase gate validation.
 
 ## Quality Gate
 
 Before marking this stage complete, confirm:
-- [ ] Every Must-Have user story has been walked through against the hi-fi specifications
-- [ ] Traceability matrix links every Must-Have story → flow → screen → components → API endpoints
-- [ ] All Must-Have change requests are resolved (approved, applied, or explicitly deferred with rationale)
-- [ ] Developer handoff card exists for every screen in the hi-fi specifications
-- [ ] Component-to-code mapping is complete — every design system component mapped to existing code or marked as "new"
-- [ ] API integration table for every screen references valid endpoints from `api-contracts.md`
+
+- [ ] Every Must-Have user story has been verified against its acceptance criteria in the traceability matrix
+- [ ] All Must-Have change requests are resolved (status: Resolved)
+- [ ] Developer handoff card exists for every screen in the screen inventory
+- [ ] Component-to-code mapping is complete — every design system component has an implementation status
+- [ ] API endpoint mapping references valid endpoints from `api-contracts.md`
 - [ ] Accessibility annotations exist for every screen (ARIA roles, focus order, keyboard nav, screen reader flow)
-- [ ] Contrast ratios verified for all text/background token combinations
-- [ ] Implementation priority is documented with sprint mapping
-- [ ] All Should-Have change requests are logged (may remain open — non-blocking)
-- [ ] Asset list is complete — all icons, images, and fonts identified with sources
+- [ ] Contrast verification completed for all foreground/background token combinations
+- [ ] Asset inventory is complete (icons, images, fonts identified with sources)
+- [ ] Implementation priority order is documented and reviewed
+- [ ] No `[assumed]` tags remain unconfirmed by the user (or logged to ambiguity log)
+- [ ] Should-Have story traceability is documented (gaps logged as non-blocking)
+- [ ] All interaction notes specify exact behavior and timing (no vague descriptions)
