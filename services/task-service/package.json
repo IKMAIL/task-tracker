@@ -12,12 +12,13 @@
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
     "express": "^4.19.2",
+    "ioredis": "^5.10.1",
     "joi": "^17.13.1",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.3.4",
     "multer": "^2.1.1",
-    "xlsx": "^0.18.5",
-    "node-cron": "^3.0.3"
+    "node-cron": "^3.0.3",
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "@types/cors": "^2.8.17",

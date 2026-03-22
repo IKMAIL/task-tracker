@@ -4,6 +4,7 @@ import { AuthProvider } from './context/AuthContext';
 import { ThemeProvider } from './context/ThemeContext';
 import { ToastProvider } from './context/ToastContext';
 import { ConfirmProvider } from './context/ConfirmContext';
+import { NotificationProvider } from './context/NotificationContext';
 import PrivateRoute from './components/common/PrivateRoute';
 import LoginPage from './pages/LoginPage';
 import DashboardPage from './pages/DashboardPage';
@@ -19,6 +20,7 @@ import ApiKeysPage from './pages/ApiKeysPage';
 import AuditLogPage from './pages/AuditLogPage';
 import KanbanBoard from './pages/KanbanBoard';
 import AdminUsers from './pages/AdminUsers';
+import PreferencesPage from './pages/PreferencesPage';
 import './styles/global.css';
 
 function App() {
@@ -27,6 +29,7 @@ function App() {
     <ToastProvider>
     <ConfirmProvider>
     <AuthProvider>
+      <NotificationProvider>
       <BrowserRouter>
         <Routes>
           <Route path="/login" element={<LoginPage />} />
@@ -45,10 +48,12 @@ function App() {
             <Route path="/settings/api-keys"              element={<ApiKeysPage />} />
             <Route path="/audit"                           element={<AuditLogPage />} />
             <Route path="/admin/users"                     element={<AdminUsers />} />
+            <Route path="/preferences/notifications"       element={<PreferencesPage />} />
           </Route>
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </BrowserRouter>
+      </NotificationProvider>
     </AuthProvider>
     </ConfirmProvider>
     </ToastProvider>

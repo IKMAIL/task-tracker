@@ -2,6 +2,7 @@ import React from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
+import NotificationBell from '../notifications/NotificationBell';
 
 // ─── Avatar colour palette (6 choices, index by charCode % 6) ────────────────
 const AVATAR_COLORS = ['#e05c5c', '#e0955c', '#c8b84a', '#4db86e', '#5c9fe0', '#9b5ce0'];
@@ -195,6 +196,7 @@ export default function Header() {
         <NavItem to="/tasks" icon={<IconTasks />} label="Tasks" cls={cls} />
         <NavItem to="/kanban" icon={<IconKanban />} label="Kanban" cls={cls} />
         <NavItem to="/alerts" icon={<IconAlerts />} label="Alerts" cls={cls} />
+        <NavItem to="/preferences/notifications" icon={<IconAlerts />} label="Preferences" cls={cls} />
         <NavItem to="/import" icon={<IconImport />} label="Import" cls={cls} />
 
         {/* Admin group */}
@@ -234,6 +236,8 @@ export default function Header() {
 
       {/* User area */}
       <div className="header-user">
+
+        <NotificationBell />
         {/* Avatar */}
         <div
           aria-hidden="true"

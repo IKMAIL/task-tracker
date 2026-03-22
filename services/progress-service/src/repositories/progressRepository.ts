@@ -1,10 +1,20 @@
 import TaskUpdate, { ITaskUpdate } from '../models/TaskUpdate';
 import { logger } from '@task-tracker/utils';
+import { publishToStream } from '../utils/streamPublisher';
 
 export const create = async (data: Partial<ITaskUpdate>) => {
   logger.debug('progressRepository.create', { data });
   const update = await TaskUpdate.create(data);
   logger.debug('progressRepository.create result', { updateId: String(update._id) });
+  void publishToStream('progress:events', {
+    type: 'progress.created',
+    updateId: String(update._id),
+    taskId: String(update.taskId),
+    teamId: String(update.teamId),
+    actorId: '',
+    completionPct: String(update.completionPct),
+    timestamp: new Date().toISOString(),
+  });
   return update;
 };
 

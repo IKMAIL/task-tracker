@@ -2,6 +2,7 @@ import fetch from 'node-fetch';
 import * as alertRepository from '../repositories/alertRepository';
 import { AlertSeverity, AlertType } from '../models/Alert';
 import { logger } from '@task-tracker/utils';
+import { publishToStream } from '../utils/streamPublisher';
 
 const BEHIND_THRESHOLD = 15;
 const STALLED_DAYS = 7;
@@ -124,12 +125,22 @@ async function upsertAlert(
       logger.debug('alert-detector: skipping — manually resolved alert exists', { taskId: task._id, type });
       return;
     }
-    await alertRepository.create({ taskId: task._id as unknown as any, teamId: task.assignedTeamId as unknown as any, type, severity, message, metadata });
+    const alert = await alertRepository.create({ taskId: task._id as unknown as any, teamId: task.assignedTeamId as unknown as any, type, severity, message, metadata });
     logger.info('alert created', { taskId: task._id, type, severity });
+    void publishToStream('alert:events', {
+      alertId: String(alert._id), alertType: type, taskId: task._id,
+      teamId: task.assignedTeamId, severity, message,
+      timestamp: new Date().toISOString(),
+    });
   } else if (existing.severity !== severity || existing.message !== message) {
     logger.debug('alert-detector: upsertAlert updating existing', { alertId: String(existing._id), oldSeverity: existing.severity, newSeverity: severity });
     await alertRepository.updateById(existing._id as unknown as string, { severity, message, metadata });
     logger.info('alert updated', { alertId: String(existing._id), taskId: task._id, type, severity });
+    void publishToStream('alert:events', {
+      alertId: String(existing._id), alertType: type, taskId: task._id,
+      teamId: task.assignedTeamId, severity, message,
+      timestamp: new Date().toISOString(),
+    });
   } else {
     logger.debug('alert-detector: upsertAlert no change needed', { alertId: String(existing._id), taskId: task._id, type });
   }

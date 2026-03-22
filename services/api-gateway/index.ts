@@ -42,6 +42,10 @@ const proxyTasks             = createProxy(services.TASK_URL,     { "^/": "/task
 const proxyImportTasks       = createProxy(services.TASK_URL,     { "^/": "/import/tasks/" });
 const proxyProgress          = createProxy(services.PROGRESS_URL, { "^/": "/progress/" });
 const proxyAlerts            = createProxy(services.ALERT_URL,    { "^/": "/alerts/" });
+const proxyNotifications     = createProxy(services.NOTIFICATION_URL, { "^/": "/notifications/" });
+const proxyPreferences       = createProxy(services.NOTIFICATION_URL, { "^/": "/preferences/" });
+const proxySubscriptions     = createProxy(services.NOTIFICATION_URL, { "^/": "/subscriptions/" });
+const proxyRules             = createProxy(services.NOTIFICATION_URL, { "^/": "/rules/" });
 
 // ── Route registration helper: mount on /api/<path> AND /api/v1/<path> ─────
 function mount(path: string, ...handlers: RequestHandler[]): void {
@@ -59,6 +63,10 @@ mount("/members",            authenticate, proxyMembers);
 mount("/tasks",              authenticate, proxyTasks);
 mount("/progress",           authenticate, proxyProgress);
 mount("/alerts",             authenticate, proxyAlerts);
+mount("/notifications",      authenticate, proxyNotifications);
+mount("/preferences",        authenticate, proxyPreferences);
+mount("/subscriptions",      authenticate, proxySubscriptions);
+mount("/rules",              authenticate, proxyRules);
 mount("/api-keys",           authenticate, proxyApiKeys);
 mount("/import/teams",       authenticate, proxyImportTeams);
 mount("/import/members",     authenticate, proxyImportMembers);
