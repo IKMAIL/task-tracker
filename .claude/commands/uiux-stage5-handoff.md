@@ -13,7 +13,7 @@ Check that these documents exist and read them before starting:
 - `docs/requirements/scope-definition.md` — MVP scope, MoSCoW backlog
 - `docs/design/api-contracts.md` — API endpoints and response shapes
 
-If any Stage 1–4 output is missing, inform the user that the missing stage must be completed first — the handoff package requires all prior stages. If requirements or design docs are missing, log gaps to `docs/design/uiux/design-ambiguity-log.md` and allow the user to proceed.
+If any Stage 1–4 output is missing, inform the user that the missing stage must be completed first — the handoff package requires all prior stages. If requirements or design docs are missing, log gaps to `docs/design/uiux/ambiguity-log.md` and allow the user to proceed.
 
 ## Instructions
 
@@ -27,7 +27,7 @@ Walk through each section **one at a time**. Present findings and recommendation
 
 ### Handling Incomplete Answers
 
-- "I don't know" → log to `docs/requirements/ambiguity-log.md` with status **Open**, use a reasonable default marked `[assumed]`, continue
+- "I don't know" → log to `docs/design/uiux/ambiguity-log.md` with status **Open**, use a reasonable default marked `[assumed]`, continue
 - Quality gate items that can't be checked → mark **Deferred** with the ambiguity log item ID
 
 ### Behavioral Guardrails
@@ -84,7 +84,7 @@ Capture all feedback from the stakeholder walkthrough as structured change reque
 - **Must-Have CRs block sign-off** — these must be resolved before the phase gate
 - **Should/Could/Won't CRs** are logged for future sprints — they do not block sign-off
 - For each resolved CR: note which stage output was updated (e.g., "Updated wireframe in Section X, hi-fi spec in Section Y")
-- For each deferred CR: log to `docs/requirements/ambiguity-log.md`
+- For each deferred CR: log to `docs/design/uiux/ambiguity-log.md`
 
 Present the CR log to the user. Ask: "Are all Must-Have change requests resolved?"
 

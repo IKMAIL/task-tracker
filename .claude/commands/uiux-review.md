@@ -13,7 +13,7 @@ All stage outputs must exist in `docs/design/uiux/`. List which are present and 
 | Wireframes | `docs/design/uiux/wireframes.md` | Present/Missing |
 | Design System | `docs/design/uiux/design-system.md` | Present/Missing |
 | Hi-Fi Specifications | `docs/design/uiux/hifi-specifications.md` | Present/Missing |
-| Handoff Package | `docs/design/uiux/developer-handoff.md` | Present/Missing |
+| Handoff Package | `docs/design/uiux/handoff.md` | Present/Missing |
 
 If any **stage output** (IA & User Flows, Wireframes, Design System, Hi-Fi Specifications, Handoff) is missing, recommend completing the relevant stage before proceeding. Allow the user to continue if they choose, but flag it as a risk.
 

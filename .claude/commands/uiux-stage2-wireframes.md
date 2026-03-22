@@ -23,7 +23,7 @@ Walk through screens **one at a time**, grouped by screen type. For each screen,
 
 ### Handling Incomplete Answers
 
-- "I don't know" → log to `docs/requirements/ambiguity-log.md` with status **Open**, continue with a reasonable default marked `[assumed]`
+- "I don't know" → log to `docs/design/uiux/ambiguity-log.md` with status **Open**, continue with a reasonable default marked `[assumed]`
 - Quality gate items that can't be checked → mark **Deferred** with the ambiguity log item ID
 
 ### Behavioral Guardrails

@@ -5,7 +5,7 @@ You are conducting Stage 4 of the UI/UX Design phase. The goal is to produce **f
 ## Pre-Requisite
 
 Check that these documents exist and read them before starting:
-- `docs/design/uiux/design-system.md` — component library, color tokens, typography scale, spacing scale, elevation, iconography (from Stage 3)
+- `docs/design/uiux/design-system.md` — component library, color tokens, typography scale, spacing scale, elevation & border radius, component inventory, icon set, motion conventions (from Stage 3)
 - `docs/design/uiux/wireframes.md` — low-fidelity screen specifications with content zones and responsive behavior (from Stage 2)
 - `docs/requirements/functional-requirements.md` — user stories, business rules, data dictionary
 - `docs/design/api-contracts.md` — endpoints, response shapes, error codes
@@ -24,7 +24,7 @@ Work through each wireframed screen **one at a time**, in the same order as the 
 
 ### Handling Incomplete Answers
 
-- "I don't know" → log to `docs/requirements/ambiguity-log.md` with status **Open**, use a reasonable default marked `[assumed]`, continue
+- "I don't know" → log to `docs/design/uiux/ambiguity-log.md` with status **Open**, use a reasonable default marked `[assumed]`, continue
 - Quality gate items that can't be checked → mark **Deferred** with the ambiguity log item ID
 
 ### Behavioral Guardrails
@@ -206,7 +206,7 @@ This table serves as the single source of truth for all user-facing text, enabli
 
 **Save** to `docs/design/uiux/hifi-specifications.md`
 
-**Recommend** proceeding to `/uiux-stage5-prototypes` (or the next applicable stage)
+**Recommend** proceeding to `/uiux-stage5-handoff`
 
 ## Quality Gate
 

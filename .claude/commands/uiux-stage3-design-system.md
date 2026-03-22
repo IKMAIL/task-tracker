@@ -10,7 +10,7 @@ Check that these documents exist and read them:
 - `docs/requirements/nonfunctional-requirements.md` — accessibility targets, performance budgets
 - `apps/web-frontend/src/styles/global.css` — audit existing tokens, colors, and patterns already in use
 
-If `wireframes.md` is missing, inform the user that Stage 2 must be completed first — the design system must reference wireframed screens. If other files are missing, log gaps to `docs/design/uiux/design-ambiguity-log.md` and allow the user to proceed.
+If `wireframes.md` is missing, inform the user that Stage 2 must be completed first — the design system must reference wireframed screens. If other files are missing, log gaps to `docs/design/uiux/ambiguity-log.md` and allow the user to proceed.
 
 ## Instructions
 
@@ -24,7 +24,7 @@ Walk through each design decision **one at a time**. Present options, trade-offs
 
 ### Handling Incomplete Answers
 
-- "I don't know" → log to `docs/design/uiux/design-ambiguity-log.md` with status **Open**, continue to next decision
+- "I don't know" → log to `docs/design/uiux/ambiguity-log.md` with status **Open**, continue to next decision
 - Quality gate items that can't be checked → mark **Deferred** with ambiguity log ID
 
 ### Behavioral Guardrails
@@ -158,6 +158,35 @@ Define the scale with usage guidelines:
 
 For each value, specify when to use it with examples from the wireframed screens.
 
+**Decision 4b: Elevation & Border Radius Scale**
+
+Define visual depth and corner rounding tokens:
+
+**Elevation (box-shadow):**
+```css
+:root {
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);    /* cards, subtle lift */
+  --shadow-md: 0 4px 6px rgba(0,0,0,0.07);     /* dropdowns, popovers */
+  --shadow-lg: 0 10px 15px rgba(0,0,0,0.1);    /* modals, dialogs */
+  --shadow-xl: 0 20px 25px rgba(0,0,0,0.15);   /* toast stacks, overlays */
+}
+```
+
+**Border radius:**
+```css
+:root {
+  --radius-sm: 4px;     /* badges, small tags */
+  --radius-md: 8px;     /* cards, inputs, buttons */
+  --radius-lg: 12px;    /* modals, panels */
+  --radius-full: 9999px; /* avatars, pills */
+}
+```
+
+Decisions to make:
+- Which elevation level maps to which component? (cards = sm, dropdowns = md, modals = lg)
+- Preferred corner style: sharp, slightly rounded, or fully rounded?
+- Dark mode shadow adjustments (shadows are less visible on dark backgrounds — consider increasing opacity or using border instead)
+
 **Decision 5: Component Inventory**
 
 Build the full inventory organized by Atomic Design levels. Cross-reference wireframed screens to ensure coverage.
@@ -243,6 +272,7 @@ Generate the **Design System Document** with these sections:
 2. **Color Tokens** — light + dark themes as CSS custom properties, contrast verification table
 3. **Typography Scale** — full scale as CSS custom properties
 4. **Spacing Scale** — values with usage guidelines
+4b. **Elevation & Border Radius** — shadow scale, radius scale, component-to-elevation mapping
 5. **Component Inventory** — full Atoms/Molecules/Organisms table with states, props, accessibility
 6. **Component State Matrix** — every interactive component with all visual states
 7. **Icon Set Decision** — choice, rationale, estimated icon count
@@ -277,6 +307,18 @@ Generate the **Design System Document** with these sections:
        sizeMono: string;
      };
      spacing: Record<string, string>;
+     elevation: {
+       sm: string;
+       md: string;
+       lg: string;
+       xl: string;
+     };
+     borderRadius: {
+       sm: string;
+       md: string;
+       lg: string;
+       full: string;
+     };
      transitions: {
        fast: string;
        normal: string;
@@ -300,6 +342,8 @@ Before marking this stage complete, confirm:
 - [ ] Color contrast ratios verified >= 4.5:1 for all text-on-background pairs (WCAG AA)
 - [ ] Typography scale is complete (display through mono) with sizes, weights, and line heights
 - [ ] Spacing scale defined with usage guidelines for each value
+- [ ] Elevation scale defined (shadow tokens) with component-to-elevation mapping
+- [ ] Border radius scale defined with usage guidelines
 - [ ] Component inventory covers all Atoms, Molecules, and Organisms needed for wireframed screens
 - [ ] Every interactive component has all states documented in the state matrix
 - [ ] Icon set selected with rationale

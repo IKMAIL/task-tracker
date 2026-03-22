@@ -10,7 +10,7 @@ Check that these documents exist and read them:
 - `docs/design/high-level-design.md` — frontend architecture decision (SPA/SSR, state management, routing strategy)
 - `docs/design/api-contracts.md` — API endpoints (informs what data each page fetches and what actions are available)
 
-If any are missing, inform the user which ones are absent and recommend completing the prerequisite phase first. Allow them to proceed if they choose, but log missing inputs to `docs/design/design-ambiguity-log.md`.
+If any are missing, inform the user which ones are absent and recommend completing the prerequisite phase first. Allow them to proceed if they choose, but log missing inputs to `docs/design/uiux/ambiguity-log.md`.
 
 Also read these if they exist (optional but valuable):
 - `docs/requirements/business-context.md` — user personas, glossary
@@ -29,7 +29,7 @@ Walk through each decision **one at a time**. For each decision, present options
 
 ### Handling Incomplete Answers
 
-- If the user answers "I don't know" or is unsure, log the item to `docs/design/design-ambiguity-log.md` with status **Open** and continue — do not block the stage
+- If the user answers "I don't know" or is unsure, log the item to `docs/design/uiux/ambiguity-log.md` with status **Open** and continue — do not block the stage
 - If a quality gate item cannot be checked due to missing answers, mark it as **Deferred** with the specific ambiguity log item ID
 
 ### Behavioral Guardrails
