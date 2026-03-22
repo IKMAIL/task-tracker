@@ -20,6 +20,7 @@ import ApiKeysPage from './pages/ApiKeysPage';
 import AuditLogPage from './pages/AuditLogPage';
 import KanbanBoard from './pages/KanbanBoard';
 import AdminUsers from './pages/AdminUsers';
+import PreferencesPage from './pages/PreferencesPage';
 import './styles/global.css';
 
 function App() {
@@ -47,6 +48,7 @@ function App() {
             <Route path="/settings/api-keys"              element={<ApiKeysPage />} />
             <Route path="/audit"                           element={<AuditLogPage />} />
             <Route path="/admin/users"                     element={<AdminUsers />} />
+            <Route path="/preferences/notifications"       element={<PreferencesPage />} />
           </Route>
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

@@ -6,10 +6,12 @@ import connectDB from './src/config/db';
 import { connectRedis } from './src/utils/redisClient';
 import { startStreamConsumer } from './src/utils/streamConsumer';
 import { initSocketServer } from './src/utils/socketServer';
-import { startEmailWorker } from './src/utils/queues';
+import { startEmailWorker, startSnoozeWorker } from './src/utils/queues';
+import { startDigestWorker } from './src/services/digestWorker';
 import notificationRoutes from './src/routes/notificationRoutes';
 import preferenceRoutes from './src/routes/preferenceRoutes';
 import subscriptionRoutes from './src/routes/subscriptionRoutes';
+import ruleRoutes from './src/routes/ruleRoutes';
 import { errorHandler, logger, requestLogger } from '@task-tracker/utils';
 
 const app = express();
@@ -24,6 +26,7 @@ app.get('/health', (_req, res) => res.json({ status: 'ok', service: 'notificatio
 app.use('/notifications', notificationRoutes);
 app.use('/preferences', preferenceRoutes);
 app.use('/subscriptions', subscriptionRoutes);
+app.use('/rules', ruleRoutes);
 
 app.use(errorHandler);
 
@@ -34,6 +37,8 @@ connectDB()
   .then(() => {
     initSocketServer(httpServer);
     startEmailWorker();
+    startSnoozeWorker();
+    startDigestWorker();
     return startStreamConsumer();
   })
   .then(() => {

@@ -2,7 +2,12 @@ import { Redis } from 'ioredis';
 import { logger } from '@task-tracker/utils';
 import { getRedisClient } from './redisClient';
 import * as notificationRepository from '../repositories/notificationRepository';
-import { NotificationType, NotificationSeverity, NotificationSourceType } from '../models/Notification';
+import * as preferenceRepo from '../repositories/preferenceRepository';
+import * as ruleRepo from '../repositories/ruleRepository';
+import { NotificationType, NotificationSeverity, NotificationSourceType, INotification } from '../models/Notification';
+import { evaluateRules } from '../services/ruleEngine';
+import { resolveChannels } from '../services/preferenceResolver';
+import { emailQueue, EmailJob } from './queues';
 
 const STREAMS = ['task:events', 'progress:events', 'alert:events'] as const;
 const GROUP = process.env.REDIS_STREAM_CONSUMER_GROUP || 'notification-svc';
@@ -148,7 +153,40 @@ async function processEntry(stream: string, messageId: string, fields: string[])
     partial.userId
   );
 
-  await notificationRepository.create({ ...partial, idempotencyKey: key });
+  const notification = await notificationRepository.create({ ...partial, idempotencyKey: key });
+  if (!notification) return; // duplicate — already processed
+
+  // Apply preference resolver + rule engine
+  try {
+    const [pref, rules] = await Promise.all([
+      preferenceRepo.findByUser(partial.userId),
+      ruleRepo.findActiveByUser(partial.userId),
+    ]);
+
+    const ruleResult = await evaluateRules(notification as INotification, rules);
+    const resolved = resolveChannels(notification as INotification, pref, ruleResult);
+
+    if (resolved.shouldSuppress) {
+      logger.debug('streamConsumer: notification suppressed by rules/prefs', { userId: partial.userId });
+      return;
+    }
+
+    // Queue email delivery if enabled for this user
+    if (resolved.channels.includes('email')) {
+      const emailJob: EmailJob = {
+        notificationId: (notification._id as { toString(): string }).toString(),
+        userId: partial.userId,
+        to: partial.userId, // identity-service email lookup deferred to email worker
+        subject: notification.title,
+        html: `<p>${notification.body}</p>`,
+        plainText: notification.body,
+      };
+      void emailQueue.add('notification-email', emailJob);
+    }
+  } catch (err) {
+    logger.warn('streamConsumer: preference/rule resolution failed', { error: (err as Error).message });
+  }
+
   logger.debug('streamConsumer: notification created', { stream, messageId, type: partial.type, userId: partial.userId });
 }
 

@@ -20,6 +20,7 @@ export default function Header() {
         <NavLink to="/tasks" className={cls}>Tasks</NavLink>
         <NavLink to="/kanban" className={cls}>Kanban</NavLink>
         <NavLink to="/alerts" className={cls}>Alerts</NavLink>
+        <NavLink to="/preferences/notifications" className={cls}>Preferences</NavLink>
         <NavLink to="/import" className={cls}>Import</NavLink>
         {user?.role === 'admin' && <NavLink to="/settings/api-keys" className={cls}>API Keys</NavLink>}
         {user?.role === 'admin' && <NavLink to="/audit" className={cls}>Audit Log</NavLink>}
