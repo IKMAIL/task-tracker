@@ -1,3 +1,30 @@
+# Global CSS Redesign — Tactical Theme
+
+## Branch
+`claude/revalidate-ui-ux-I8I3r`
+
+## Plan
+
+- [x] **1. Typography** — Import Raleway (heading) + Mulish (body) from Google Fonts
+- [x] **2. Color palette** — Replace all tokens with Tactical palette (charcoal bg, orange accent, teal secondary)
+- [x] **3. Dark theme** — Update `[data-theme="dark"]` to match Tactical dark colors
+- [x] **4. Atmospheric backgrounds** — body dot grid, header glass morphism, login gradient, stat-card hover gradient
+- [x] **5. Keyframe animations** — page-fade-in, card-lift, btn-press; staggered stat-card delays
+- [x] **6. Component refinements** — header 64px, btn-primary gradient, login-card elevated, kanban left border, table header, focus glow
+- [x] **7. Commit & push**
+
+## Review
+
+### Summary
+Full global CSS overhaul implementing the Tactical theme:
+- **Fonts**: Raleway (headings, display) + Mulish (body) imported from Google Fonts
+- **Palette**: Deep charcoal (#0D1117 dark bg), electric orange (#F97316) primary, teal (#0D9488) secondary; light theme uses warm off-white (#F5F4F0)
+- **Backgrounds**: Dot-grid pattern on body (SVG data URI), glass morphism on header, multi-layer gradient on login page, hover gradients on cards
+- **Animations**: page-fade-in, card-lift keyframes, btn-press scale, staggered stat-card entry delays (nth-child 1–6)
+- **Components**: header at 64px with glass effect, btn-primary gradient, login-card wider + elevated, kanban columns with colored left border per status, table header with orange accent underline, focus glow in teal
+
+---
+
 # System Design & Architecture Phase — Skills Implementation Plan
 
 ## Context
