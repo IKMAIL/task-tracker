@@ -2,6 +2,7 @@ import Task from '../models/Task';
 import { FilterQuery } from 'mongoose';
 import { ITask, IRecurrence } from '../models/Task';
 import { logger, AuditUser } from '@task-tracker/utils';
+import { publishToStream } from '../utils/streamPublisher';
 
 export interface PaginationOptions {
   page?: number | string;
@@ -26,6 +27,12 @@ export const create = async (data: Partial<ITask>, auditUser?: AuditUser) => {
   }
   const task = await doc.save();
   logger.debug('taskRepository.create result', { taskId: String(task._id) });
+  void publishToStream('task:events', {
+    type: 'task.created', taskId: String(task._id),
+    teamId: String(task.assignedTeamId || ''), actorId: auditUser?.userId || '',
+    assigneeId: String(task.assignedPersonId || ''),
+    taskTitle: task.title || '', timestamp: new Date().toISOString(),
+  });
   return task;
 };
 
@@ -71,6 +78,21 @@ export const updateById = async (id: string, data: Partial<ITask>, auditUser?: A
     { new: true, runValidators: true, ...(auditUser ? { auditUser } : {}), ...(auditReason ? { auditReason } : {}) }
   ).lean();
   logger.debug('taskRepository.updateById result', { id, found: !!task, task });
+  if (task) {
+    const t = task as unknown as ITask;
+    const eventType = data.status ? 'task.status_changed'
+      : data.assignedPersonId !== undefined ? 'task.assigned'
+      : 'task.updated';
+    void publishToStream('task:events', {
+      type: eventType, taskId: id,
+      teamId: String(t.assignedTeamId || ''),
+      actorId: auditUser?.userId || '',
+      assigneeId: String(t.assignedPersonId || ''),
+      taskTitle: t.title || '',
+      newStatus: data.status || '',
+      timestamp: new Date().toISOString(),
+    });
+  }
   return task;
 };
 

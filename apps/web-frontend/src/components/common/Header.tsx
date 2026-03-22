@@ -2,6 +2,7 @@ import React from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
+import NotificationBell from '../notifications/NotificationBell';
 
 export default function Header() {
   const { user, logout } = useAuth();
@@ -25,6 +26,7 @@ export default function Header() {
         {user?.role === 'admin' && <NavLink to="/admin/users" className={cls}>Users</NavLink>}
       </nav>
       <div className="header-user">
+        <NotificationBell />
         <span>{user?.name}</span>
         <button onClick={toggleTheme} className="btn-theme" aria-label="Toggle theme">
           {theme === 'light' ? 'Dark' : 'Light'}

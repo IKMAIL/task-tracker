@@ -20,6 +20,15 @@ services:
       MICROSOFT_TENANT_ID: ${MICROSOFT_TENANT_ID}
       ADMIN_GROUP_ID: ${ADMIN_GROUP_ID}
 
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+
   task-service:
     build:
       context: ../
@@ -27,11 +36,14 @@ services:
     restart: unless-stopped
     ports:
       - "3002:3002"
+    depends_on:
+      - redis
     environment:
       PORT: 3002
       MONGO_URI: ${TASK_MONGO_URI}
       JWT_SECRET: ${JWT_SECRET}
       SERVICE_TOKEN: ${SERVICE_TOKEN}
+      REDIS_URL: redis://redis:6379
 
   progress-service:
     build:
@@ -40,12 +52,15 @@ services:
     restart: unless-stopped
     ports:
       - "3003:3003"
+    depends_on:
+      - redis
     environment:
       PORT: 3003
       MONGO_URI: ${PROGRESS_MONGO_URI}
       JWT_SECRET: ${JWT_SECRET}
       SERVICE_TOKEN: ${SERVICE_TOKEN}
       TASK_SERVICE_URL: http://task-service:3002
+      REDIS_URL: redis://redis:6379
 
   alert-service:
     build:
@@ -54,6 +69,8 @@ services:
     restart: unless-stopped
     ports:
       - "3004:3004"
+    depends_on:
+      - redis
     environment:
       PORT: 3004
       MONGO_URI: ${ALERTS_MONGO_URI}
@@ -61,6 +78,7 @@ services:
       SERVICE_TOKEN: ${SERVICE_TOKEN}
       TASK_SERVICE_URL: http://task-service:3002
       PROGRESS_SERVICE_URL: http://progress-service:3003
+      REDIS_URL: redis://redis:6379
 
   team-service:
     build:
@@ -75,6 +93,24 @@ services:
       JWT_SECRET: ${JWT_SECRET}
       SERVICE_TOKEN: ${SERVICE_TOKEN}
 
+  notification-service:
+    build:
+      context: ../
+      dockerfile: services/notification-service/Dockerfile
+    restart: unless-stopped
+    ports:
+      - "3007:3007"
+    depends_on:
+      - redis
+    environment:
+      PORT: 3007
+      MONGO_URI: ${NOTIFICATION_MONGO_URI}
+      JWT_SECRET: ${JWT_SECRET}
+      SERVICE_TOKEN: ${SERVICE_TOKEN}
+      REDIS_URL: redis://redis:6379
+      REDIS_STREAM_CONSUMER_GROUP: notification-svc
+      REDIS_STREAM_CONSUMER_NAME: notification-worker-1
+
   api-gateway:
     build:
       context: ../
@@ -82,6 +118,8 @@ services:
     restart: unless-stopped
     ports:
       - "3000:3000"
+    depends_on:
+      - notification-service
     environment:
       PORT: 3000
       JWT_SECRET: ${JWT_SECRET}
@@ -90,6 +128,7 @@ services:
       PROGRESS_SERVICE_URL: http://progress-service:3003
       ALERT_SERVICE_URL: http://alert-service:3004
       TEAM_SERVICE_URL: http://team-service:3006
+      NOTIFICATION_SERVICE_URL: http://notification-service:3007
 
   web-frontend:
     build:
@@ -102,3 +141,4 @@ services:
 
 volumes:
   mongo_data:
+  redis_data:
