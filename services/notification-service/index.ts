@@ -6,7 +6,7 @@ import connectDB from './src/config/db';
 import { connectRedis } from './src/utils/redisClient';
 import { startStreamConsumer } from './src/utils/streamConsumer';
 import { initSocketServer } from './src/utils/socketServer';
-import { startEmailWorker, startSnoozeWorker } from './src/utils/queues';
+import { startEmailWorker, startSnoozeWorker, closeSnoozeWorker } from './src/utils/queues';
 import { startDigestWorker } from './src/services/digestWorker';
 import notificationRoutes from './src/routes/notificationRoutes';
 import preferenceRoutes from './src/routes/preferenceRoutes';
@@ -50,3 +50,12 @@ connectDB()
     logger.error('notification-service failed to start', { error: (err as Error).message });
     process.exit(1);
   });
+
+// Graceful shutdown — close workers before exiting so in-flight jobs are not abandoned
+async function shutdown(signal: string): Promise<void> {
+  logger.info('notification-service: shutdown signal received', { signal });
+  await closeSnoozeWorker();
+  httpServer.close(() => process.exit(0));
+}
+process.once('SIGTERM', () => void shutdown('SIGTERM'));
+process.once('SIGINT',  () => void shutdown('SIGINT'));

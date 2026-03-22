@@ -50,15 +50,19 @@ export const digestQueue = new Queue<DigestJob>('digest-delivery', {
 
 /**
  * Schedule a delayed snooze wake-up job.
- * The job fires at `wakeAt`, clears snoozeUntil, and re-emits the notification via socket.
+ * Removes any existing delayed job for this notification first so that re-snoozing
+ * always honours the latest wake-up time (BullMQ silently no-ops when a job with the
+ * same ID already exists, so we must remove the old one explicitly).
  */
 export async function scheduleSnoozeWakeup(notificationId: string, userId: string, wakeAt: Date): Promise<void> {
+  const jobId = `snooze:${notificationId}`;
+  // Remove previous delayed job if present (returns null when not found — safe to ignore)
+  const existing = await snoozeQueue.getJob(jobId);
+  if (existing) {
+    await existing.remove();
+  }
   const delayMs = Math.max(0, wakeAt.getTime() - Date.now());
-  await snoozeQueue.add(
-    'snooze-wakeup',
-    { notificationId, userId },
-    { delay: delayMs, jobId: `snooze:${notificationId}` }
-  );
+  await snoozeQueue.add('snooze-wakeup', { notificationId, userId }, { delay: delayMs, jobId });
   logger.debug('queues: snooze job scheduled', { notificationId, delayMs });
 }
 
@@ -89,8 +93,10 @@ export function startEmailWorker(): void {
   });
 }
 
+let snoozeWorkerInstance: Worker<SnoozeJob> | null = null;
+
 export function startSnoozeWorker(): void {
-  const worker = new Worker<SnoozeJob>(
+  snoozeWorkerInstance = new Worker<SnoozeJob>(
     'snooze-delivery',
     async (job: Job<SnoozeJob>) => {
       const { notificationId, userId } = job.data;
@@ -106,9 +112,17 @@ export function startSnoozeWorker(): void {
     { connection: makeConnection(), concurrency: 10 }
   );
 
-  worker.on('failed', (job, err) => {
+  snoozeWorkerInstance.on('failed', (job, err) => {
     if (job) {
       logger.warn('snoozeWorker: job failed', { jobId: job.id, error: err.message });
     }
   });
+}
+
+/** Close the snooze worker gracefully (call during process shutdown). */
+export async function closeSnoozeWorker(): Promise<void> {
+  if (snoozeWorkerInstance) {
+    await snoozeWorkerInstance.close();
+    snoozeWorkerInstance = null;
+  }
 }

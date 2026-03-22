@@ -1,3 +1,4 @@
+import mongoose from 'mongoose';
 import Notification, { INotification, NotificationType, NotificationSeverity, NotificationSourceType } from '../models/Notification';
 import { logger } from '@task-tracker/utils';
 import { emitToUser } from '../utils/socketServer';
@@ -68,6 +69,10 @@ export const archive = async (userId: string, id: string): Promise<boolean> => {
 };
 
 export const clearSnooze = async (id: string, userId: string): Promise<INotification | null> => {
+  if (!mongoose.isValidObjectId(id)) {
+    logger.warn('notificationRepository.clearSnooze: invalid ObjectId', { id });
+    return null;
+  }
   const doc = await Notification.findOneAndUpdate(
     { _id: id, userId },
     { $unset: { snoozeUntil: '' } },
