@@ -601,7 +601,7 @@ h1, h2 {
   display: block;
   margin-top: 8px;
   font-size: 0.8rem;
-  color: var(--color-primary);
+  color: var(--color-secondary-dark);
   text-decoration: none;
 }
 .stats-grid {
@@ -1083,7 +1083,7 @@ h1, h2 {
   text-decoration: none;
 }
 .kanban-card-title a:hover {
-  color: var(--color-primary);
+  color: var(--color-secondary-dark);
   text-decoration: underline;
 }
 
@@ -1139,12 +1139,6 @@ h1, h2 {
   box-shadow: var(--shadow-md);
 }
 
-/* ── Tab active: orange underline, teal text (WCAG AA) ──────────────────── */
-.tab-bar button.active {
-  border-bottom-color: var(--color-primary);
-  color: var(--color-secondary-dark);
-}
-
 /* ── Focus ring: teal secondary ─────────────────────────────────────────── */
 .form-group input:focus,
 .form-group select:focus,
@@ -1153,16 +1147,11 @@ h1, h2 {
   border-color: transparent;
 }
 
-/* ── Breadcrumb link: teal-dark (WCAG AA) ───────────────────────────────── */
-.breadcrumb a {
-  color: var(--color-secondary-dark);
-}
-
 /* ── Quick action btn: teal hover accent ────────────────────────────────── */
 .quick-action-btn:hover {
   background: var(--accent-light);
   border-color: rgba(249, 115, 22, 0.35);
-  color: var(--color-primary);
+  color: var(--color-secondary-dark);
 }
 
 /* ── Kanban column status borders ───────────────────────────────────────── */

@@ -245,3 +245,60 @@ Alpha changes the shadow tint from `rgba(30,18,8,0.14)` to `rgba(15,23,42,0.10)`
   - `.btn-sm`: add `border: 1px solid var(--border)` to give the button visual definition on white surfaces
   - `body` background dot-grid: raise opacity from `0.07` to `0.09` to keep the pattern legible on lighter page base
 - Apply changes atomically — the gray ramp tokens cascade into many components; a partial change will create inconsistency
+
+---
+
+## Joint Final Review
+
+### Confirmed Applied
+
+- **Gray ramp `--color-gray-100` through `--color-gray-600`**: All six values are correct zinc-adjacent values — `#E8EAED`, `#DDDFE3`, `#C2C4C9`, `#A1A1AA`, `#71717A`, `#52525B` (lines 16–21). Confirmed.
+- **`--color-gray-700/800/900`**: `#4A3F36`, `#2E251E`, `#1A120B` — untouched as agreed (lines 22–24). Confirmed.
+- **`--bg-page`**: `#F5F6F7` (line 29). Confirmed.
+- **`--bg-subtle`**: `#E8EAED` (line 31). Confirmed.
+- **`--border`**: `#DDDFE3` (line 38). Confirmed.
+- **`--text-muted`**: `#71717A` (line 37). Confirmed.
+- **`--text-secondary`**: `#52525B` (line 54). Confirmed — distinct from `--text-muted`, hierarchy restored.
+- **`--bg-btn-sm`**: `#EAEBED` (line 34). Confirmed.
+- **`--bg-btn-sm-hover`**: `#D4D5D9` (line 35). Confirmed.
+- **`--bg-secondary`**: `#E8EAED` (line 55). Confirmed.
+- **`--bg-code`**: `#F5F6F7` (line 57). Confirmed.
+- **Shadow values — neutral `rgba(0,0,0,x)` only**: `--shadow` = `0 1px 3px rgba(0,0,0,0.12)` (line 26), `--shadow-sm` = `0 1px 2px rgba(0,0,0,0.08)` (line 60), `--shadow-md` = `0 4px 12px rgba(0,0,0,0.10)` (line 61), `--shadow-lg` = `0 8px 28px rgba(0,0,0,0.15)` (line 62). All neutral, no warm-brown or Slate-blue tint. Confirmed.
+- **`.data-table a`**: `color: var(--color-secondary-dark)` (line 659). Confirmed.
+- **`.data-table tbody tr:hover`**: Rule exists at lines 662–665 with `background: var(--bg-subtle); cursor: pointer`. Confirmed.
+- **`.breadcrumb a` (primary definition, line 294–297)**: `color: var(--color-secondary-dark)`. Confirmed.
+- **`.breadcrumb a` (override block, line 1157–1159)**: `color: var(--color-secondary-dark)`. Confirmed — both locations correct.
+- **`.tab-bar button.active` (primary definition, lines 544–548)**: `color: var(--color-secondary-dark)`, `border-bottom-color: var(--color-primary)`. Confirmed.
+- **`.tab-bar button.active` (override block, lines 1143–1146)**: Same — teal text, orange underline. Confirmed.
+- **`.btn-sm`**: Has `border: 1px solid var(--border)` (line 234). Uses `var(--bg-btn-sm)` and `var(--text-primary)` — no hardcoded colors. Confirmed.
+- **Body dot-grid opacity**: `rgba(0,0,0,0.09)` (line 112). Raised from 0.07 as agreed. Confirmed.
+- **`[data-theme="dark"]` block**: Dark theme tokens present and consistent with the pre-review state (lines 71–96). Untouched. Confirmed.
+- **No warm-brown hex values in `:root`**: No instances of `#F5F4F0`, `#F1EEE9`, `#E2DDD6`, `#C9C2B8`, or similar warm-toned grays remain in the `:root` block.
+- **Focus ring**: Changed from `var(--color-primary)` to `var(--color-secondary)` (line 1152) — this is a bonus fix, not in the consensus, but correct: teal focus rings on form fields are better accessibility practice than orange.
+
+### Issues Found
+
+1. **`.stat-link` uses `color: var(--color-primary)` as navigational link text (line 604).** `.stat-link` is a block-level `<a>` tag that reads as a navigational affordance ("view all" style link on a stat card). Orange `#F97316` on `--bg-surface` white is ~3.0:1 — the same WCAG AA failure flagged for `.data-table a` and `.breadcrumb a`. This was not in the consensus but is the same class of bug. Should be `var(--color-secondary-dark)`.
+
+2. **`.kanban-card-title a:hover` uses `color: var(--color-primary)` (line 1086).** On hover the card title link turns orange on a white card surface — same ~3.0:1 failure. The default state (`var(--color-gray-900)`) is correct and passes. The hover state fails. Should be `var(--color-secondary-dark)` or `var(--color-primary-dark)` (`#EA6C0A`, ~3.8:1 — still a fail). The teal option is cleaner.
+
+3. **`.quick-action-btn:hover` sets `color: var(--color-primary)` (line 1165).** On hover it applies `background: var(--accent-light)` (`rgba(249,115,22,0.10)` — an orange tint on white, effective lightness close to white) and text `color: var(--color-primary)` (orange). This is another orange-on-near-white failure (~2.9:1 on the tinted background). This override block was added as part of the same pass — it introduces a new WCAG failure in fixing other ones. Should use `color: var(--color-secondary-dark)` or `color: var(--color-primary-dark)`.
+
+4. **Duplicate `.tab-bar button.active` rule block.** The rule appears twice: once at lines 544–548 (inside the main CSS body) and again at lines 1143–1146 (in an override comment block at the bottom). Both happen to be correct now, but the duplication is unnecessary technical debt. The bottom block should be removed to avoid future divergence bugs. Not a rendering issue today but a maintenance risk.
+
+5. **Duplicate `.breadcrumb a` rule block.** Same issue — defined at line 294 and again at line 1157. Both are correct (`var(--color-secondary-dark)`), but duplication is redundant. The bottom override (line 1157) was presumably added to fix the original definition, but the original was already corrected. The bottom block can be removed.
+
+### Verdict
+
+NEEDS_FIXES
+
+The token changes and the primary consensus items are all correctly applied. The gray ramp, semantic tokens, shadows, `--bg-page`, `--bg-subtle`, `--border`, `--text-muted`, `--text-secondary`, `.data-table a`, `.data-table tbody tr:hover`, `.breadcrumb a` (both locations), `.tab-bar button.active` (both locations), `.btn-sm` border, and dot-grid opacity are all correct.
+
+However three new WCAG AA contrast failures remain in the CSS — `.stat-link`, `.kanban-card-title a:hover`, and `.quick-action-btn:hover` — all using `color: var(--color-primary)` (orange `#F97316`) on white or near-white backgrounds, achieving ~3.0:1 contrast. These are the same class of bug the consensus explicitly resolved for other selectors, and they must be fixed with the same solution (`var(--color-secondary-dark)`). There are also two harmless but messy duplicate rule blocks that should be cleaned up.
+
+**Exact fixes required:**
+- Line 604: `.stat-link { color: var(--color-secondary-dark); }` (remove `var(--color-primary)`)
+- Line 1086: `.kanban-card-title a:hover { color: var(--color-secondary-dark); }` (remove `var(--color-primary)`)
+- Line 1165: `.quick-action-btn:hover { color: var(--color-secondary-dark); }` (remove `var(--color-primary)`)
+- Remove duplicate `.tab-bar button.active` block at lines 1143–1146 (the earlier definition at lines 544–548 is sufficient and correct)
+- Remove duplicate `.breadcrumb a` block at lines 1157–1159 (the earlier definition at lines 294–297 is sufficient and correct)
