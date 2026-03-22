@@ -9,7 +9,7 @@ export const authenticate = (req: Request, res: Response, next: NextFunction): v
     return;
   }
   try {
-    req.user = jwt.verify(header.slice(7), process.env.JWT_SECRET as string) as Request['user'];
+    req.user = jwt.verify(header.slice(7), process.env.JWT_SECRET as string, { algorithms: ['HS256'] }) as Request['user'];
     next();
   } catch {
     logger.warn('auth: invalid token', { method: req.method, path: req.path });

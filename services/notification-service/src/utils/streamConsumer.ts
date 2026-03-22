@@ -14,6 +14,8 @@ const GROUP = process.env.REDIS_STREAM_CONSUMER_GROUP || 'notification-svc';
 const CONSUMER = process.env.REDIS_STREAM_CONSUMER_NAME || 'notification-worker-1';
 const BLOCK_MS = 5000;
 
+let _running = false;
+
 type StreamEvent = Record<string, string>;
 
 async function ensureGroups(redis: Redis): Promise<void> {
@@ -181,7 +183,9 @@ async function processEntry(stream: string, messageId: string, fields: string[])
         html: `<p>${notification.body}</p>`,
         plainText: notification.body,
       };
-      void emailQueue.add('notification-email', emailJob);
+      await emailQueue.add('notification-email', emailJob).catch((err: Error) => {
+        logger.warn('streamConsumer: failed to enqueue email job', { error: err.message, userId: partial.userId });
+      });
     }
   } catch (err) {
     logger.warn('streamConsumer: preference/rule resolution failed', { error: (err as Error).message });
@@ -191,6 +195,7 @@ async function processEntry(stream: string, messageId: string, fields: string[])
 }
 
 export async function startStreamConsumer(): Promise<void> {
+  _running = true;
   const redis = getRedisClient();
   await ensureGroups(redis);
   logger.info('streamConsumer: starting', { group: GROUP, consumer: CONSUMER, streams: STREAMS });
@@ -199,8 +204,13 @@ export async function startStreamConsumer(): Promise<void> {
   void consumeLoop(redis);
 }
 
+export function stopStreamConsumer(): void {
+  _running = false;
+  logger.info('streamConsumer: stop requested');
+}
+
 async function consumeLoop(redis: Redis): Promise<void> {
-  while (true) {
+  while (_running) {
     try {
       const results = await redis.xreadgroup(
         'GROUP', GROUP, CONSUMER,

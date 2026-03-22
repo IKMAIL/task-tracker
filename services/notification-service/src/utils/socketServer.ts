@@ -6,8 +6,9 @@ import { logger } from '@task-tracker/utils';
 let io: SocketServer | null = null;
 
 export function initSocketServer(httpServer: HttpServer): SocketServer {
+  const allowedOrigins = (process.env.ALLOWED_ORIGINS || process.env.FRONTEND_URL || 'http://localhost:3005').split(',');
   io = new SocketServer(httpServer, {
-    cors: { origin: '*', methods: ['GET', 'POST'] },
+    cors: { origin: allowedOrigins, methods: ['GET', 'POST'], credentials: true },
     transports: ['websocket', 'polling'],
   });
 
@@ -17,7 +18,10 @@ export function initSocketServer(httpServer: HttpServer): SocketServer {
       return next(new Error('Authentication error: no token'));
     }
     try {
-      const payload = jwt.verify(token, process.env.JWT_SECRET as string) as { sub: string };
+      const payload = jwt.verify(token, process.env.JWT_SECRET as string, { algorithms: ['HS256'] }) as { sub: string; exp?: number };
+      if (payload.exp && payload.exp * 1000 < Date.now()) {
+        return next(new Error('Authentication error: token expired'));
+      }
       (socket as Socket & { userId: string }).userId = payload.sub;
       next();
     } catch {
@@ -25,9 +29,9 @@ export function initSocketServer(httpServer: HttpServer): SocketServer {
     }
   });
 
-  io.on('connection', (socket) => {
+  io.on('connection', async (socket) => {
     const userId = (socket as Socket & { userId: string }).userId;
-    void socket.join(`user:${userId}`);
+    await socket.join(`user:${userId}`);
     logger.debug('socket: user connected', { userId, socketId: socket.id });
 
     socket.on('catch_up', async ({ lastSeenAt }: { lastSeenAt?: string }) => {
@@ -37,6 +41,7 @@ export function initSocketServer(httpServer: HttpServer): SocketServer {
       const missed = await Notification.find({
         userId,
         createdAt: { $gt: new Date(lastSeenAt) },
+        archivedAt: null,
       }).sort({ createdAt: 1 }).limit(200).lean();
       socket.emit('notification:batch', missed);
     });

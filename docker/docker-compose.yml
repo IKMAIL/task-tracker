@@ -28,6 +28,11 @@ services:
     volumes:
       - redis_data:/data
     command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   task-service:
     build:
@@ -37,7 +42,8 @@ services:
     ports:
       - "3002:3002"
     depends_on:
-      - redis
+      redis:
+        condition: service_healthy
     environment:
       PORT: 3002
       MONGO_URI: ${TASK_MONGO_URI}
@@ -53,7 +59,8 @@ services:
     ports:
       - "3003:3003"
     depends_on:
-      - redis
+      redis:
+        condition: service_healthy
     environment:
       PORT: 3003
       MONGO_URI: ${PROGRESS_MONGO_URI}
@@ -70,7 +77,8 @@ services:
     ports:
       - "3004:3004"
     depends_on:
-      - redis
+      redis:
+        condition: service_healthy
     environment:
       PORT: 3004
       MONGO_URI: ${ALERTS_MONGO_URI}
@@ -101,7 +109,8 @@ services:
     ports:
       - "3007:3007"
     depends_on:
-      - redis
+      redis:
+        condition: service_healthy
     environment:
       PORT: 3007
       MONGO_URI: ${NOTIFICATION_MONGO_URI}

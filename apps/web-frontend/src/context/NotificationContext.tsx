@@ -33,7 +33,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
   const [isConnected, setIsConnected] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const socketRef = useRef<Socket | null>(null);
-  const lastSeenAtRef = useRef<string | null>(null);
+  const lastSeenAtRef = useRef<string | null>(localStorage.getItem('notification_last_seen_at'));
 
   // Connect socket when user is authenticated
   useEffect(() => {
@@ -49,10 +49,9 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
 
     socket.on('connect', () => {
       setIsConnected(true);
-      // Catch up on missed notifications
-      if (lastSeenAtRef.current) {
-        socket.emit('catch_up', { lastSeenAt: lastSeenAtRef.current });
-      }
+      // Catch up on missed notifications; use stored timestamp or current time as lower bound
+      const sinceAt = lastSeenAtRef.current || new Date(Date.now() - 60 * 1000).toISOString();
+      socket.emit('catch_up', { lastSeenAt: sinceAt });
     });
 
     socket.on('disconnect', () => setIsConnected(false));
@@ -61,6 +60,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
       setNotifications((prev) => [notification, ...prev]);
       setUnreadCount((c) => c + 1);
       lastSeenAtRef.current = notification.createdAt;
+      localStorage.setItem('notification_last_seen_at', notification.createdAt);
     });
 
     socket.on('notification:batch', (batch: Notification[]) => {
@@ -71,7 +71,10 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
       });
       const newUnread = batch.filter((n) => !n.isRead).length;
       setUnreadCount((c) => c + newUnread);
-      if (batch.length > 0) lastSeenAtRef.current = batch[batch.length - 1].createdAt;
+      if (batch.length > 0) {
+      lastSeenAtRef.current = batch[batch.length - 1].createdAt;
+      localStorage.setItem('notification_last_seen_at', lastSeenAtRef.current);
+    }
     });
 
     socket.on('unread_count:update', ({ count }: { count: number }) => {

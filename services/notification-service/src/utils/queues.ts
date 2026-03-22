@@ -4,7 +4,7 @@ import { logger } from '@task-tracker/utils';
 // Shared connection config
 const connection = { host: 'localhost', port: 6379 };
 
-function makeConnection() {
+export function makeConnection() {
   const url = process.env.REDIS_URL || 'redis://localhost:6379';
   try {
     const parsed = new URL(url);

@@ -107,11 +107,23 @@ function RuleModal({
   const handleSave = async () => {
     if (!name.trim()) return;
     setSaving(true);
+    // Parse condition values to correct types based on operator
+    const parsedConditions = conditions.map((c) => {
+      const raw = String(c.value);
+      let value: string | string[] | number = raw;
+      if (c.op === 'in' || c.op === 'not_in') {
+        value = raw.split(',').map((v) => v.trim()).filter(Boolean);
+      } else if (['gt', 'lt', 'gte', 'lte'].includes(c.op)) {
+        const num = Number(raw);
+        if (!isNaN(num)) value = num;
+      }
+      return { ...c, value };
+    });
     await onSave({
       name,
       isActive: rule?.isActive ?? true,
       priority: rule?.priority ?? 0,
-      conditionGroup: { logic, conditions },
+      conditionGroup: { logic, conditions: parsedConditions },
       actions: [{ kind: actionKind }],
     });
     setSaving(false);

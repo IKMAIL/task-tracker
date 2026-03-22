@@ -49,11 +49,11 @@ function isQuietHours(pref: INotificationPreference): boolean {
   const hour = currentHourInTz(qh.timezone || 'UTC');
   const { startHour, endHour } = qh;
 
-  if (startHour <= endHour) {
-    // e.g. 22:00–08:00 wraps midnight
+  if (startHour > endHour) {
+    // Midnight-wrapping window, e.g. 22:00–08:00: quiet when hour >= 22 OR hour < 8
     return hour >= startHour || hour < endHour;
   }
-  // e.g. 09:00–17:00 same day
+  // Same-day window, e.g. 09:00–17:00: quiet when 9 <= hour < 17
   return hour >= startHour && hour < endHour;
 }
 

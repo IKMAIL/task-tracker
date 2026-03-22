@@ -1,6 +1,6 @@
 import { Worker, Job } from 'bullmq';
 import { logger } from '@task-tracker/utils';
-import { digestQueue, emailQueue } from '../utils/queues';
+import { digestQueue, emailQueue, makeConnection } from '../utils/queues';
 import Notification from '../models/Notification';
 import NotificationPreference from '../models/NotificationPreference';
 import { NotificationSeverity, NotificationType } from '../models/Notification';
@@ -138,11 +138,7 @@ export function startDigestWorker(): void {
   const worker = new Worker<DigestJob>(
     'digest-delivery',
     processDigestJob,
-    { connection: (() => {
-      const url = process.env.REDIS_URL || 'redis://localhost:6379';
-      try { const p = new URL(url); return { host: p.hostname, port: Number(p.port) || 6379 }; }
-      catch { return { host: 'localhost', port: 6379 }; }
-    })(), concurrency: 5 }
+    { connection: makeConnection(), concurrency: 5 }
   );
 
   worker.on('failed', (job, err) => {
@@ -161,19 +157,32 @@ export function startDigestWorker(): void {
  * Called by a cron schedule — e.g., daily at 08:00 per user's timezone.
  */
 export async function enqueueDigestsForAllUsers(): Promise<void> {
-  const prefs = await NotificationPreference.find({
-    'channels.email.enabled': true,
-  })
-    .select('userId quietHours')
-    .lean();
+  const PAGE_SIZE = 500;
+  const today = new Date().toISOString().slice(0, 10);
+  let skip = 0;
+  let total = 0;
 
-  logger.info('digestWorker: enqueuing digests', { userCount: prefs.length });
+  while (true) {
+    const prefs = await NotificationPreference.find({ 'channels.email.enabled': true })
+      .select('userId quietHours')
+      .skip(skip)
+      .limit(PAGE_SIZE)
+      .lean();
 
-  for (const pref of prefs) {
-    await digestQueue.add(
-      'daily-digest',
-      { userId: pref.userId, timezone: pref.quietHours?.timezone || 'UTC' },
-      { jobId: `digest:${pref.userId}:${new Date().toISOString().slice(0, 10)}` }
-    );
+    if (prefs.length === 0) break;
+
+    for (const pref of prefs) {
+      await digestQueue.add(
+        'daily-digest',
+        { userId: pref.userId, timezone: pref.quietHours?.timezone || 'UTC' },
+        { jobId: `digest:${pref.userId}:${today}` }
+      );
+    }
+
+    total += prefs.length;
+    skip += PAGE_SIZE;
+    if (prefs.length < PAGE_SIZE) break;
   }
+
+  logger.info('digestWorker: enqueued digests', { total });
 }

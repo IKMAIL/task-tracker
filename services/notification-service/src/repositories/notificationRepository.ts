@@ -28,6 +28,10 @@ export const create = async (data: Partial<INotification>): Promise<INotificatio
   }
 };
 
+export const findById = async (userId: string, id: string): Promise<INotification | null> => {
+  return Notification.findOne({ _id: id, userId }).lean() as unknown as INotification | null;
+};
+
 export const findByUser = async (
   userId: string,
   { isRead, archived = false, page = 1, limit = 25 }: { isRead?: boolean; archived?: boolean; page?: number; limit?: number } = {}

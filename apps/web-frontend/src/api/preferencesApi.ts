@@ -34,7 +34,7 @@ export interface NotificationRule {
     conditions: Array<{
       field: string;
       op: string;
-      value: string | string[];
+      value: string | string[] | number;
     }>;
   };
   actions: Array<{ kind: string; severity?: string; channels?: string[]; tag?: string }>;

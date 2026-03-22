@@ -9,6 +9,7 @@ router.use(authenticate);
 router.get('/', ctrl.list);
 router.get('/unread-count', ctrl.unreadCount);
 router.post('/mark-read', ctrl.markRead);
+router.get('/:id', ctrl.getById);
 router.put('/:id/snooze', ctrl.snooze);
 router.delete('/:id', ctrl.dismiss);
 

@@ -68,6 +68,8 @@ const NotificationSchema = new Schema<INotification>(
 
 NotificationSchema.index({ userId: 1, isRead: 1, createdAt: -1 });
 NotificationSchema.index({ userId: 1, archivedAt: 1 });
+NotificationSchema.index({ userId: 1, snoozeUntil: 1 });
+NotificationSchema.index({ userId: 1, type: 1 });
 NotificationSchema.index({ idempotencyKey: 1 }, { unique: true });
 // TTL: auto-expire after 90 days
 NotificationSchema.index({ createdAt: 1 }, { expireAfterSeconds: 90 * 24 * 60 * 60 });
