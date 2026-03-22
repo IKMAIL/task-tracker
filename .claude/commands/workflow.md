@@ -9,7 +9,7 @@ You are running the full software development lifecycle for a MERN + TypeScript 
 | 1 | Requirements Gathering | `/requirements` | Business context, user stories, NFRs, technical constraints, scope | Signed requirements baseline |
 | 2 | System Design & Architecture | `/design` | HLD, data model, API contracts, security architecture, folder structure, ADRs | Signed design baseline |
 | 3 | UI/UX Design | `/uiux` | IA & user flows, wireframes, design system, hi-fi specs, developer handoff | Signed UI/UX design baseline |
-| 4 | Project Setup & DevOps | *(coming soon)* | Repository scaffold, CI/CD pipeline, Docker, environments, secrets | Dev environment running, CI green |
+| 4 | Project Setup & DevOps | `/setup` | Repository structure, local dev, TypeScript, quality gates, CI/CD, infrastructure, secrets | Phase gate approved, dev running, CI green |
 | 5 | Development (Sprints) | *(coming soon)* | Working software, sprint deliverables, code review | Sprint acceptance criteria met |
 | 6 | QA & Testing | *(coming soon)* | Test reports, coverage metrics, bug triage | All Must Have stories pass |
 | 7 | Deployment & Go-Live | *(coming soon)* | Production deployment, monitoring, runbooks, go-live sign-off | SLAs verified, rollback tested |
@@ -45,7 +45,7 @@ Before starting any phase:
    Step 1 — Requirements:  [Complete ✓ / In Progress / Not Started]
    Step 2 — Design:        [Complete ✓ / In Progress / Not Started]
    Step 3 — UI/UX:         [Complete ✓ / In Progress / Not Started]
-   Step 4 — Setup:         [Coming soon]
+   Step 4 — Setup:         [Complete ✓ / In Progress / Not Started]
    Step 5 — Development:   [Coming soon]
    Step 6 — QA:            [Coming soon]
    Step 7 — Deployment:    [Coming soon]
@@ -107,21 +107,20 @@ Run `/uiux` which orchestrates:
 
 **Phase 3 Gate:** `docs/design/uiux/uiux-signoff.md` exists with "Approved" status.
 
-### Phase 4 — Project Setup & DevOps *(coming soon)*
+### Phase 4 — Project Setup & DevOps
 
-This phase will cover:
-- Repository scaffold from the agreed folder structure (WS5)
-- Monorepo tooling configuration (npm/pnpm workspaces, Turborepo)
-- TypeScript configuration (`tsconfig.base.json`, per-package configs, path aliases)
-- Docker and Docker Compose setup (dev + prod variants)
-- CI/CD pipeline (GitHub Actions / GitLab CI / Jenkins) — lint, test, build, deploy stages
-- Environment strategy (dev, staging, prod) with secrets management
-- Monitoring and logging infrastructure setup
-- Database seeding for development environment
+Run `/setup` which orchestrates:
+- `/setup-check` → Pre-check, existing setup scan, infrastructure inventory
+- `/setup-repo` → Repository structure, branching strategy, monorepo tooling
+- `/setup-local-dev` → Docker Compose, dev scripts, seed data, onboarding guide
+- `/setup-typescript` → tsconfig files, build pipeline, path aliases, shared packages
+- `/setup-quality` → ESLint, Prettier, git hooks, commit convention, test config
+- `/setup-ci` → CI/CD pipelines, Docker builds, deployment strategy
+- `/setup-k8s` → Container orchestration, networking, observability, high availability
+- `/setup-secrets` → Secrets management, environment config, certificates, rotation
+- `/setup-review` → Cross-workstream consistency, compliance audit, sign-off
 
-**Phase 4 Gate:** `npm run dev` starts all services locally; CI pipeline is green on main branch.
-
-To be implemented as `/setup-scaffold`, `/setup-cicd`, `/setup-docker`, `/setup-monitoring`.
+**Phase 4 Gate:** `docs/setup/phase-gate-review.md` exists with "Approved" status. `npm run dev` starts all services locally; CI pipeline is green on main branch.
 
 ### Phase 5 — Development (Sprints) *(coming soon)*
 

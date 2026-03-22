@@ -178,6 +178,28 @@ Slash commands for structured UI/UX design. Run `/uiux` for the full process or 
 
 All outputs are saved to `docs/design/uiux/`.
 
+## Project Setup & DevOps Skills
+
+Slash commands for structured project setup and infrastructure. Run `/setup` for the full process or individual workstreams as needed.
+
+| Command | Workstream | Deliverable |
+|---|---|---|
+| `/setup` | Full orchestrator | Runs all workstreams sequentially |
+| `/setup-check` | Pre-check | Scans for existing setup & infrastructure artifacts |
+| `/setup-repo` | WS1 — Repository Structure | Branching strategy, monorepo tooling, branch protection |
+| `/setup-local-dev` | WS2 — Local Dev Environment | Docker Compose, dev scripts, seed data, onboarding guide |
+| `/setup-typescript` | WS3 — TypeScript & Build | tsconfig files, build pipeline, path aliases, shared packages |
+| `/setup-quality` | WS4 — Code Quality Gates | ESLint, Prettier, git hooks, commit convention, test config |
+| `/setup-ci` | WS5 — CI/CD Pipeline | CI/CD workflows, Docker builds, deployment strategy |
+| `/setup-k8s` | WS6 — Container Orchestration | K8s config, networking, observability, high availability |
+| `/setup-secrets` | WS7 — Secrets Management | Secrets platform, env config, certificates, rotation policy |
+| `/setup-review` | Validation & Phase Gate | Cross-workstream consistency, compliance audit, sign-off |
+
+**Workstream dependency order** (strict sequential):
+WS1 → WS2 + WS3 (parallel) → WS4 → WS5 → WS6 → WS7 → Review
+
+All outputs are saved to `docs/setup/`.
+
 ## Master SDLC Workflow
 
 Run `/workflow` at any time to see the full 7-step SDLC status and get guided to the next phase.
@@ -187,7 +209,7 @@ Run `/workflow` at any time to see the full 7-step SDLC status and get guided to
 | 1 | Requirements Gathering | `/requirements` | Available |
 | 2 | System Design & Architecture | `/design` | Available |
 | 3 | UI/UX Design | `/uiux` | Available |
-| 4 | Project Setup & DevOps | *(coming soon)* | Planned |
+| 4 | Project Setup & DevOps | `/setup` | Available |
 | 5 | Development (Sprints) | *(coming soon)* | Planned |
 | 6 | QA & Testing | *(coming soon)* | Planned |
 | 7 | Deployment & Go-Live | *(coming soon)* | Planned |
