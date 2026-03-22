@@ -1,6 +1,5 @@
 import { Queue, Worker, Job } from 'bullmq';
 import { logger } from '@task-tracker/utils';
-import { getRedisClient } from './redisClient';
 
 // Shared connection config
 const connection = { host: 'localhost', port: 6379 };
@@ -24,10 +23,44 @@ export interface EmailJob {
   plainText: string;
 }
 
+export interface SnoozeJob {
+  notificationId: string;
+  userId: string;
+}
+
+export interface DigestJob {
+  userId: string;
+  timezone: string;
+}
+
 export const emailQueue = new Queue<EmailJob>('email-delivery', {
   connection: makeConnection(),
   defaultJobOptions: { attempts: 5, backoff: { type: 'exponential', delay: 2000 }, removeOnComplete: 100, removeOnFail: 50 },
 });
+
+export const snoozeQueue = new Queue<SnoozeJob>('snooze-delivery', {
+  connection: makeConnection(),
+  defaultJobOptions: { attempts: 3, backoff: { type: 'exponential', delay: 1000 }, removeOnComplete: 50, removeOnFail: 20 },
+});
+
+export const digestQueue = new Queue<DigestJob>('digest-delivery', {
+  connection: makeConnection(),
+  defaultJobOptions: { attempts: 3, backoff: { type: 'exponential', delay: 5000 }, removeOnComplete: 50, removeOnFail: 20 },
+});
+
+/**
+ * Schedule a delayed snooze wake-up job.
+ * The job fires at `wakeAt`, clears snoozeUntil, and re-emits the notification via socket.
+ */
+export async function scheduleSnoozeWakeup(notificationId: string, userId: string, wakeAt: Date): Promise<void> {
+  const delayMs = Math.max(0, wakeAt.getTime() - Date.now());
+  await snoozeQueue.add(
+    'snooze-wakeup',
+    { notificationId, userId },
+    { delay: delayMs, jobId: `snooze:${notificationId}` }
+  );
+  logger.debug('queues: snooze job scheduled', { notificationId, delayMs });
+}
 
 export function startEmailWorker(): void {
   if (process.env.ENABLE_EMAIL_CHANNEL !== 'true') {
@@ -53,5 +86,29 @@ export function startEmailWorker(): void {
 
   worker.on('completed', (job) => {
     logger.debug('emailWorker: job completed', { jobId: job.id });
+  });
+}
+
+export function startSnoozeWorker(): void {
+  const worker = new Worker<SnoozeJob>(
+    'snooze-delivery',
+    async (job: Job<SnoozeJob>) => {
+      const { notificationId, userId } = job.data;
+      // Lazy-import to avoid circular dep
+      const { clearSnooze } = await import('../repositories/notificationRepository');
+      const { emitToUser } = await import('./socketServer');
+      const notification = await clearSnooze(notificationId, userId);
+      if (notification) {
+        emitToUser(userId, 'notification:new', notification);
+        logger.debug('snoozeWorker: notification re-delivered', { notificationId, userId });
+      }
+    },
+    { connection: makeConnection(), concurrency: 10 }
+  );
+
+  worker.on('failed', (job, err) => {
+    if (job) {
+      logger.warn('snoozeWorker: job failed', { jobId: job.id, error: err.message });
+    }
   });
 }

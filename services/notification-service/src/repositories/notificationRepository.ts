@@ -67,6 +67,15 @@ export const archive = async (userId: string, id: string): Promise<boolean> => {
   return result.modifiedCount > 0;
 };
 
+export const clearSnooze = async (id: string, userId: string): Promise<INotification | null> => {
+  const doc = await Notification.findOneAndUpdate(
+    { _id: id, userId },
+    { $unset: { snoozeUntil: '' } },
+    { new: true }
+  ).lean();
+  return doc as unknown as INotification | null;
+};
+
 export const findByIdempotencyKey = async (key: string): Promise<INotification | null> => {
   return Notification.findOne({ idempotencyKey: key }).lean() as unknown as INotification | null;
 };
