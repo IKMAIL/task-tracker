@@ -3,6 +3,8 @@ import { useFetch } from '../hooks/useFetch';
 import { listApiKeys, createApiKey, revokeApiKey, ALL_PERMISSIONS, ApiKeyInfo, ApiKeyPermission } from '../api/apiKeyApi';
 import Spinner from '../components/common/Spinner';
 import ErrorBanner from '../components/common/ErrorBanner';
+import { useToast } from '../context/ToastContext';
+import { useConfirm } from '../context/ConfirmContext';
 
 const PERMISSION_LABELS: Record<ApiKeyPermission, string> = {
   'tasks:read':     'Tasks — Read',
@@ -31,6 +33,8 @@ function PermissionBadge({ perm }: { perm: string }) {
 }
 
 export default function ApiKeysPage(): React.ReactElement {
+  const { addToast } = useToast();
+  const { confirm } = useConfirm();
   const { data: keys, loading, error, refetch } = useFetch<ApiKeyInfo[]>(listApiKeys);
   const [showForm, setShowForm] = useState(false);
   const [name, setName] = useState('');
@@ -59,6 +63,7 @@ export default function ApiKeysPage(): React.ReactElement {
     try {
       const res = await createApiKey({ name, permissions: Array.from(selectedPerms), expiresAt: expiresAt || null });
       setNewKeyValue(res.data.key);
+      addToast('API key created — copy it now', 'success');
       resetForm();
       setShowForm(false);
       refetch();
@@ -70,10 +75,10 @@ export default function ApiKeysPage(): React.ReactElement {
   };
 
   const handleRevoke = async (id: string, keyName: string) => {
-    if (!window.confirm(`Revoke key "${keyName}"? It will stop working immediately.`)) return;
+    if (!(await confirm(`Revoke key "${keyName}"? It will stop working immediately.`, 'Revoke API Key'))) return;
     setRevoking(id);
-    try { await revokeApiKey(id); refetch(); }
-    catch (err: unknown) { alert((err as Error).message); }
+    try { await revokeApiKey(id); addToast(`Key "${keyName}" revoked`, 'success'); refetch(); }
+    catch (err: unknown) { addToast((err as Error).message, 'error'); }
     finally { setRevoking(null); }
   };
 

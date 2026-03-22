@@ -12,6 +12,9 @@ import {
 } from "../api/teamApi";
 import Spinner from "../components/common/Spinner";
 import ErrorBanner from "../components/common/ErrorBanner";
+import { useToast } from "../context/ToastContext";
+import { useConfirm } from "../context/ConfirmContext";
+import LoadingButton from "../components/common/LoadingButton";
 
 interface Member {
   _id: string;
@@ -57,6 +60,8 @@ function formatDate(d: string | null): string {
 }
 
 export default function TeamManagementPage(): React.ReactElement {
+  const { addToast } = useToast();
+  const { confirm } = useConfirm();
   const { data: teams, loading, error, refetch } = useFetch<Team[]>(listTeams);
 
   // Team form state
@@ -124,8 +129,10 @@ export default function TeamManagementPage(): React.ReactElement {
     try {
       if (editingId) {
         await updateTeam(editingId, form as unknown as Record<string, unknown>);
+        addToast('Team updated', 'success');
       } else {
         await createTeam(form as unknown as Record<string, unknown>);
+        addToast('Team created', 'success');
       }
       cancel();
       refetch();
@@ -137,10 +144,11 @@ export default function TeamManagementPage(): React.ReactElement {
   };
 
   const handleDelete = async (team: Team) => {
-    if (!window.confirm(`Delete team "${team.name}"? This cannot be undone.`))
+    if (!(await confirm(`Delete team "${team.name}"? This cannot be undone.`, 'Delete Team')))
       return;
     try {
       await deleteTeam(team._id);
+      addToast(`Team "${team.name}" deleted`, 'success');
       refetch();
     } catch (err: unknown) {
       setFormError((err as Error).message);
@@ -176,6 +184,7 @@ export default function TeamManagementPage(): React.ReactElement {
       const res = await createMember(payload);
       const newMemberId = res.data._id;
       await addMemberToTeam(expandedTeamId, newMemberId);
+      addToast(`${memberForm.name} added to team`, 'success');
       setMemberForm(emptyMemberForm);
       setShowNewMemberForm(false);
       refetch();
@@ -204,10 +213,11 @@ export default function TeamManagementPage(): React.ReactElement {
   };
 
   const handleRemoveMember = async (teamId: string, memberId: string, memberName: string) => {
-    if (!window.confirm(`Remove "${memberName}" from this team?`)) return;
+    if (!(await confirm(`Remove "${memberName}" from this team?`, 'Remove Member'))) return;
     setFormError("");
     try {
       await removeMemberFromTeam(teamId, memberId);
+      addToast(`${memberName} removed from team`, 'success');
       refetch();
     } catch (err: unknown) {
       setFormError((err as Error).message);
@@ -258,17 +268,9 @@ export default function TeamManagementPage(): React.ReactElement {
             />
           </div>
           <div style={{ display: "flex", gap: "0.5rem" }}>
-            <button
-              type="submit"
-              className="btn btn-primary"
-              disabled={submitting}
-            >
-              {submitting
-                ? "Saving..."
-                : editingId
-                  ? "Update Team"
-                  : "Create Team"}
-            </button>
+            <LoadingButton type="submit" className="btn btn-primary" loading={submitting}>
+              {editingId ? "Update Team" : "Create Team"}
+            </LoadingButton>
             <button type="button" className="btn btn-sm" onClick={cancel}>
               Cancel
             </button>

@@ -5,6 +5,8 @@ import { useFetch } from '../hooks/useFetch';
 import { listTeams, getTeam } from '../api/teamApi';
 import ErrorBanner from '../components/common/ErrorBanner';
 import Spinner from '../components/common/Spinner';
+import LoadingButton from '../components/common/LoadingButton';
+import Breadcrumb from '../components/common/Breadcrumb';
 
 const CATEGORIES = [
   'Automation Testing Coverage', 'DR Dry Run', 'Active-Active Setup',
@@ -146,8 +148,14 @@ export default function TaskFormPage(): React.ReactElement {
 
   if (isEditMode && loadingTask) return <div className="page"><Spinner /></div>;
 
+  const existingTitle = (existingTask?.data || existingTask)?.title;
+  const breadcrumbs = isEditMode
+    ? [{ label: 'Tasks', to: '/tasks' }, { label: existingTitle || 'Task', to: `/tasks/${taskId}` }, { label: 'Edit Task' }]
+    : [{ label: 'Tasks', to: '/tasks' }, { label: 'New Task' }];
+
   return (
     <div className="page">
+      <Breadcrumb crumbs={breadcrumbs} />
       <div className="page-header"><h1>{isEditMode ? 'Edit Task' : 'New Task'}</h1><Link to={isEditMode ? `/tasks/${taskId}` : '/tasks'} className="btn btn-sm">← Back</Link></div>
       <ErrorBanner message={error} />
       <form className="form-card" onSubmit={handleSubmit}>
@@ -289,9 +297,9 @@ export default function TaskFormPage(): React.ReactElement {
           )}
         </div>
 
-        <button type="submit" className="btn btn-primary" disabled={submitting} style={{ marginTop: '16px' }}>
-          {submitting ? (isEditMode ? 'Saving...' : 'Creating...') : (isEditMode ? 'Save Changes' : 'Create Task')}
-        </button>
+        <LoadingButton type="submit" className="btn btn-primary" loading={submitting} style={{ marginTop: '16px' }}>
+          {isEditMode ? 'Save Changes' : 'Create Task'}
+        </LoadingButton>
       </form>
     </div>
   );

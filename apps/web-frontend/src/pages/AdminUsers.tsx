@@ -5,11 +5,15 @@ import { listUsers, updateUser, AdminUser } from '../api/userApi';
 import { useAuth } from '../context/AuthContext';
 import Spinner from '../components/common/Spinner';
 import ErrorBanner from '../components/common/ErrorBanner';
+import { useToast } from '../context/ToastContext';
+import { useConfirm } from '../context/ConfirmContext';
 
 type StatusFilter = 'all' | 'active' | 'inactive';
 
 export default function AdminUsers(): React.ReactElement {
   const { user: currentUser } = useAuth();
+  const { addToast } = useToast();
+  const { confirm } = useConfirm();
   const { data: users, loading, error, refetch } = useFetch<AdminUser[]>(listUsers);
 
   const [search, setSearch] = useState('');
@@ -37,15 +41,12 @@ export default function AdminUsers(): React.ReactElement {
   );
 
   const handleRoleChange = async (u: AdminUser, newRole: 'admin' | 'member') => {
-    if (
-      !window.confirm(
-        `Change ${u.name}'s role from "${u.role}" to "${newRole}"?`,
-      )
-    )
+    if (!(await confirm(`Change ${u.name}'s role from "${u.role}" to "${newRole}"?`, 'Change Role')))
       return;
     setActionError(null);
     try {
       await updateUser(u._id, { role: newRole });
+      addToast(`${u.name}'s role updated to ${newRole}`, 'success');
       refetch();
     } catch (err: unknown) {
       setActionError((err as Error).message);
@@ -55,10 +56,11 @@ export default function AdminUsers(): React.ReactElement {
   const handleToggleActive = async (u: AdminUser) => {
     const nextState = u.isActive === false ? true : false;
     const action = nextState ? 'reactivate' : 'deactivate';
-    if (!window.confirm(`Are you sure you want to ${action} ${u.name}?`)) return;
+    if (!(await confirm(`Are you sure you want to ${action} ${u.name}?`, 'Confirm Action'))) return;
     setActionError(null);
     try {
       await updateUser(u._id, { isActive: nextState });
+      addToast(`${u.name} ${action}d`, 'success');
       refetch();
     } catch (err: unknown) {
       setActionError((err as Error).message);
