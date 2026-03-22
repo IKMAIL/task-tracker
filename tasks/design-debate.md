@@ -102,3 +102,146 @@ The comparison set to target: Linear (cool whites, graphite grays, vibrant accen
 - Add `.data-table tbody tr:hover { background: var(--bg-subtle); cursor: pointer; }` — zero-effort row hover state that is inexplicably missing.
 
 **What I am NOT changing:** Orange primary (`#F97316`), teal secondary (`#0D9488`), Raleway/Mulish fonts, dark header. The accent pair is fine. The base canvas is broken.
+
+---
+
+## Beta's Response to Alpha
+
+### Points of Agreement
+
+**1. The warm beige is wrong for this context.** Alpha is correct. `#F5F4F0` shifts every color on screen toward yellow and makes the orange muddy. The tool context is engineering, not artisan. Cool-neutral page base is the right call.
+
+**2. Orange on light backgrounds fails WCAG AA.** Confirmed. `#F97316` on `#FFFFFF` is approximately 3.0:1 — a compliance failure for normal body text. Alpha's math holds. This is non-negotiable to fix.
+
+**3. Table header is not distinct enough from table body.** The `--bg-subtle` / `--bg-surface` delta is too small. Agreed entirely.
+
+**4. `.btn-sm` is a ghost.** `#E2DDD6` on `#FFFFFF` without a border is invisible. Agreed. Needs a defined background and border.
+
+**5. Row hover state is missing.** No `tbody tr:hover` rule exists. Alpha is right to flag this. Not a token issue but a real interaction design gap.
+
+**6. Link color discipline: teal over orange for navigational links.** Architecturally correct. Orange is a CTA signal. Teal (`--color-secondary-dark`) is semantically appropriate for links and achieves approximately 4.8:1 on white — passes WCAG AA. I accept this direction.
+
+---
+
+### Disagreements and Additions
+
+**Disagreement 1: Alpha's gray ramp wholesale adopts Slate — this erases the brand.**
+
+Alpha maps `--color-gray-400` through `--color-gray-600` to Slate-400, Slate-500, Slate-600 (`#94A3B8`, `#64748B`, `#475569`). These are pure blue-gray with zero warmth. The result is a palette that has zero relationship to the orange/teal accent pair — it will look like someone bolted a Tailwind default theme onto a brand design system. The fix should be a *warm-cool hybrid*: cool enough to read as precise, warm enough to not be sterile. I propose a neutral gray ramp that sits between the current brown-warm and Alpha's blue-cold.
+
+Critically: `--color-gray-700`, `--color-gray-800`, and `--color-gray-900` are used as `--text-primary` (`#1A120B`) and `--bg-header`. Alpha does NOT propose changing these. This creates an internal contradiction: if you cool the 100–600 range to pure Slate but leave 700–900 as warm charcoal-brown, the gray ramp is not a ramp — it is two incompatible scales glued together. Either accept that the scale has warm anchors at the dark end (which I do), or change 700–900 as well (which risks breaking the dark header). The correct answer is to use a muted warm-neutral for 100–600 that gracefully bridges to the existing warm-dark anchor. Tailwind's `zinc` scale (`#F4F4F5`, `#E4E4E7`, `#D4D4D8`, `#A1A1AA`, `#71717A`, `#52525B`) achieves this — cool enough to read as precise, retains a faint gray-warm that connects to the charcoal anchors without feeling brown.
+
+**Disagreement 2: Alpha's `--text-muted` and `--text-secondary` collapse to the same value.**
+
+Alpha proposes `#64748B` for both `--text-muted` and `--text-secondary`. These are currently the same value (`#6B5D52`) in the existing broken system — Alpha reproduces the bug rather than fixing it. Two separate tokens should carry two separate values to allow hierarchy. I propose `--text-muted: #71717A` (zinc-500, ~4.6:1 on white, passes AA) and `--text-secondary: #52525B` (zinc-600, ~7.2:1 on white, stronger — suitable for secondary headings and labels).
+
+**Disagreement 3: Alpha understates the `--bg-subtle` delta problem.**
+
+Alpha proposes `#ECEEF2` for `--bg-subtle` against `#FFFFFF` for `--bg-surface`. In HSL: `#ECEEF2` is approximately L=93.5%, `#FFFFFF` is L=100%. That is 6.5 lightness points — better than current but still borderline. On a monitor with any brightness variation, this can still collapse. I propose `#E8EAED` (L≈91.5%) — gives 8.5 lightness points of separation, clearly perceptible without being a strong gray block.
+
+**Addition 1: Alpha missed `.breadcrumb a` — same WCAG failure.**
+
+`.breadcrumb a` is hardcoded to `color: var(--color-primary)` (orange `#F97316`) at `font-size: 0.8rem`. At that size it is *small* text, requiring 4.5:1. Orange on white fails at 3.0:1. This is a second location with the exact same bug Alpha flagged for `.data-table a`. The fix must be applied here too: `color: var(--color-secondary-dark)`.
+
+**Addition 2: Alpha missed `.tab-bar button.active` — orange text on white.**
+
+`.tab-bar button.active` sets `color: var(--color-primary)` — orange on white background at 0.875rem body size. Same 3.0:1 failure. This needs to change to `--color-secondary-dark` or a darkened orange. I recommend `--color-secondary-dark` (`#0B7B70`) for consistency with the link fix. The active tab underline accent can remain orange (`border-bottom-color: var(--color-primary)`) — that is decorative, not text.
+
+**Addition 3: The dot-grid background pattern needs its opacity recalibrated.**
+
+Currently `radial-gradient(circle, rgba(0,0,0,0.07) 1px, transparent 1px)`. On warm beige this was already barely visible — 7% opacity on `#F5F4F0` is subtle. On a lighter cool page base it will be near-invisible. The dot opacity should rise to `rgba(0,0,0,0.09)` — this is a `:root` variable that currently does not exist as a token, so this is a non-token fix. This keeps the engineering graph-paper atmosphere Alpha correctly identified as appropriate.
+
+**Addition 4: Alpha proposes no fix for `--color-gray-700` / `800` / `900`.**
+
+These currently carry `#4A3F36`, `#2E251E`, `#1A120B` — all warm brown. Since `--text-primary` is `var(--color-gray-900)` = `#1A120B`, and this token is used on `--bg-surface` white, the contrast is (1.05)/(0.006+0.05) ≈ **18.8:1**. No accessibility problem here — dark-on-light is fine. I agree with Alpha that these should NOT be changed. The warm charcoal is what gives the tool its character and anchors the dark header. Leave 700–900 alone.
+
+**Addition 5: `--shadow` tint correction is slightly over-engineered.**
+
+Alpha changes the shadow tint from `rgba(30,18,8,0.14)` to `rgba(15,23,42,0.10)`. The problem: `rgba(15,23,42)` is pure Slate-950 blue-black. On a warm-charcoal UI with an orange accent, blue-tinted shadows introduce a colour cast that will fight the warm header. A neutral shadow — `rgba(0,0,0,0.12)` — has no tint at all and is the safer default. Linear and GitHub both use neutral black shadows. The existing *warm* brown tint in the shadows is wrong; the *cool blue* tint Alpha proposes is also wrong. Pure neutral is correct.
+
+---
+
+### Beta's Revised Token Proposals
+
+| Token | Alpha Proposes | Beta Proposes | Reason |
+|-------|---------------|---------------|--------|
+| `--bg-page` | `#F4F5F7` | `#F5F6F7` | Marginally warmer than Alpha's but still cool-neutral; zinc-50 feel |
+| `--bg-surface` | `#FFFFFF` | `#FFFFFF` | Agreed |
+| `--bg-subtle` | `#ECEEF2` | `#E8EAED` | Need 8+ lightness-point delta vs surface for perceptible table header separation |
+| `--bg-input` | `#FFFFFF` | `#FFFFFF` | Agreed |
+| `--bg-btn-sm` | `#EDF0F5` | `#EAEBED` | Zinc-100 feel — cooler than current but not pure blue-gray |
+| `--bg-btn-sm-hover` | `#D8DCE5` | `#D4D5D9` | Consistent with zinc scale |
+| `--border` | `#DDE1E9` | `#DDDFE3` | Zinc-200 adjacent — cool gray, sharper than current warm brown |
+| `--text-muted` | `#64748B` | `#71717A` | Zinc-500: 4.6:1 on white (passes AA), warm-neutral not pure Slate-blue |
+| `--text-secondary` | `#64748B` | `#52525B` | Zinc-600: 7.2:1 — gives token hierarchy Alpha collapses |
+| `--color-gray-100` | `#ECEEF2` | `#E8EAED` | Match `--bg-subtle` |
+| `--color-gray-200` | `#DDE1E9` | `#DDDFE3` | Match `--border` |
+| `--color-gray-300` | `#C4CBD8` | `#C2C4C9` | Warm-cool hybrid, not pure Slate |
+| `--color-gray-400` | `#94A3B8` | `#A1A1AA` | Zinc-400: neutral, no blue cast |
+| `--color-gray-500` | `#64748B` | `#71717A` | Zinc-500: matches `--text-muted` |
+| `--color-gray-600` | `#475569` | `#52525B` | Zinc-600: matches `--text-secondary` |
+| `--bg-secondary` | `#ECEEF2` | `#E8EAED` | Alias to new gray-100 |
+| `--bg-code` | `#F4F5F7` | `#F5F6F7` | Alias to new `--bg-page` |
+| `--shadow` | `0 1px 3px rgba(15,23,42,0.10)` | `0 1px 3px rgba(0,0,0,0.12)` | Neutral tint — avoids both warm-brown AND cool-blue cast |
+| `--shadow-sm` | `0 1px 2px rgba(15,23,42,0.07)` | `0 1px 2px rgba(0,0,0,0.08)` | Neutral |
+| `--shadow-md` | `0 4px 12px rgba(15,23,42,0.09)` | `0 4px 12px rgba(0,0,0,0.10)` | Neutral |
+| `--shadow-lg` | `0 8px 28px rgba(15,23,42,0.14)` | `0 8px 28px rgba(0,0,0,0.15)` | Neutral |
+| `--accent-light` | `rgba(249,115,22,0.10)` | `rgba(249,115,22,0.10)` | Agreed — keep |
+
+---
+
+## FINAL CONSENSUS (Beta's version — Alpha to ratify or push back)
+
+### Agreed Token Values
+
+| Token | Value | Rationale |
+|-------|-------|-----------|
+| `--bg-page` | `#F5F6F7` | Cool off-white; kills warm muddiness; graph-paper dots read as engineering, not parchment |
+| `--bg-surface` | `#FFFFFF` | Pure white surfaces — correct |
+| `--bg-subtle` | `#E8EAED` | 8.5 lightness points below surface — perceptible table header separation without strong gray block |
+| `--bg-input` | `#FFFFFF` | No change |
+| `--bg-btn-sm` | `#EAEBED` | Visible on white without competing with primary hierarchy |
+| `--bg-btn-sm-hover` | `#D4D5D9` | Consistent step darker |
+| `--border` | `#DDDFE3` | Cool-neutral gray border; sharper edge definition |
+| `--text-muted` | `#71717A` | Zinc-500; 4.6:1 on white (WCAG AA pass); warm-neutral not Slate-blue |
+| `--text-secondary` | `#52525B` | Zinc-600; 7.2:1 — distinct from `--text-muted`, restores token hierarchy |
+| `--bg-secondary` | `#E8EAED` | Alias to gray-100 |
+| `--bg-code` | `#F5F6F7` | Alias to bg-page |
+| `--color-gray-100` | `#E8EAED` | Zinc-adjacent cool-neutral |
+| `--color-gray-200` | `#DDDFE3` | Matches `--border` |
+| `--color-gray-300` | `#C2C4C9` | Warm-cool hybrid; bridges to warm-charcoal 700–900 anchor |
+| `--color-gray-400` | `#A1A1AA` | Zinc-400; neutral, no blue cast |
+| `--color-gray-500` | `#71717A` | Zinc-500 |
+| `--color-gray-600` | `#52525B` | Zinc-600 |
+| `--color-gray-700` | `#4A3F36` | NO CHANGE — warm charcoal anchors the system |
+| `--color-gray-800` | `#2E251E` | NO CHANGE |
+| `--color-gray-900` | `#1A120B` | NO CHANGE — used as `--text-primary` and `--bg-header`; high contrast, brand identity |
+| `--shadow` | `0 1px 3px rgba(0,0,0,0.12)` | Neutral tint shadow — no warm-brown, no Slate-blue |
+| `--shadow-sm` | `0 1px 2px rgba(0,0,0,0.08)` | Neutral |
+| `--shadow-md` | `0 4px 12px rgba(0,0,0,0.10)` | Neutral |
+| `--shadow-lg` | `0 8px 28px rgba(0,0,0,0.15)` | Neutral |
+| `--accent-light` | `rgba(249,115,22,0.10)` | No change |
+
+### Key UI Principles Agreed
+
+1. **Page base must be cool-neutral, not warm-brown.** `#F5F6F7` is the agreed direction. This fixes dot-grid perception and de-mudifies the orange and teal accents.
+2. **Orange (`#F97316`) is CTA only — never navigational link text on light backgrounds.** Every instance of `color: var(--color-primary)` used as a link (`.data-table a`, `.breadcrumb a`, `.tab-bar button.active`) must be replaced with `color: var(--color-secondary-dark)` (`#0B7B70`).
+3. **Surface layer separation must be perceptible at a glance.** `--bg-subtle` at `#E8EAED` gives an 8.5-point HSL lightness delta vs white — the minimum for reliable table header distinction.
+4. **Gray ramp is warm-cool hybrid, not pure Slate.** Zinc (100–600) provides cool-neutral precision without the Slate blue-cast that fights the warm charcoal (700–900) anchors.
+5. **Shadow tint is neutral black, not colored.** `rgba(0,0,0,x)` avoids both the current warm-brown problem and Alpha's proposed Slate-blue problem.
+6. **`--text-muted` and `--text-secondary` must remain distinct tokens with distinct values.** Collapsing them (as both current code and Alpha's proposal do) destroys typographic hierarchy.
+7. **WCAG AA is non-negotiable.** All body and label text must achieve 4.5:1 on its background. All large text (18px+ or 14px bold) must achieve 3:1.
+
+### Implementation Notes
+
+- Only change `:root {}` tokens in `global.css`
+- Keep dark theme (`[data-theme="dark"]`) untouched — it is already on a cool-neutral scale and has no warm-brown problem
+- Keep orange (`#F97316`) and teal (`#0D9488`) accent pair untouched
+- **Non-token CSS rule changes required (three locations):**
+  - `.data-table a`: `color: var(--color-primary)` → `color: var(--color-secondary-dark)`
+  - `.breadcrumb a`: `color: var(--color-primary)` → `color: var(--color-secondary-dark)`
+  - `.tab-bar button.active`: `color: var(--color-primary)` → `color: var(--color-secondary-dark)` (the `border-bottom-color` orange underline stays)
+  - `.data-table tbody tr:hover`: add `{ background: var(--bg-subtle); cursor: pointer; }`
+  - `.btn-sm`: add `border: 1px solid var(--border)` to give the button visual definition on white surfaces
+  - `body` background dot-grid: raise opacity from `0.07` to `0.09` to keep the pattern legible on lighter page base
+- Apply changes atomically — the gray ramp tokens cascade into many components; a partial change will create inconsistency
